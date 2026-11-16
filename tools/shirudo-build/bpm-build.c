@@ -382,17 +382,10 @@ static bool build_version_ok(const char *s)
 	return s && strlen(s) < 128 && bpm_semver_valid(s);
 }
 
-/*
- * A BPF upatch, or a Java agent jar, which has no maps to rewrite or
- * label and no programs for the tree's device classes.
- */
+/* Only BPF upatches have a packager in this Rust port. */
 static bool build_upatch_type_ok(const struct bpm_build_upatch *u)
 {
-	if (!strcmp(u->type, "bpf"))
-		return true;
-	return !strcmp(u->type, "java") &&
-	       name_has_suffix(u->source, strlen(u->source), ".jar") &&
-	       !u->n_rodata && !u->n_policies;
+	return !strcmp(u->type, "bpf");
 }
 
 static int build_default_targets(struct bpm_build_upatch *u)
@@ -1386,27 +1379,9 @@ static int build_upatch_unload(struct bpm_build_upatch *u, const char *load,
 	if (ret)
 		return ret;
 	if (java)
-		ret = build_package_java_unload(u->name, payload, unload, pkey,
-						cert);
-	else
-		ret = build_package_unload(u->name, payload, unload, pkey,
-					   cert);
+		return -ENOTSUP;
+	ret = build_package_unload(u->name, payload, unload, pkey, cert);
 	return ret < 0 ? ret : ret ? -EIO : 0;
-}
-
-static int build_java_upatch(struct bpm_build_upatch *u, const char *source,
-			     const char *load, const char *unload,
-			     const char *pkey, const char *cert)
-{
-	char name[UPATCH_NAME_MAX];
-	int ret;
-
-	if (build_upatch_name(source, name, sizeof(name)))
-		return -ENAMETOOLONG;
-	ret = build_package_java_load(source, load, name, pkey, cert);
-	if (ret)
-		return ret < 0 ? ret : -EIO;
-	return build_upatch_unload(u, load, unload, pkey, cert);
 }
 
 /*
@@ -1462,13 +1437,6 @@ static int build_upatches(struct bpm_build_spec *spec, const char *pkey,
 		if (strscpy(u->load_path, load, sizeof(u->load_path)) < 0 ||
 		    strscpy(u->unload_path, unload, sizeof(u->unload_path)) < 0)
 			return -ENAMETOOLONG;
-		if (!strcmp(u->type, "java")) {
-			ret = build_java_upatch(u, source, load, unload, pkey,
-						cert);
-			if (ret)
-				return ret;
-			continue;
-		}
 		if (name_has_suffix(source, strlen(source), ".bpf.c")) {
 			if (!vmlinux_h) {
 				vmlinux_h = build_locate_vmlinux(NULL);
