@@ -300,10 +300,10 @@ BPF_SRCS := \
 # link util/sign.c.
 BUILD_SRCS := \
     tools/shirudo-build/shirudo-build.c \
-    tools/shirudo-build/compile.c \
+     \
     tools/shirudo-build/package.c \
     tools/shirudo-build/jar.c \
-    tools/shirudo-build/vmlinux.c \
+     \
     tools/shirudo-build/bpm-build.c \
     tools/shirudo-build/bpm-publish.c \
     tools/shirudo-build/bpm-show.c \
@@ -383,11 +383,11 @@ RUST_TARGET := build/rust
 RUST_LIB    := $(RUST_TARGET)/release/libshirudo_rs.a
 RUST_SRCS   := $(shell find $(RUST_DIR)/src -name '*.rs') \
                $(RUST_DIR)/Cargo.toml $(RUST_DIR)/Cargo.lock
-RUST_LDLIBS := -static-libgcc
+RUST_LDLIBS := -static-libgcc -Wl,--gc-sections
 # LTO leaves one object in the archive, which a link of a few util
 # objects, a test's or shirudo-build's, pulls in whole: the sections it
 # does not reach go, and with them the references to C it does not link.
-RUST_TEST_LDLIBS := $(RUST_LDLIBS) -Wl,--gc-sections
+RUST_TEST_LDLIBS := $(RUST_LDLIBS)
 RUSTFLAGS_WERROR := $(if $(filter 1,$(WERROR)),-D warnings)
 RUST_LIBEXEC_DIR := $(RUST_TARGET)/.libexec-dir
 ifneq ($(SHIRUDO_LIBEXEC_DIR),$(shell cat $(RUST_LIBEXEC_DIR) 2>/dev/null))
@@ -1282,7 +1282,7 @@ $(FUZZ_OUT)/fuzz-otel: testing/fuzz/fuzz-otel.c $(FUZZ_BASE) \
 $(FUZZ_OUT)/fuzz-beefile: testing/fuzz/fuzz-beefile.c $(FUZZ_BASE) \
                            tools/shirudo-build/bpm-build.c $(FUZZ_PACKAGE) \
                             util/paths.c \
-                           util/version_id.c util/options.c \
+                           util/version_id.c util/options.c util/sign.c \
                            util/similar.c
 $(FUZZ_OUT)/fuzz-oci-http: testing/fuzz/fuzz-oci-http.c $(FUZZ_BASE) \
                             $(FUZZ_OCI)
