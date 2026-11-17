@@ -647,9 +647,9 @@ impl KeyringView {
 
     /// The config certificate comes from the runtime image's bootstrap.
     fn dm_verity(serial: i32, pinned: i32, ident: &Identity) -> Self {
-        let key = ident.dm_verity_key;
+        let key = ident.dm_verity_keys[0];
         let frozen: &[i32] = if pinned >= 1 && key > 0 {
-            core::slice::from_ref(&ident.dm_verity_key)
+            core::slice::from_ref(&ident.dm_verity_keys[0])
         } else {
             &[]
         };
