@@ -929,9 +929,9 @@ testing/helper/test-xfs-attrmulti: testing/helper/test-xfs-attrmulti.c
 	@printf '  CC      $@\n'
 	$(Q)$(CC) $(CFLAGS) -o $@ $^
 
-testing/helper/test-perf-attach: testing/helper/test-perf-attach.c util/string.o
+testing/helper/test-perf-attach: testing/helper/test-perf-attach.c util/log.o util/string.o $(RUST_LIB)
 	@printf '  CC      $@\n'
-	$(Q)$(CC) $(CFLAGS) -I$(BPF_UAPI_INCLUDE) -o $@ $^
+	$(Q)$(CC) $(CFLAGS) -I$(BPF_UAPI_INCLUDE) -o $@ $^ $(RUST_TEST_LDLIBS)
 
 testing/helper/test-upatch-link-lockdown: testing/helper/test-upatch-link-lockdown.c
 	@printf '  CC      $@\n'
