@@ -69,17 +69,6 @@ const struct guard_map shirudo_guard_maps[GUARD_MAP_COUNT] = {
 	},
 };
 
-int enforcement_active(void)
-{
-	int ret = prctl(PR_GET_ENFORCEMENT, 0, 0, 0, 0);
-
-	if (ret >= 0)
-		return -EPROTO;
-	if (errno == PR_ENFORCING_ERR)
-		return 1;
-	return errno == EINVAL || errno == ENOSYS ? 0 : -errno;
-}
-
 bool guard_name_matches(const char *name, const char *full)
 {
 	size_t len = strnlen(name, BPF_OBJ_NAME_LEN);
@@ -135,11 +124,6 @@ int identity_read_at(int dirfd, const char *name, struct identity *out)
 	ret = identity_map_read(fd, out);
 	close(fd);
 	return ret;
-}
-
-int identity_read(struct identity *out)
-{
-	return identity_read_at(AT_FDCWD, IDENTITY_PIN, out);
 }
 
 /*

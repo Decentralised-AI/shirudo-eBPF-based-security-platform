@@ -31,6 +31,8 @@
 static struct identity identity;
 static int identity_error;
 
+int __wrap_identity_read(struct identity *out);
+
 int __wrap_identity_read(struct identity *out)
 {
 	*out = identity;
