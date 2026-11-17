@@ -86,47 +86,6 @@ int upatch_archive_verify(const char *name,
 	return 0;
 }
 
-static int count_non_xdp_link(__u32 index, const char *pin,
-			      const struct bpf_link_info *info, void *ctx)
-{
-	__u32 *found = ctx;
-
-	if (info->type != BPF_LINK_TYPE_XDP)
-		(*found)++;
-	return 0;
-}
-
-/*
- * XDP links come and go with devices, so their number says nothing. What
- * cannot change is a program pin for each XDP program and a link for each
- * other attach program. Link numbers are shared and shift with the devices,
- * so the kernel says which links are which.
- */
-static int xdp_upatch_complete(const char *name, const struct prog_spec *specs,
-			       __u32 nr_progs, __u32 nr_attach)
-{
-	__u32 i, nr_xdp = 0, found = 0;
-	char pin[PATH_MAX];
-	struct stat st;
-	int ret;
-
-	for (i = 0; i < nr_progs; i++) {
-		if (specs[i].kind != UPATCH_ATTACH_XDP)
-			continue;
-		nr_xdp++;
-		if (upatch_xdp_prog_pin(pin, sizeof(pin), name, i))
-			return -ENAMETOOLONG;
-		if (stat(pin, &st))
-			return errno == ENOENT ? 0 : -errno;
-	}
-	if (nr_attach == nr_xdp)
-		return 1;
-	ret = upatch_each_link_info(name, count_non_xdp_link, &found);
-	if (ret)
-		return ret;
-	return found == nr_attach - nr_xdp;
-}
-
 static int links_complete_specs(const char *name,
 				const struct prog_spec *specs, __u32 nr_progs)
 {
@@ -141,8 +100,9 @@ static int links_complete_specs(const char *name,
 		if (specs[i].kind == UPATCH_ATTACH_XDP)
 			has_xdp = true;
 	}
+	/* This parser has no XDP device selection. */
 	if (has_xdp)
-		return xdp_upatch_complete(name, specs, nr_progs, nr_attach);
+		return -EOPNOTSUPP;
 	ret = upatch_pins_read(name, &pins);
 	return ret ? ret : upatch_pins_complete(&pins, nr_attach);
 }
