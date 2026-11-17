@@ -19,6 +19,9 @@
 
 /* This helper checks key sets, not the upatch removal side effect. */
 int upatch_purge(const char *name, const struct cert *signer,
+		 const char *reason);
+
+int upatch_purge(const char *name, const struct cert *signer,
 		 const char *reason)
 {
 	(void)name;

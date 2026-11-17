@@ -201,6 +201,10 @@ int upatch_archive_specs(const char *name,
 	return ret;
 }
 
+/*
+ * The Rust metadata parser has no XDP device classes yet. Refuse XDP
+ * rather than guessing which device should receive a program.
+ */
 int upatch_xdp_each_uncovered(const char *name, const struct prog_spec *specs,
 			      __u32 nr_progs, const struct xdp_device *devices,
 			      size_t count,
@@ -211,34 +215,14 @@ int upatch_xdp_each_uncovered(const char *name, const struct prog_spec *specs,
 {
 	__u32 i;
 
-	for (i = 0; i < nr_progs; i++) {
-		__u32 prog_id = 0;
-		size_t j;
-		int fd;
-
-		if (specs[i].kind != UPATCH_ATTACH_XDP)
-			continue;
-		fd = upatch_xdp_prog_open(name, i, &prog_id);
-		if (fd < 0)
-			return fd;
-		for (j = 0; j < count; j++) {
-			__u32 attached = xdp_device_attached(&devices[j]);
-			int ret;
-
-			if (!xdp_device_selected(devices, count, j,
-						 specs[i].device_classes))
-				continue;
-			if (xdp_reconcile_action(true, attached, prog_id) ==
-			    XDP_RECONCILE_COVERED)
-				continue;
-			ret = cb(fd, &specs[i], &devices[j], attached, ctx);
-			if (ret) {
-				close(fd);
-				return ret;
-			}
-		}
-		close(fd);
-	}
+	(void)name;
+	(void)devices;
+	(void)count;
+	(void)cb;
+	(void)ctx;
+	for (i = 0; i < nr_progs; i++)
+		if (specs[i].kind == UPATCH_ATTACH_XDP)
+			return -EOPNOTSUPP;
 	return 0;
 }
 

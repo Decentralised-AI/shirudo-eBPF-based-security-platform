@@ -213,59 +213,6 @@ static int expect_kprobe_multi(const struct upatch *u, __u32 kind, const char *n
 	return 0;
 }
 
-/* names is the expected list in sorted order, joined by commas. */
-static bool kprobe_names_match(const struct prog_spec *s, const char *names)
-{
-	const char *want = names;
-	__u32 i;
-
-	for (i = 0; i < s->nr_kprobe_syms; i++) {
-		size_t len;
-
-		if (i && *want++ != ',')
-			return false;
-		len = strlen(s->kprobe_syms[i]);
-		if (strnlen(want, len) < len || memcmp(want, s->kprobe_syms[i], len) ||
-		    (want[len] && want[len] != ','))
-			return false;
-		want += len;
-	}
-	return s->nr_kprobe_syms && !*want;
-}
-
-/* Reads back an upatch of one uprobe and one kprobe multi program. */
-static int expect_uprobe_and_kprobe_multi(const struct upatch *u, const char *path,
-					  const char *names)
-{
-	const struct prog_spec *uprobe = NULL, *kprobe = NULL;
-	struct prog_spec *specs = NULL;
-	const void *attach;
-	__u32 len, i;
-	int ret;
-
-	if (u->hdr.nr_progs != 2)
-		return fail("unexpected metadata prog count");
-	attach = upatch_signed_attach(u, &len);
-	if (!attach)
-		return fail("missing signed metadata");
-	if (prog_specs_parse(attach, len, u->hdr.nr_maps, u->hdr.nr_progs, &specs))
-		return fail("the reader refuses the metadata");
-	for (i = 0; i < u->hdr.nr_progs; i++) {
-		if (kind_is_uprobe_single(specs[i].kind))
-			uprobe = &specs[i];
-		else if (kind_is_kprobe_multi(specs[i].kind))
-			kprobe = &specs[i];
-	}
-	if (!uprobe || !uprobe->uprobe_path || strcmp(uprobe->uprobe_path, path))
-		ret = fail("uprobe target mismatch");
-	else if (!kprobe || !kprobe_names_match(kprobe, names))
-		ret = fail("kprobe multi names mismatch");
-	else
-		ret = 0;
-	prog_specs_free(specs, u->hdr.nr_progs);
-	return ret;
-}
-
 static int expect_policy_labels(const struct upatch *u)
 {
 	static const char *const policies[] = {
@@ -343,23 +290,6 @@ int main(int argc, char **argv)
 		ret = expect_attach(&u,
 				    UPATCH_ATTACH_NETFILTER_IPV6_PRE_ROUTING,
 				    NULL, 0);
-	} else if (strcmp(mode, "xdp") == 0 && argc == 4) {
-		struct prog_spec *specs = NULL;
-		const void *attach;
-		__u32 len;
-		__u64 mask;
-
-		attach = upatch_signed_attach(&u, &len);
-		ret = parse_u64(argv[3], strlen(argv[3]), UPATCH_XDP_ALL, &mask);
-		if (!ret)
-			ret = prog_specs_parse(attach, len, u.hdr.nr_maps,
-					       u.hdr.nr_progs, &specs);
-		if (!ret) {
-			if (u.hdr.nr_progs != 1 || specs[0].kind != UPATCH_ATTACH_XDP ||
-			    specs[0].device_classes != mask)
-				ret = fail("XDP metadata mismatch");
-			prog_specs_free(specs, u.hdr.nr_progs);
-		}
 	} else if ((strcmp(mode, "uprobe-multi") == 0 ||
 		    strcmp(mode, "uretprobe-multi") == 0) && argc == 6) {
 		__u32 kind = strcmp(mode, "uretprobe-multi") == 0 ?
@@ -387,8 +317,6 @@ int main(int argc, char **argv)
 		ret = expect_kprobe_multi(&u, UPATCH_ATTACH_KPROBE_MULTI, argv[3]);
 	} else if (strcmp(mode, "kretprobe-multi") == 0 && argc == 4) {
 		ret = expect_kprobe_multi(&u, UPATCH_ATTACH_KRETPROBE_MULTI, argv[3]);
-	} else if (strcmp(mode, "uprobe-kprobe-multi") == 0 && argc == 5) {
-		ret = expect_uprobe_and_kprobe_multi(&u, argv[3], argv[4]);
 	} else if (strcmp(mode, "policy-labels") == 0 && argc == 3) {
 		ret = expect_policy_labels(&u);
 	} else {

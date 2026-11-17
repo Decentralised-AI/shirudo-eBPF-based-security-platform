@@ -14,7 +14,7 @@ use crate::errno::{EACCES, EEXIST, EINVAL, ENAMETOOLONG, ENODEV, ENOENT, ENOSPC,
 use crate::sys::hex::hex_decode;
 use crate::sys::libc::{close, explicit_bzero};
 use crate::sys::string::name_has_suffix;
-use crate::sys::upatch::{upatch_open_first_link, upatch_payload_sha256, upatch_restore};
+use crate::sys::upatch::{upatch_apply, upatch_open_first_link, upatch_payload_sha256};
 use crate::text::cstr;
 use crate::util::bpm_tree::TreeState;
 use crate::util::bpm_tree_state::tree_state_read;
@@ -170,7 +170,7 @@ fn restore_one(
         return Err(-EPERM);
     }
     // SAFETY: a C string.
-    if unsafe { upatch_restore(file.as_ptr()) } != 0 {
+    if unsafe { upatch_apply(file.as_ptr()) } != 0 {
         error(&cat!("boot-restore: failed to apply ", name));
         return Err(-EINVAL);
     }
