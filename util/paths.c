@@ -10,12 +10,3 @@
 #include <shirudo/string.h>
 
 #include "paths.h"
-
-int path_join(char *out, size_t cap, const char *dir, const char *name)
-{
-	if (strsprintf(out, cap, "%s/%s", dir, name) >= 0)
-		return 0;
-	if (cap)
-		out[0] = '\0';
-	return -ENAMETOOLONG;
-}
