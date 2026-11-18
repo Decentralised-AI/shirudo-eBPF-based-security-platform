@@ -1518,7 +1518,7 @@ mod capi {
     /// `where_` is a C string.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn openssl_complain(where_: *const c_char) {
-        // SAFETY: the caller supplies a C string.
+        // SAFETY: the caller passes a C string.
         let where_ = unsafe { CStr::from_ptr(where_) };
         super::openssl_complain(where_);
     }
