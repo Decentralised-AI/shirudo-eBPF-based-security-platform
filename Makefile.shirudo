@@ -583,8 +583,7 @@ tools/shirudo-build/shirudo-build: $(BUILD_MAIN_OBJ) $(BUILD_OBJS) \
                                    util/string.o util/curl.o \
                                    util/bpm_tree_overlap.o \
                                    util/bpm_tree_sync_compat.o \
-                                   util/chain_history.o util/options.o \
-                                   $(VERSION_OBJ) \
+                                   util/chain_history.o $(VERSION_OBJ) \
                                    $(LIBBPF_A) $(RUST_LIB)
 	@printf '  LD      $@\n'
 	$(Q)$(LD) $(CFLAGS) $(HARDEN_LDFLAGS) $(LDFLAGS) $(RPATH_LDFLAGS) -o $@ $^ \
