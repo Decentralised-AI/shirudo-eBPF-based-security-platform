@@ -1340,8 +1340,7 @@ document can carry a software key's signatures (U1).
    failed check named
 :Counters: none
 :Tests: ``t4003``, ``t4004``, ``t4102``
-:Proofs: ``config-evidence-parse``, ``config-evidence-verify``,
-   ``Shirudo.Chain``, ``Shirudo.Events``
+:Proofs: ``Shirudo.Chain``, ``Shirudo.Events``
 :Residual: R10, R11, U1, U9
 
 .. _tm-t10:
