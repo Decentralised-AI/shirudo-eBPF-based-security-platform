@@ -449,17 +449,24 @@ mod capi {
                 count: i.count,
                 not_ok: i.not_ok,
             };
-            // SAFETY: the caller gave cap writable bytes at buf.
-            let mut e = JsonEmit::fixed_raw(buf, cap);
-            let ret = super::emit(&input, &mut e);
-            if ret != 0 {
-                if cap != 0 {
-                    *buf = 0;
+            let room: &mut [u8] = if cap == 0 {
+                &mut []
+            } else {
+                // SAFETY: the caller gave cap writable bytes at buf.
+                core::slice::from_raw_parts_mut(buf.cast(), cap)
+            };
+            let ret = {
+                let mut e = JsonEmit::fixed(room);
+                let ret = super::emit(&input, &mut e);
+                if ret == 0 {
+                    *len = e.written();
                 }
-                return ret;
+                ret
+            };
+            if ret != 0 && cap != 0 {
+                *buf = 0;
             }
-            *len = e.written();
-            0
+            ret
         }
     }
 
