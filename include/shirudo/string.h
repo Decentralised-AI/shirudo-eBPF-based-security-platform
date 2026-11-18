@@ -11,6 +11,7 @@
 #ifndef SHIRUDO_STRING_H
 #define SHIRUDO_STRING_H
 
+#include <errno.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
