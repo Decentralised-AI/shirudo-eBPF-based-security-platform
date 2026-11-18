@@ -1193,37 +1193,30 @@ pub(crate) unsafe fn cert_verify_chain(
 
 /// Logs libcrypto's error `code` under `where_`, as ERR_error_string_n()
 /// writes it.
-fn complain_code(where_: *const c_char, code: core::ffi::c_ulong) {
+fn complain_code(where_: &CStr, code: core::ffi::c_ulong) {
     let mut buf = [0u8; 256];
 
-    // SAFETY: the room of buf, and a format of two C strings with the
-    // caller's and OpenSSL's.
-    unsafe {
-        more::ERR_error_string_n(code, buf.as_mut_ptr().cast(), buf.len());
-        crate::log::log_c!(
-            crate::log::err,
-            c"openssl: %s: %s".as_ptr(),
-            where_,
-            buf.as_ptr()
-        );
-    }
+    // SAFETY: the room of buf, which OpenSSL fills with a C string.
+    unsafe { more::ERR_error_string_n(code, buf.as_mut_ptr().cast(), buf.len()) };
+    crate::log::err(
+        &[
+            b"openssl: ",
+            where_.to_bytes(),
+            b": ",
+            crate::text::cstr(&buf),
+        ]
+        .concat(),
+    );
 }
 
 /// Logs the first of the errors a call of the crate's took from
 /// libcrypto under `where_`, as openssl_complain() logs what is queued.
 pub(crate) fn complain_stack(where_: &CStr, errors: &ErrorStack) {
-    complain_code(
-        where_.as_ptr(),
-        errors.errors().first().map_or(0, |e| e.code()),
-    );
+    complain_code(where_, errors.errors().first().map_or(0, |e| e.code()));
 }
 
-/// Logs libcrypto's last error under `where`.
-///
-/// # Safety
-///
-/// `where_` is a C string.
-pub(crate) unsafe fn openssl_complain(where_: *const c_char) {
+/// Logs libcrypto's last error under `where_`.
+pub(crate) fn openssl_complain(where_: &CStr) {
     // SAFETY: a call that takes no pointer.
     complain_code(where_, unsafe { ffi::ERR_get_error() });
 }
@@ -1234,7 +1227,7 @@ mod fuzz;
 mod tests;
 
 mod capi {
-    use core::ffi::{c_char, c_int, c_void};
+    use core::ffi::{CStr, c_char, c_int, c_void};
 
     use super::{Cert, CertPubkey, Sha256Ctx};
 
@@ -1544,7 +1537,8 @@ mod capi {
     /// `where_` is a C string.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn openssl_complain(where_: *const c_char) {
-        // SAFETY: the caller's C string.
-        unsafe { super::openssl_complain(where_) }
+        // SAFETY: the caller supplies a C string.
+        let where_ = unsafe { CStr::from_ptr(where_) };
+        super::openssl_complain(where_);
     }
 }
