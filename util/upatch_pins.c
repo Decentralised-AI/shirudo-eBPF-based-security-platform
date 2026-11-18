@@ -37,72 +37,6 @@ static bool pin_index(const char *entry, const char *prefix, __u32 *out)
 	return true;
 }
 
-void upatch_pins_note(struct upatch_pins *pins, const char *entry)
-{
-	__u32 index;
-
-	if (!strcmp(entry, "link")) {
-		pins->has_link = true;
-	} else if (pin_index(entry, LINK_PIN_PREFIX, &index)) {
-		if (!pins->nr_links || index < pins->first_link)
-			pins->first_link = index;
-		if (!pins->nr_links || index > pins->last_link)
-			pins->last_link = index;
-		pins->nr_links++;
-	} else if (pin_index(entry, XDP_PROG_PIN_PREFIX, &index)) {
-		if (!pins->nr_xdp_progs || index < pins->first_xdp_prog)
-			pins->first_xdp_prog = index;
-		pins->nr_xdp_progs++;
-	}
-}
-
-/*
- * Only link_0 stands for the numbered links: a non-XDP upatch that has
- * lost it must still read as not loaded, where restore calls that
- * tampering. XDP link pins come and go with devices, so its program pin
- * says it is loaded.
- */
-bool upatch_pins_loaded(const struct upatch_pins *pins)
-{
-	return pins->has_link || (pins->nr_links && !pins->first_link) ||
-	       pins->nr_xdp_progs;
-}
-
-bool upatch_pins_complete(const struct upatch_pins *pins, __u32 nr_attach)
-{
-	if (!nr_attach)
-		return true;
-	if (nr_attach == 1)
-		return pins->has_link;
-	return pins->nr_links == nr_attach && !pins->first_link &&
-	       pins->last_link == nr_attach - 1;
-}
-
-int upatch_pins_read(const char *name, struct upatch_pins *out)
-{
-	char dir[PATH_MAX];
-	struct dirent *e;
-	DIR *d;
-
-	memset(out, 0, sizeof(*out));
-	if (upatch_pin_path(dir, sizeof(dir), name, NULL))
-		return -ENAMETOOLONG;
-	d = opendir(dir);
-	if (!d)
-		return -errno;
-	while ((e = readdir(d)))
-		upatch_pins_note(out, e->d_name);
-	closedir(d);
-	return 0;
-}
-
-bool upatch_loaded_pins(const char *name)
-{
-	struct upatch_pins pins;
-
-	return !upatch_pins_read(name, &pins) && upatch_pins_loaded(&pins);
-}
-
 int upatch_each_link(const char *name,
 		     int (*cb)(__u32 index, const char *pin, void *ctx),
 		     void *ctx)
@@ -129,12 +63,6 @@ int upatch_each_link(const char *name,
 	}
 	closedir(d);
 	return ret;
-}
-
-int upatch_link_pin(char *out, size_t cap, const char *dir, __u32 index)
-{
-	return strsprintf(out, cap, "%s/" LINK_PIN_PREFIX "%u", dir, index) < 0 ?
-	       -ENAMETOOLONG : 0;
 }
 
 int upatch_xdp_prog_pin(char *out, size_t cap, const char *name, __u32 index)
