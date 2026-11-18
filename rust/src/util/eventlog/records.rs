@@ -28,7 +28,7 @@ pub(crate) const UPATCH_UNLOAD: c_int = 2;
 pub(super) type LineFn =
     unsafe extern "C" fn(line: *const c_char, len: usize, ctx: *mut c_void) -> c_int;
 /// What the upatch walks call with each event.
-pub(super) type UpatchFn = unsafe extern "C" fn(
+pub(crate) type UpatchFn = unsafe extern "C" fn(
     event: c_int,
     name: *const c_char,
     payload_hex: *const c_char,
@@ -308,7 +308,7 @@ pub(super) fn upatches(all: bool, cb: Option<UpatchFn>, ctx: *mut c_void) -> c_i
 }
 
 /// Parse one record for a C caller that already read and checked the log.
-pub(super) fn upatches_record(
+pub(crate) fn upatches_record(
     line: &[u8],
     is_init: bool,
     cb: Option<UpatchFn>,
