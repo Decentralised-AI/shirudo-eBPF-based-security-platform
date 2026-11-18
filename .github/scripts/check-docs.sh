@@ -7,8 +7,8 @@
 # every failure category the code emits, every tamper and integrity
 # counter and every proof has its entry in the reference, every hook,
 # counter, test, proof and unit a page names exists, every LSM program
-# and counter stands in the fact box of a threat, every source file is
-# read by a proof or listed as read by none, and every figure is what its
+# and counter stands in the fact box of a threat, and every source file
+# is read by a proof or listed as read by none, and every figure is what its
 # TikZ source makes.
 #
 #   .github/scripts/check-docs.sh
@@ -76,12 +76,11 @@ done <"$work/categories"
 # Every tamper and integrity counter has an entry on its page, and a
 # page names no other.
 counter_names() {
-	grep -oE '= \{ "[A-Za-z]+",' "$1" | sed -E 's/.*"([A-Za-z]+)".*/\1/' |
+	grep -oE 'name: c?"[A-Za-z]+"' "$1" | sed -E 's/.*"([A-Za-z]+)".*/\1/' |
 		sort -u
 }
-grep -oE 'name: "[A-Za-z]+"' rust/src/util/tamper.rs | sed -E 's/.*"([A-Za-z]+)".*/\1/' |
-	sort -u >"$work/tamper_counters"
-counter_names util/integrity.c >"$work/integrity_counters"
+counter_names rust/src/util/tamper.rs >"$work/tamper_counters"
+counter_names rust/src/util/integrity.rs >"$work/integrity_counters"
 sort -u "$work/tamper_counters" "$work/integrity_counters" >"$work/counters"
 for kind in tamper integrity; do
 	counters=Documentation/security/$kind-counters.rst
