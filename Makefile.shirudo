@@ -619,10 +619,10 @@ endif
 
 ifeq ($(SANITIZE),)
 QUOTE_CHECK_LDFLAGS := $(HARDEN_STATIC_PIE_LDFLAGS) -static-pie -static-libgcc
-QUOTE_CHECK_LIBS := $(shell $(QUOTE_CHECK_PKG_CONFIG) --static --libs libcrypto 2>/dev/null)
+QUOTE_CHECK_LIBS := $(shell $(QUOTE_CHECK_PKG_CONFIG) --static --libs libssl libcrypto 2>/dev/null)
 else
 QUOTE_CHECK_LDFLAGS := $(HARDEN_LDFLAGS)
-QUOTE_CHECK_LIBS := $(LIBCRYPTO_LIBS)
+QUOTE_CHECK_LIBS := $(LIBSSL_LIBS) $(LIBCRYPTO_LIBS)
 endif
 
 build/quote-check/%.o: %.c Makefile.shirudo $(CONFIG_MK_DEP)
@@ -1205,8 +1205,12 @@ FUZZ_CFLAGS := -O1 -g -std=gnu11 -fno-omit-frame-pointer $(LANG_CFLAGS) \
 
 # The targets link a copy of the Rust library that carries libFuzzer's
 # coverage instrumentation, so that the fuzzer sees the Rust code too.
+# Built for the host named as the target, so that the flags reach the
+# library and the crates it links but not the build scripts and
+# procedural macros cargo runs, which libFuzzer's runtime is not in.
+RUST_HOST        := $(shell $(RUSTC) -vV 2>/dev/null | sed -n 's/^host: //p')
 RUST_FUZZ_TARGET := build/rust-fuzz
-RUST_FUZZ_LIB    := $(RUST_FUZZ_TARGET)/release/libshirudo_rs.a
+RUST_FUZZ_LIB    := $(RUST_FUZZ_TARGET)/$(RUST_HOST)/release/libshirudo_rs.a
 RUST_FUZZ_FLAGS  := -Cpasses=sancov-module \
                     -Cllvm-args=-sanitizer-coverage-level=4 \
                     -Cllvm-args=-sanitizer-coverage-inline-8bit-counters \
@@ -1218,7 +1222,8 @@ $(RUST_FUZZ_LIB): $(RUST_SRCS) $(BPF_EMBEDDED)
 	@printf '  CARGO   $@\n'
 	$(Q)RUSTFLAGS="$(RUSTFLAGS_WERROR) $(RUST_FUZZ_FLAGS)" \
 	    $(CARGO) build --quiet --release --locked --offline \
-	    --manifest-path $(RUST_DIR)/Cargo.toml --target-dir $(RUST_FUZZ_TARGET)
+	    --manifest-path $(RUST_DIR)/Cargo.toml --target-dir $(RUST_FUZZ_TARGET) \
+	    --target $(RUST_HOST)
 	$(Q)touch $@
 
 # libFuzzer's runtime finds the coverage tables through their __start_
