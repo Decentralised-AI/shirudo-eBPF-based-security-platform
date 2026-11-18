@@ -68,21 +68,6 @@ fn format_s64(v: i64, buf: &mut [u8; 21]) -> &[u8] {
     &buf[pos..]
 }
 
-/// The decimal digits of a full unsigned 64-bit value.
-fn format_u64_full(mut n: u64, buf: &mut [u8; 20]) -> &[u8] {
-    let mut pos = buf.len();
-
-    loop {
-        pos -= 1;
-        buf[pos] = b'0' + (n % 10) as u8;
-        n /= 10;
-        if n == 0 {
-            break;
-        }
-    }
-    &buf[pos..]
-}
-
 impl<'a> JsonEmit<'a> {
     fn new(room: Room<'a>) -> Self {
         JsonEmit {
@@ -351,10 +336,12 @@ impl<'a> JsonEmit<'a> {
         self.put_raw(digits);
     }
 
+    /// All 64 bits of an unsigned number, as a value.
     pub(crate) fn u64_value(&mut self, val: u64) {
-        let mut buf = [0; 20];
-        let digits = format_u64_full(val, &mut buf);
-        self.raw_value(digits);
+        let mut buf = [0; 21];
+        let pos = format_u64(val, &mut buf);
+
+        self.raw_value(&buf[pos..]);
     }
 
     pub(crate) fn kv_u64(&mut self, key: &[u8], val: u64) {
