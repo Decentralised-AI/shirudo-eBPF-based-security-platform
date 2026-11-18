@@ -26,10 +26,7 @@ const char *tamper_meaning(enum tamper_point point);
  */
 int tamper_read(struct tamper_counts *out);
 
-struct guard_map;
-
-/* tamper_read() of the n counters of the guard map, at its pin. */
-int counters_read(const struct guard_map *map, __u32 n, __u64 *count,
-		  __u64 *total);
+/* tamper_read() of the n counters of any such map, pinned at pin. */
+int counters_read(const char *pin, __u32 n, __u64 *count, __u64 *total);
 
 #endif /* SHIRUDO_UTIL_TAMPER_H */

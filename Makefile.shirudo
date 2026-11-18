@@ -241,8 +241,6 @@ UTIL_SRCS := \
     util/sysinfo_image.c \
     util/io_trusted.c \
     util/identity.c \
-    util/tamper.c \
-    util/integrity.c \
     util/paths.c \
      \
     util/kernel_prereq.c \
