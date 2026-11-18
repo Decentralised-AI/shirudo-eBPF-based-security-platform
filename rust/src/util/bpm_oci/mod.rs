@@ -115,6 +115,16 @@ impl HttpResponse {
 }
 
 impl Descriptor {
+    /// A blob's descriptor: its media type, digest and size.
+    pub(crate) fn of(media: &[u8], digest: &[u8], size: i64) -> Self {
+        let mut d = Descriptor::new();
+
+        copy_string(&mut d.media, media);
+        copy_string(&mut d.digest, digest);
+        d.size = size;
+        d
+    }
+
     pub(crate) const fn new() -> Self {
         Descriptor {
             media: [0; MAX_MEDIA],
@@ -122,23 +132,6 @@ impl Descriptor {
             title: [0; PATH_MAX],
             size: 0,
         }
-    }
-}
-
-pub(crate) fn descriptor(media: &[u8], digest: &[u8], size: i64) -> Option<Descriptor> {
-    if media.len() >= MAX_MEDIA || digest.len() >= MAX_DIGEST {
-        return None;
-    }
-    let mut d = Descriptor::new();
-    copy_string(&mut d.media, media);
-    copy_string(&mut d.digest, digest);
-    d.size = size;
-    Some(d)
-}
-
-impl Descriptor {
-    pub(crate) fn media_bytes(&self) -> &[u8] {
-        cstr(&self.media)
     }
 }
 

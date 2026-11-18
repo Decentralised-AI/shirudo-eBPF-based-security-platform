@@ -253,13 +253,11 @@ UTIL_SRCS := \
      \
     util/string.c \
     util/bpm_tree_outcomes.c \
-    util/bpm_tree_overlap.c \
     util/curl.c \
     util/kconfig.c \
      \
      \
     util/malloc.c \
-    util/options.c \
     util/keepalive.c \
     util/keepalive_quote.c \
      \
@@ -592,7 +590,6 @@ tools/shirudo-build/shirudo-build: $(BUILD_MAIN_OBJ) $(BUILD_OBJS) \
                                    util/log.o \
                                    util/malloc.o util/paths.o \
                                    util/string.o util/curl.o \
-                                   util/bpm_tree_overlap.o \
                                    $(VERSION_OBJ) $(LIBBPF_A) $(RUST_LIB)
 	@printf '  LD      $@\n'
 	$(Q)$(LD) $(CFLAGS) $(HARDEN_LDFLAGS) $(LDFLAGS) $(RPATH_LDFLAGS) -o $@ $^ \
@@ -1334,7 +1331,7 @@ $(FUZZ_OUT)/fuzz-upatch-info: testing/fuzz/fuzz-upatch-info.c $(FUZZ_BASE) \
                               util/curl.c \
                                \
                               \
-                              util/options.c util/paths.c \
+                              util/paths.c \
                               util/similar.c \
                                \
                                 \
@@ -1352,7 +1349,7 @@ $(FUZZ_OUT)/fuzz-bpm-info: testing/fuzz/fuzz-bpm-info.c $(FUZZ_BASE) \
                            testing/fuzz/output.c  builtin.h \
                            $(FUZZ_PACKAGE) \
                            util/kconfig.c \
-                                                     util/options.c util/paths.c \
+                                                     util/paths.c \
                            util/similar.c \
                            util/upatch_pins.c \
                             $(LIBBPF_A)
@@ -1365,7 +1362,7 @@ $(FUZZ_OUT)/fuzz-attest-report: testing/fuzz/fuzz-attest-report.c \
                                \
                                 \
                                \
-                               util/options.c util/paths.c util/similar.c \
+                               util/paths.c util/similar.c \
                                 $(VERSION_OBJ) $(FUZZ_SEAL) \
                                $(LIBBPF_A)
 $(FUZZ_OUT)/fuzz-attest-report: FUZZ_CFLAGS += $(TSS2_CFLAGS) $(LIBELF_CFLAGS)
