@@ -182,7 +182,6 @@ pub unsafe extern "C" fn eventlog_boot_id(out: *mut c_char, cap: usize) {
 /// # Safety
 ///
 /// `e` is an emitter, `ty` a C string and `digest` holds 32 bytes.
-#[unsafe(no_mangle)]
 pub unsafe extern "C" fn eventlog_record_open(
     e: *mut JsonEmit,
     ty: *const c_char,
