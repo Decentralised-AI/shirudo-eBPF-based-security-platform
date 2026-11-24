@@ -61,8 +61,9 @@ task's 64, so a detector can miss what it looks for; on a target,
 `shirudo status` (`MISSED`, `missed_runs`) and `shirudo upatch get`
 show the skips the kernel counts, and `-` or `null` for the uprobe
 kinds, whose skips it does not count. Refuse an
-operation in an `lsm` program, never in `fmod_ret`: a skipped
-`fmod_ret` run lets the call through, and a task can arrange the skip.
+operation in an `lsm` program wherever a hook covers it, and in
+`fmod_ret` only where none does: a skipped `fmod_ret` run lets the
+call through, and a task can arrange the skip.
 An `lsm` program does not see what an LSM before it refused, and its
 hook runs before the operation, which can still fail. In a softirq the
 current task is whichever one was interrupted. Walk RCU pointers under

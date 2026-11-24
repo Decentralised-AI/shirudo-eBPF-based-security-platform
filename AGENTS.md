@@ -53,7 +53,7 @@ Before changing security-relevant code, read
 |---|---|
 | `Documentation/security/threat-model.rst` | Authoritative security design: assumptions, assets, trust boundaries, adversaries, threats with the hooks, counters and tests behind each, residual risks, threats to resolve, deferred mitigations. Consult before touching any security-relevant path. |
 | `Documentation/internals/` | How shirudo works and why: architecture, signed loader path, enforcement in the kernel (every LSM hook), seal labels and task marks, boot from initrd to root, measurement register and attestation, config images, kernel interfaces, carried kernel patches, design decisions. Read the page for a mechanism before changing it. |
-| `Documentation/concepts/` | The concepts and the background mechanisms shirudo builds on (BPF, CO-RE, BPF signing, the BPF LSM, keyrings, xattrs, dm-verity, initrd, boot, TPM, post-quantum cryptography, OCI, OpenTelemetry, LuaJIT) and the glossary. |
+| `Documentation/concepts/` | The concepts and the background mechanisms shirudo builds on (BPF, CO-RE, BPF signing, the BPF LSM, BPF trampolines with `fentry`, `fexit` and `fmod_ret`, keyrings, xattrs, dm-verity, initrd, boot, TPM, post-quantum cryptography, OCI, OpenTelemetry, LuaJIT) and the glossary. |
 | `Documentation/start/` | Quickstart, installation and short guides. |
 | `Documentation/operate/` | Operator how-tos: system requirements, deployment, boot integration, keys, attestation, reading status, telemetry, upgrades, recovery, troubleshooting, incident response, hardening. `operate/backend/` describes the example backend of `tools/backend/`: its ClickHouse tables, node status and exposure, the jobs that load it, and `tools/xtop`. |
 | `Documentation/upatches/` | Authoring and shipping upatches: attach kinds, maps and serializers, decoders, the Beefile, publishing, debugging a failed load. |
@@ -321,8 +321,9 @@ one usually still compiles and passes tests.
   which hazard applies under which preemption model and program type,
   and each fix goes only where its hazard applies;
   `Documentation/upatches/write/pitfalls.rst` covers what a program
-  does not see, and an operation is refused in an `lsm` program, never
-  in `fmod_ret`. Ordering between CPUs is tested with blitmus on x86-64,
+  does not see, and an operation is refused in an `lsm` program
+  wherever a hook covers it, in `fmod_ret` only where none does.
+  Ordering between CPUs is tested with blitmus on x86-64,
   arm64 and riscv64. The `bpf-concurrency` and `bpf-coccinelle` skills
   give the procedure. When `shirudo build` starts accepting another
   attach kind, the same commit adds its run context to the table in

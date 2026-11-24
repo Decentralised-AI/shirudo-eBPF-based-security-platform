@@ -17,9 +17,14 @@ walk through every command below.
 - Plain C against `vmlinux.h` with CO-RE: never a hard-coded struct
   offset, which signs fine and is refused by the verifier on another
   kernel (`verifier_rejected`).
-- Attach only with the kinds `write/attach-kinds.rst` lists. Refuse an
-  operation in an `lsm` program, never in `fmod_ret`
-  (`write/pitfalls.rst`).
+- Attach only with the kinds `write/attach-kinds.rst` lists. `fentry`
+  and `fexit` observe a function with typed arguments, `fexit` with the
+  arguments as passed and the result
+  (`Documentation/concepts/background/fentry-fexit.rst`).
+- Refuse an operation in an `lsm` program wherever a hook covers it:
+  the kernel can skip a run of an `fmod_ret` program, and the call then
+  goes through (`write/pitfalls.rst`). `fmod_ret` is for the functions
+  no hook covers, as the section below says.
 - `char _license[] SEC("license") = "Dual BSD/GPL";`, and
   `SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause` on every file the
   object compiles and on each Lua decoder.
@@ -31,6 +36,72 @@ walk through every command below.
 - `shirudo build` compiles with `-mcpu=v4 -fno-jump-tables` itself, so
   the whole v4 instruction set is there: write load-acquire,
   store-release, sign extension and signed division directly.
+
+## Fail a call with fmod_ret
+
+An `fmod_ret` program runs before a kernel function and returns 0 to
+let it run or an error to skip it, which the caller gets in its place.
+That makes a mitigation for a kernel bug until the fixed kernel boots,
+and hardening that switches off a kernel feature a machine does not
+use. `Documentation/concepts/background/fmod-ret.rst` explains the
+mechanism and its limits.
+
+- Start from the fix. The commit that fixes a bug says which input is
+  dangerous, usually as a new check that returns an error. Attach to
+  the fixed function or to one on the way to it, test the arguments for
+  that input, and return 0 for everything else.
+- The target's kernel decides which functions take a program. Every
+  kernel has the declared targets: `security_*`, system call entry
+  points and, with `CONFIG_FUNCTION_ERROR_INJECTION`, the functions
+  marked for error injection. An x86-64 or arm64 kernel built with
+  `CONFIG_BPF_FMODRET_SCAN` adds the functions its build tagged because
+  they return errors, some 12,000 in one build, each with the list of
+  errors it returns. Look the function up in the BTF of the kernel the
+  upatch is for, since the tags differ with compiler, configuration and
+  release, and `vmlinux.h` does not show them:
+
+  ```sh
+  bpftool btf dump file <vmlinux.btf> format raw | grep -F "FUNC '<function>'"
+  bpftool btf dump file <vmlinux.btf> format raw | grep 'bpf_fmodret_retval:.* type_id=<id of that FUNC> '
+  ```
+
+  No `FUNC` line means the function is inlined or named otherwise
+  there. No tag line means it is no target unless declared: try a
+  caller.
+- On a tagged function, return 0 or an error of its list and nothing
+  else, or the load fails with `At program exit the register R0 should
+  be 0 or one of <list>`. Most lists hold one or two errors, so take
+  what the list offers, not `-EPERM` by habit. Write each return as a
+  constant on its own path: a computed value is a range to the verifier
+  and fails. Define the errno values, as `vmlinux.h` has none.
+- Declare the program `int BPF_PROG(...)` for a function that returns
+  `int` and `long BPF_PROG(...)` for one that returns `long` or
+  `ssize_t`: clang writes an `int` error as a 32-bit value, which is a
+  large positive number in 64 bits. The last parameter is the result so
+  far, 0 whenever the program runs.
+- A tagged function takes no `fmod_ret.s` program and no tail call.
+- A skipped call is not a failed call. The tag says that the function
+  returns the error, not that every caller survives the skip. Read the
+  function and its callers in the target's source: what does a caller
+  lock, allocate or hand over that the function releases on its error
+  paths, does every caller check the result, does one read an output
+  parameter afterwards. The kernel developers' own run had about 1
+  tagged function in 180 end in a panic, a stall or a lockdep report
+  after one injected error. Prefer a function early on the path, close
+  to the system call, whose error travels straight back to user space.
+- The program runs at the entry of the function. A caller the compiler
+  inlined the function into does not pass it.
+- The kernel skips a run of the program while that program already runs
+  on the CPU, and with preemptible RCU another task can bring that
+  about. Say in the `README.md` what the upatch refuses, which error
+  user space sees, and that it narrows the way to a bug without closing
+  it against a local attacker who races it.
+- Test on the kernel it ships to: the load, the refused call with its
+  error as user space sees it, the calls that must keep working, and a
+  workload around the function. The test VM's kernel is built with
+  `CONFIG_BPF_FMODRET_SCAN` (`testing/kernel/kernel-ci.conf`). A kernel
+  artifact staged before that has no tags, and only declared targets
+  load on it: look at its BTF as above.
 
 ## Know the kernels it runs on
 
