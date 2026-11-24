@@ -550,7 +550,12 @@ greater than the installed one: it unloads the old version with its
 directives, loads the new one and restores the old one when that fails.
 It writes each completed upgrade to ``state.json`` before starting the
 next package. Interrupting a later download preserves the recorded
-versions of those already upgraded.
+versions of those already upgraded. If the write fails before replacing
+``state.json``, it unloads the new version, restores the old one and
+removes the new version's directory, as when a load fails. If syncing
+the directory fails after the replacement, the new version stays
+installed. The command stops with an error because the new record may
+not survive a reboot.
 ``upgrade`` fetches no index itself. ``shirudo-bpm-repo-update.timer`` runs
 ``repo update`` and then ``upgrade`` at boot and 60 seconds after each
 run, so a new version in a registered index reaches every target that

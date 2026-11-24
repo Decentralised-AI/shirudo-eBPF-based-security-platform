@@ -1136,8 +1136,19 @@ static void sort_old_pairs(char (*unloads)[PATH_MAX], char (*loads)[PATH_MAX],
 
 #define INSTALL_PATHS_MAX	128
 
+/*
+ * Records the version loaded from package_dir and reports whether it
+ * became visible in state.json. Rollback is safe only before publication.
+ * The callback may rewrite the string old_path points to once the loads
+ * are done.
+ */
+typedef int (*package_record_fn)(const struct bpm_index_entry *entry,
+				 const char *package_dir, void *ctx,
+				 bool *published);
+
 static int package_install(const struct bpm_source *s, const struct bpm_index_entry *entry,
-			   const char *old_path, const char *old_version)
+			   const char *old_path, package_record_fn record,
+			   void *ctx)
 {
 	struct bpm_oci_client c __cleanup(bpm_oci_client_clear) = {};
 	struct bpm_descriptor layers[8];
@@ -1148,7 +1159,7 @@ static int package_install(const struct bpm_source *s, const struct bpm_index_en
 	int fd, ret;
 	DIR *d;
 	struct dirent *de;
-	bool found_package = false, extracted = false;
+	bool found_package = false, extracted = false, published = false;
 	char (*loaded)[PATH_MAX], (*old_loads)[PATH_MAX], (*old_unloads)[PATH_MAX];
 	int nloaded = 0, nactive = 0, nold = 0, nold_removed = 0;
 
@@ -1363,6 +1374,11 @@ static int package_install(const struct bpm_source *s, const struct bpm_index_en
 			}
 			nactive++;
 		}
+		if (record) {
+			ret = record(entry, package_dir, ctx, &published);
+			if (ret && !published)
+				goto rollback;
+		}
 		{
 			char saved[PATH_MAX];
 
@@ -1397,11 +1413,13 @@ rollback:
 		upatch_install(old_loads[restore_i]);
 out:
 	bpm_buffer_free(&manifest);
-	if (ret && archive[0])
-		unlink(archive);
-	/* What failed to install must not block the next attempt. */
-	if (ret && extracted)
-		remove_tree(package_dir);
+	if (ret && !published) {
+		if (archive[0])
+			unlink(archive);
+		/* What failed to install must not block the next attempt. */
+		if (extracted)
+			remove_tree(package_dir);
+	}
 	xfree(loaded, 3 * INSTALL_PATHS_MAX * PATH_MAX);
 	return ret;
 }
@@ -3033,7 +3051,7 @@ static int bpm_install(const char *ref, struct bpm_tables *t)
 		return bpm_finish(lock, ret, "install");
 	if (n_state >= BPM_MAX_STATE)
 		return bpm_finish(lock, -E2BIG, "install");
-	ret = package_install(&source_cfg, &selected, NULL, NULL);
+	ret = package_install(&source_cfg, &selected, NULL, NULL, NULL);
 	if (ret)
 		return bpm_finish(lock, ret, "install");
 	bpm_copy_string(state[n_state].name, sizeof(state[n_state].name),
@@ -3047,7 +3065,7 @@ static int bpm_install(const char *ref, struct bpm_tables *t)
 		       direct ? selected.name : name,
 		       selected.version) < 0)
 		return bpm_finish(lock, -ENAMETOOLONG, "install");
-	ret = bpm_state_write(state, n_state + 1);
+	ret = bpm_state_write(state, n_state + 1, NULL);
 	if (ret) {
 		/* Unlisted, the package could never be removed. */
 		if (package_uninstall(&state[n_state]))
@@ -3059,6 +3077,38 @@ static int bpm_install(const char *ref, struct bpm_tables *t)
 			       state[n_state].name);
 	}
 	return bpm_finish(lock, ret, "write state");
+}
+
+/* The n_state entries at state, of which upgrade_record() moves one. */
+struct upgrade_state {
+	struct bpm_state_entry *state;
+	struct bpm_state_entry *upgraded;
+	int n_state;
+};
+
+static int upgrade_record(const struct bpm_index_entry *entry,
+			  const char *package_dir, void *ctx, bool *published)
+{
+	const struct upgrade_state *up = ctx;
+	struct bpm_state_entry old = *up->upgraded;
+	int ret;
+
+	bpm_copy_string(up->upgraded->version, sizeof(up->upgraded->version),
+			entry->version);
+	bpm_copy_string(up->upgraded->path, sizeof(up->upgraded->path),
+			package_dir);
+	ret = bpm_state_write(up->state, up->n_state, published);
+	if (!ret)
+		return 0;
+	if (*published) {
+		pr_err("bpm upgrade: %s %s stays installed, but state.json may not survive a reboot",
+		       old.name, entry->version);
+	} else {
+		pr_err("bpm upgrade: cannot record %s %s; restoring %s",
+		       old.name, entry->version, old.version);
+		*up->upgraded = old;
+	}
+	return ret;
 }
 
 static int bpm_upgrade(const char *unused, struct bpm_tables *t)
@@ -3076,8 +3126,12 @@ static int bpm_upgrade(const char *unused, struct bpm_tables *t)
 		return bpm_finish(lock, ret, "read state");
 	for (i = 0; i < n_state; i++) {
 		struct bpm_index_entry *entries = t->entries, selected;
+		struct upgrade_state up = {
+			.state		= state,
+			.upgraded	= &state[i],
+			.n_state	= n_state,
+		};
 		struct bpm_source source_cfg;
-		char path[PATH_MAX];
 		int n_entries;
 
 		if (!strcmp(state[i].source, "direct"))
@@ -3096,22 +3150,10 @@ static int bpm_upgrade(const char *unused, struct bpm_tables *t)
 			break;
 		if (bpm_semver_compare(selected.version, state[i].version) <= 0)
 			continue;
-		if (strsprintf(path, sizeof(path), "%s/%s/%s",
-			       BPM_PACKAGES_DIR, state[i].name,
-			       selected.version) < 0) {
-			ret = -ENAMETOOLONG;
-			break;
-		}
 		ret = package_install(&source_cfg, &selected, state[i].path,
-				      state[i].version);
+				      upgrade_record, &up);
 		if (ret)
 			break;
-		bpm_copy_string(state[i].version, sizeof(state[i].version),
-				selected.version);
-		bpm_copy_string(state[i].path, sizeof(state[i].path), path);
-		ret = bpm_state_write(state, n_state);
-		if (ret)
-			return bpm_finish(lock, ret, "write state");
 	}
 	return bpm_finish(lock, ret, "upgrade");
 }
@@ -3549,7 +3591,7 @@ static int bpm_uninstall_cmd(int argc, const char **argv)
 	if (!ret) {
 		memmove(&state[i], &state[i + 1],
 			(size_t)(n_state - i - 1) * sizeof(*state));
-		ret = bpm_state_write(state, n_state - 1);
+		ret = bpm_state_write(state, n_state - 1, NULL);
 	}
 	xfree(state, BPM_MAX_STATE * sizeof(*state));
 	return bpm_finish(lock, ret, "uninstall");

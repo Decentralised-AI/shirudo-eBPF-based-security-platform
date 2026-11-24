@@ -77,6 +77,12 @@ bool seal_parent_labeled(const char *path);
 
 int seal_write_file(const char *path, const void *data, size_t len,
 		    mode_t mode);
+/*
+ * The same, with *published set if the rename succeeded, including when
+ * the following directory sync fails. published may be NULL.
+ */
+int seal_write_file_status(const char *path, const void *data, size_t len,
+			   mode_t mode, bool *published);
 /* The same, with exactly that mode whatever the umask, before the rename. */
 int seal_write_file_mode(const char *path, const void *data, size_t len,
 			 mode_t mode);

@@ -615,12 +615,14 @@ int seal_mkdir_p(const char *path, mode_t mode)
 }
 
 static int write_file(const char *path, const void *data, size_t len,
-		      mode_t mode, bool exact)
+		      mode_t mode, bool exact, bool *published)
 {
 	char tmp[NAME_MAX + 1];
 	const char *name;
 	int dfd, fd, ret;
 
+	if (published)
+		*published = false;
 	dfd = seal_open_parent(path, &name);
 	if (dfd < 0)
 		return dfd;
@@ -646,10 +648,14 @@ static int write_file(const char *path, const void *data, size_t len,
 		ret = -errno;
 	if (!ret && renameat(dfd, tmp, dfd, name))
 		ret = -errno;
-	if (!ret && fsync(dfd))
-		ret = -errno;
-	if (ret)
+	if (ret) {
 		unlinkat(dfd, tmp, 0);
+	} else {
+		if (published)
+			*published = true;
+		if (fsync(dfd))
+			ret = -errno;
+	}
 	close(dfd);
 	return ret;
 }
@@ -657,11 +663,17 @@ static int write_file(const char *path, const void *data, size_t len,
 int seal_write_file(const char *path, const void *data, size_t len,
 		    mode_t mode)
 {
-	return write_file(path, data, len, mode, false);
+	return write_file(path, data, len, mode, false, NULL);
+}
+
+int seal_write_file_status(const char *path, const void *data, size_t len,
+			   mode_t mode, bool *published)
+{
+	return write_file(path, data, len, mode, false, published);
 }
 
 int seal_write_file_mode(const char *path, const void *data, size_t len,
 			 mode_t mode)
 {
-	return write_file(path, data, len, mode, true);
+	return write_file(path, data, len, mode, true, NULL);
 }

@@ -117,12 +117,14 @@ int bpm_state_read(struct bpm_state_entry *st, int *n)
 	return ret;
 }
 
-int bpm_state_write(const struct bpm_state_entry *st, int n)
+int bpm_state_write(const struct bpm_state_entry *st, int n, bool *published)
 {
 	size_t len = 0;
 	char *buf;
 	int ret;
 
+	if (published)
+		*published = false;
 	buf = xmalloc(STATE_EMIT_MAX);
 	if (!buf)
 		return -ENOMEM;
@@ -130,7 +132,8 @@ int bpm_state_write(const struct bpm_state_entry *st, int n)
 	if (!ret)
 		ret = seal_mkdir_p(BPM_VAR_DIR, 0700);
 	if (!ret)
-		ret = seal_write_file(BPM_STATE_PATH, buf, len, 0600);
+		ret = seal_write_file_status(BPM_STATE_PATH, buf, len, 0600,
+					     published);
 	xfree(buf, STATE_EMIT_MAX);
 	return ret;
 }

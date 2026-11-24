@@ -392,7 +392,8 @@ every verdict, ``tampered`` included. Parse ``.status`` of
    * - ``bpm install``, ``uninstall``, ``upgrade``, ``list``, ``pull``,
        ``info``, ``key``, ``repo update``, ``config register``
      - 0, an already installed package included; 1 on failure; 2 for a
-       usage error.
+       usage error. ``upgrade`` exits 1 and keeps the new version installed
+       if the directory sync fails after replacing ``state.json``.
    * - ``bpm tree sync``
      - 0, also when no tree is configured; 1 on failure and for an
        unknown option; 2 for too many arguments or a ``--report`` path

@@ -322,6 +322,10 @@ Upgrade packages
    what it loaded, tries to load the old version again and exits 1.
    Packages it upgraded before the failure stay upgraded.
 
+   If the new package record is visible but the directory sync fails,
+   ``bpm upgrade`` keeps the new version installed and exits 1. The
+   package record may not survive a reboot.
+
 #. Check the versions with ``shirudo bpm list``.
 
 The repository timer runs both steps every minute, so you need them only

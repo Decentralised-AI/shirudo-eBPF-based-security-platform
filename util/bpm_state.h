@@ -10,6 +10,7 @@
 #define SHIRUDO_BPM_STATE_H
 
 #include <limits.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "bpm_oci.h"
@@ -35,6 +36,7 @@ int bpm_state_emit(const struct bpm_state_entry *st, int n, char *buf,
 
 /* The recorded entries, none when there is no state yet. */
 int bpm_state_read(struct bpm_state_entry *st, int *n);
-int bpm_state_write(const struct bpm_state_entry *st, int n);
+/* *published, if requested, says whether the new state was renamed in. */
+int bpm_state_write(const struct bpm_state_entry *st, int n, bool *published);
 
 #endif /* SHIRUDO_BPM_STATE_H */
