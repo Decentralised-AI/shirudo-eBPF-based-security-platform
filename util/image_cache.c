@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +33,71 @@ struct image_download {
 	__u64 limit;
 	__u64 written;
 };
+
+/* A resolver thread can receive a process-directed SIGINT. */
+static _Atomic bool download_interrupted;
+
+#ifdef __GCC_ATOMIC_BOOL_LOCK_FREE
+_Static_assert(__GCC_ATOMIC_BOOL_LOCK_FREE == 2, "SIGINT requires lock-free atomics");
+#endif
+
+static void download_sigint(int sig)
+{
+	download_interrupted = true;
+}
+
+static int download_progress(void *ctx, curl_off_t dltotal, curl_off_t dlnow,
+			     curl_off_t ultotal, curl_off_t ulnow)
+{
+	return download_interrupted;
+}
+
+static int download_enable_quick_exit(CURL *curl)
+{
+#if LIBCURL_VERSION_NUM >= 0x075700
+	const struct curl_version_info_data *version =
+		curl_version_info(CURLVERSION_NOW);
+
+	if (!(version->features & CURL_VERSION_ASYNCHDNS) ||
+	    curl_easy_setopt(curl, CURLOPT_QUICK_EXIT, 1L) != CURLE_OK)
+		return -EOPNOTSUPP;
+	return 0;
+#else
+	return -EOPNOTSUPP;
+#endif
+}
+
+static int download_perform(CURL *curl, CURLcode *result)
+{
+	struct sigaction action = { .sa_handler = download_sigint };
+	struct sigaction previous;
+	bool interruptible = false;
+
+	if (sigaction(SIGINT, NULL, &previous))
+		return -errno;
+	/*
+	 * Keep the inherited action when libcurl may block in the resolver
+	 * or wait for a resolver thread after the transfer aborts.
+	 */
+	if (previous.sa_handler == SIG_DFL)
+		interruptible = !download_enable_quick_exit(curl);
+	if (!interruptible) {
+		*result = curl_easy_perform(curl);
+		return 0;
+	}
+	if (curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION,
+			     download_progress) != CURLE_OK ||
+	    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L) != CURLE_OK)
+		return -EINVAL;
+	download_interrupted = false;
+	sigemptyset(&action.sa_mask);
+	if (sigaction(SIGINT, &action, NULL))
+		return -errno;
+	*result = curl_easy_perform(curl);
+	if (sigaction(SIGINT, &previous, NULL))
+		return -errno;
+	return download_interrupted ? -EINTR : 0;
+}
 
 static size_t download_write(char *data, size_t size, size_t count, void *ctx)
 {
@@ -84,8 +150,8 @@ static int download_https(const char *source, struct image_download *download)
 		ret = -EINVAL;
 		goto out;
 	}
-	result = curl_easy_perform(curl);
-	if (result != CURLE_OK)
+	ret = download_perform(curl, &result);
+	if (!ret && result != CURLE_OK)
 		ret = download->err ? download->err : -EIO;
 out:
 	curl_easy_cleanup(curl);
