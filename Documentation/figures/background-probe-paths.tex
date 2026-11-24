@@ -1,0 +1,83 @@
+% SPDX-License-Identifier: BSD-2-Clause
+% Copyright (c) 2026 Authors of shirudo
+%
+% The code between a kernel function and a BPF program for the three
+% ways to attach to it: a BPF trampoline, a kprobe and a kprobe.multi
+% link, with what the program gets as its context
+% (concepts/background/fentry-fexit.rst).
+\documentclass[tikz,dvisvgm]{standalone}
+\usepackage{shirudo-figure}
+
+\begin{document}
+\begin{tikzpicture}[
+    prog/.style={draw=fig-accent, fill=fig-accent, fill opacity=0.08,
+      text opacity=1, rounded corners=4.5bp}]
+  \useasboundingbox (0,0) rectangle (840,312);
+
+  % fentry, fexit, fmod_ret, lsm.
+  \draw[box] (10,34) rectangle (150,78);
+  \draw[box] (190,34) rectangle (330,78);
+  \draw[prog] (650,34) rectangle (830,78);
+  \draw[flow] (150,56) -- (188,56);
+  \draw[flow] (330,56) -- (648,56);
+
+  % kprobe, kretprobe.
+  \draw[box] (10,128) rectangle (150,172);
+  \draw[box] (190,128) rectangle (330,172);
+  \draw[box] (350,128) rectangle (470,172);
+  \draw[box] (490,128) rectangle (610,172);
+  \draw[prog] (650,128) rectangle (830,172);
+  \draw[flow] (150,150) -- (188,150);
+  \draw[flow] (330,150) -- (348,150);
+  \draw[flow] (470,150) -- (488,150);
+  \draw[flow] (610,150) -- (648,150);
+
+  % kprobe.multi, kretprobe.multi.
+  \draw[box] (10,222) rectangle (150,266);
+  \draw[box] (190,222) rectangle (330,266);
+  \draw[box] (350,222) rectangle (470,266);
+  \draw[prog] (650,222) rectangle (830,266);
+  \draw[flow] (150,244) -- (188,244);
+  \draw[flow] (330,244) -- (348,244);
+  \draw[flow] (470,244) -- (648,244);
+
+  \begin{scope}[every node/.append style={small, note, anchor=base west}]
+    \node at (10,24) {fentry, fexit, fmod\_ret, lsm};
+    \node at (10,118) {kprobe, kretprobe};
+    \node at (10,212) {kprobe.multi, kretprobe.multi};
+  \end{scope}
+
+  \begin{scope}[every node/.append style={anchor=base}]
+    \node[title] at (80,52) {entry of f()};
+    \node[small, note] at (80,69) {a direct call};
+    \node[title] at (260,52) {BPF trampoline};
+    \node[small, note] at (260,69) {made for f()};
+    \node[title, color=fig-accent] at (740,52) {program};
+    \node[small] at (740,69) {arguments typed by BTF};
+
+    \node[title] at (80,146) {a place in f()};
+    \node[small, note] at (80,163) {entry or instruction};
+    \node[title] at (260,146) {breakpoint};
+    \node[small, note] at (260,163) {or ftrace at the entry};
+    \node[title] at (410,146) {kprobe};
+    \node[small, note] at (410,163) {its handler};
+    \node[title] at (550,146) {perf event};
+    \node[small, note] at (550,163) {its programs};
+    \node[title, color=fig-accent] at (740,146) {program};
+    \node[small] at (740,163) {struct pt\_regs};
+
+    \node[title] at (80,240) {entry of f()};
+    \node[small, note] at (80,257) {of each function};
+    \node[title] at (260,240) {ftrace};
+    \node[small, note] at (260,257) {function graph tracer};
+    \node[title] at (410,240) {fprobe};
+    \node[small, note] at (410,257) {one for the link};
+    \node[title, color=fig-accent] at (740,240) {program};
+    \node[small] at (740,257) {struct pt\_regs};
+  \end{scope}
+
+  \node[small, note, anchor=base west] at (10,300) {A return probe adds
+    a step on the way out: the kernel replaces the return address of
+    f() to get control back when f() returns.};
+\end{tikzpicture}
+\end{document}

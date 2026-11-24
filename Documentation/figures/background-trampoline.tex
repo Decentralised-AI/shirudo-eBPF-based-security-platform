@@ -1,0 +1,82 @@
+% SPDX-License-Identifier: BSD-2-Clause
+% Copyright (c) 2026 Authors of shirudo
+%
+% The entry of a kernel function f() in three states: with no program,
+% where it holds a nop; with fentry programs only, where the trampoline
+% returns into the body; and with an fexit or fmod_ret program, where
+% the trampoline calls the body itself and returns to the caller
+% (concepts/background/fentry-fexit.rst).
+\documentclass[tikz,dvisvgm]{standalone}
+\usepackage{shirudo-figure}
+
+\begin{document}
+\begin{tikzpicture}
+  \useasboundingbox (0,0) rectangle (840,392);
+
+  % No program.
+  \draw[box] (10,34) rectangle (130,78);
+  \draw[box] (180,34) rectangle (330,78);
+  \draw[box] (680,34) rectangle (830,78);
+  \draw[flow] (130,56) -- (178,56);
+  \draw[flow] (330,56) -- (678,56);
+
+  % fentry programs only.
+  \draw[box] (10,138) rectangle (130,182);
+  \draw[box] (180,138) rectangle (330,182);
+  \draw[box] (380,126) rectangle (630,194);
+  \draw[box] (680,138) rectangle (830,182);
+  \draw[flow] (130,160) -- (178,160);
+  \draw[flow] (330,160) -- (378,160);
+  \draw[flow] (630,160) -- (678,160);
+
+  % With an fexit or fmod_ret program.
+  \draw[box] (10,262) rectangle (130,306);
+  \draw[box] (180,262) rectangle (330,306);
+  \draw[box] (380,236) rectangle (630,332);
+  \draw[box] (680,262) rectangle (830,306);
+  \draw[flow] (130,284) -- (178,284);
+  \draw[flow] (330,284) -- (378,284);
+  \draw[flow] (630,274) -- (678,274);
+  \draw[flow] (680,294) -- (632,294);
+  \draw[flow] (505,332) -- (505,352) -- (70,352) -- (70,308);
+
+  \begin{scope}[every node/.append style={small, note, anchor=base west}]
+    \node at (10,24) {no program attached};
+    \node at (10,116) {fentry programs only};
+    \node at (10,226) {with an fexit or fmod\_ret program};
+  \end{scope}
+
+  \begin{scope}[every node/.append style={anchor=base}]
+    \foreach \y in {61,165,289}
+      \node[code] at (70,\y) {f(a, b);};
+
+    \node[title] at (255,52) {entry of f()};
+    \node[small, note] at (255,69) {a nop};
+    \node[title] at (755,61) {body of f()};
+
+    \node[title] at (255,156) {entry of f()};
+    \node[small, note] at (255,173) {calls the trampoline};
+    \node[title] at (505,146) {trampoline};
+    \node[small] at (505,166) {saves a and b, runs the fentry};
+    \node[small] at (505,182) {programs, restores a and b};
+    \node[title] at (755,156) {body of f()};
+    \node[small, note] at (755,173) {returns to the caller};
+
+    \node[title] at (255,280) {entry of f()};
+    \node[small, note] at (255,297) {enters the trampoline};
+    \node[title] at (505,256) {trampoline};
+    \node[small] at (505,276) {saves a and b, runs the fentry};
+    \node[small] at (505,292) {and fmod\_ret programs, calls the};
+    \node[small] at (505,308) {body, runs the fexit programs};
+    \node[small] at (505,324) {with a, b and the result r};
+    \node[title] at (755,280) {body of f()};
+    \node[small, note] at (755,297) {returns r to the trampoline};
+
+    \node[small, note] at (288,346) {the trampoline returns r to the caller};
+  \end{scope}
+
+  \node[small, note, anchor=base west] at (10,382) {A function has one
+    trampoline for all its programs. Each attach and detach generates a
+    new image of at most 4 KB.};
+\end{tikzpicture}
+\end{document}

@@ -71,10 +71,12 @@ hook that can change the outcome:
 
 - ``fmod_ret`` would return early from ``ipv6_rpl_srh_rcv()`` or its
   caller ``ipv6_rthdr_rcv()``. The kernel admits ``fmod_ret`` only on
-  ``security_*`` hooks, system call entry points and functions marked for
-  error injection or return modification, and neither function is marked.
-  In the test VM's kernel, ``ipv6_rpl_srh_rcv()`` does not even appear in
-  the BTF.
+  ``security_*`` hooks, system call entry points, functions marked for
+  error injection or return modification, and functions its build
+  tagged because they return errors
+  (:doc:`/concepts/background/fmod-ret`). Neither function is marked,
+  and the build tags neither: both return -1 on every failure, which
+  the build does not take for an error code.
 - A ``netfilter`` program at IPv6 pre-routing could drop such packets
   before the routing header code sees them, by parsing the routing header
   itself. That parser is a larger piece of work than this tutorial.

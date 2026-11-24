@@ -34,7 +34,8 @@ the link against the metadata and pins it.
      - tracing
      - ``BPF_LINK_CREATE``, ``BPF_MODIFY_RETURN``
      - ``CONFIG_FUNCTION_ERROR_INJECTION`` for functions marked for error
-       injection
+       injection, ``CONFIG_BPF_FMODRET_SCAN`` for functions the kernel
+       build tags
    * - ``lsm/<hook>``, ``lsm.s/<hook>``
      - LSM
      - ``BPF_LINK_CREATE``, ``BPF_LSM_MAC``
@@ -131,8 +132,9 @@ often because the compiler inlined it, fails inside the loader, as
 attach step.
 
 ``fentry.s`` and ``fexit.s`` declare sleepable programs. The kernel admits
-them only on functions it allows to sleep in, such as those on its
-error-injection list.
+them only on functions it allows to sleep in: system call entry points
+and, with ``CONFIG_FUNCTION_ERROR_INJECTION``, the functions marked for
+error injection that may sleep.
 
 fmod_ret
 --------
@@ -143,11 +145,44 @@ shield that refuses a call before the vulnerable code runs.
 
 shirudo attaches with ``BPF_LINK_CREATE`` and attach type
 ``BPF_MODIFY_RETURN``, without a fallback. The kernel admits ``fmod_ret``
-only on ``security_*`` hooks, on system call entry points and on
-functions marked for error injection or return modification. The
-error-injection marks take effect only with
-``CONFIG_FUNCTION_ERROR_INJECTION``. On any other function the load fails
-in phase ``payload_load``. ``fmod_ret.s`` declares the sleepable variant.
+on two sets of functions:
+
+- Declared targets: ``security_*`` hooks, system call entry points and
+  functions marked for error injection or return modification. The
+  error-injection marks take effect only with
+  ``CONFIG_FUNCTION_ERROR_INJECTION``. The kernel does not check the
+  value the program returns.
+- Functions the kernel build tagged with the errors they return, on an
+  x86-64 or arm64 kernel built with ``CONFIG_BPF_FMODRET_SCAN``. The
+  program returns 0 or an error of the function's list, each as a
+  constant. For a function that returns ``long``, declare the program
+  ``long BPF_PROG(...)``. A program that returns anything else fails to
+  load.
+
+On any other function the load fails in phase ``payload_load``.
+``fmod_ret.s`` declares the sleepable variant, which the kernel admits
+on the functions that take ``fentry.s``, and not on a function that is
+a target by its tag alone.
+
+The tag is a ``DECL_TAG`` in the kernel's BTF that points at the
+function. Print the function's id, then the tag with that id. ``<btf>``
+is the BTF of the target's kernel, ``/sys/kernel/btf/vmlinux`` on the
+target or a copy of that file. The ids and the list differ from kernel
+to kernel. These are the test VM's:
+
+.. code-block:: console
+
+   $ bpftool btf dump file <btf> format raw | \
+       grep -F "FUNC 'vfs_fallocate'"
+   [97236] FUNC 'vfs_fallocate' type_id=41205 linkage=static
+   $ bpftool btf dump file <btf> format raw | \
+       grep 'bpf_fmodret_retval:.* type_id=97236 '
+   [57548] DECL_TAG 'bpf_fmodret_retval:-95,-29,-27,-22,-21,-19,-9,-1' type_id=97236 component_idx=-1
+
+A function without such a line is not tagged, and a ``vmlinux.h`` does
+not show the tags. :doc:`/concepts/background/fmod-ret` explains how the
+build finds the functions and their errors, and what a skipped call can
+break.
 
 The kernel skips a run of an ``fmod_ret`` program that is already running
 on the CPU, and the call then goes through. :doc:`pitfalls` says when, and

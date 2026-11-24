@@ -1,0 +1,68 @@
+% SPDX-License-Identifier: BSD-2-Clause
+% Copyright (c) 2026 Authors of shirudo
+%
+% Why a skipped call is not a failed call: a function that unlocks an
+% object of its caller before it returns an error leaves the lock free
+% when it fails, and held when a program returns the same error in its
+% place (concepts/background/fmod-ret.rst).
+\documentclass[tikz,dvisvgm]{standalone}
+\usepackage{shirudo-figure}
+
+\begin{document}
+\begin{tikzpicture}[
+    prog/.style={draw=fig-accent, fill=fig-accent, fill opacity=0.08,
+      text opacity=1, rounded corners=4.5bp}]
+  \useasboundingbox (0,0) rectangle (840,300);
+
+  % f() fails.
+  \draw[box] (10,40) rectangle (250,112);
+  \draw[box] (300,40) rectangle (560,112);
+  \draw[box] (610,40) rectangle (830,112);
+  \draw[flow] (250,76) -- (298,76);
+  \draw[flow] (560,76) -- (608,76);
+
+  % f() is skipped.
+  \draw[box] (10,172) rectangle (250,244);
+  \draw[prog] (300,172) rectangle (560,244);
+  \draw[prog] (610,172) rectangle (830,244);
+  \draw[flow] (250,208) -- (298,208);
+  \draw[flow] (560,208) -- (608,208);
+
+  \begin{scope}[every node/.append style={anchor=base west}]
+    \node[small, note] at (10,28) {f() fails};
+    \node[small, note] at (10,160) {f() is skipped};
+  \end{scope}
+
+  \begin{scope}[every node/.append style={anchor=base}]
+    \node[small, note] at (130,58) {caller};
+    \node[mono] at (130,80) {lock(\&obj->lock);};
+    \node[mono] at (130,98) {err = f(obj);};
+
+    \node[small, note] at (430,58) {f()};
+    \node[mono] at (430,80) {unlock(\&obj->lock);};
+    \node[mono] at (430,98) {return -EBUSY;};
+
+    \node[small, note] at (720,58) {caller};
+    \node[small] at (720,80) {err is -EBUSY,};
+    \node[small] at (720,98) {the lock is free};
+
+    \node[small, note] at (130,190) {caller};
+    \node[mono] at (130,212) {lock(\&obj->lock);};
+    \node[mono] at (130,230) {err = f(obj);};
+
+    \node[small, color=fig-accent] at (430,190) {fmod\_ret program};
+    \node[mono] at (430,212) {return -EBUSY;};
+    \node[small] at (430,230) {f() does not run};
+
+    \node[small, note] at (720,190) {caller};
+    \node[small] at (720,212) {err is -EBUSY,};
+    \node[small, color=fig-accent] at (720,230) {the lock is still held};
+  \end{scope}
+
+  \node[small, note, anchor=base west] at (10,278) {unlock() returns
+    nothing and gets a pointer into an argument of f(). Each path to this
+    -EBUSY has such a call,};
+  \node[small, note, anchor=base west] at (10,294) {so the scan leaves
+    -EBUSY out of the list of f(), and no program can return it.};
+\end{tikzpicture}
+\end{document}

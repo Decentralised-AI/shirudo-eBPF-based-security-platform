@@ -1,0 +1,75 @@
+% SPDX-License-Identifier: BSD-2-Clause
+% Copyright (c) 2026 Authors of shirudo
+%
+% One call of a kernel function f() that has an fmod_ret program: the
+% trampoline runs the program before the body of f(), and the value the
+% program returns decides whether the body runs or the caller gets that
+% value at once (concepts/background/fmod-ret.rst).
+\documentclass[tikz,dvisvgm]{standalone}
+\usepackage{shirudo-figure}
+
+\begin{document}
+\begin{tikzpicture}[
+    prog/.style={draw=fig-accent, fill=fig-accent, fill opacity=0.08,
+      text opacity=1, rounded corners=4.5bp}]
+  \useasboundingbox (0,0) rectangle (840,340);
+
+  % The trampoline, between the caller and the function.
+  \draw[frame] (280,32) rectangle (560,296);
+
+  \draw[box] (20,52) rectangle (200,96);
+  \draw[box] (20,236) rectangle (200,280);
+  \draw[link, thin, dash pattern=on 2.25bp off 3bp] (110,96) -- (110,236);
+
+  \draw[box] (300,52) rectangle (540,96);
+  \draw[prog] (300,124) rectangle (540,168);
+  \draw[box] (300,236) rectangle (540,280);
+
+  \draw[box] (640,124) rectangle (820,168);
+
+  \draw[flow] (200,74) -- (298,74);
+  \draw[flow] (420,96) -- (420,122);
+  \draw[flow] (540,146) -- (638,146);
+  \draw[flow, draw=fig-accent] (420,168) -- (420,234);
+  \draw[flow] (730,168) -- (730,258) -- (542,258);
+  \draw[flow] (300,258) -- (202,258);
+
+  \begin{scope}[every node/.append style={anchor=base}]
+    \node[small, note] at (110,22) {caller};
+    \node[small, note] at (420,22) {BPF trampoline of f()};
+    \node[small, note] at (730,22) {f()};
+
+    \node[code] at (110,79) {err = f(a, b);};
+    \node[small, note] at (249,66) {call};
+
+    \node[title] at (420,70) {fentry programs};
+    \node[small, note] at (420,87) {see a and b};
+
+    \node[title, color=fig-accent] at (420,142) {fmod\_ret program};
+    \node[small, note] at (420,159) {sees a and b, returns r};
+
+    \node[small, note] at (589,138) {r is 0};
+    \node[title] at (730,142) {body of f()};
+    \node[small, note] at (730,159) {r becomes its result};
+
+    \node[small, color=fig-accent, anchor=base east] at (410,198)
+      {r is an error:};
+    \node[small, color=fig-accent, anchor=base east] at (410,214)
+      {the body is skipped};
+
+    \node[title] at (420,254) {fexit programs};
+    \node[small, note] at (420,271) {see a, b and r};
+
+    \node[small, note] at (251,250) {return};
+    \node[code] at (110,263) {err == r};
+  \end{scope}
+
+  \begin{scope}[every node/.append style={note, small, anchor=base west}]
+    \node at (20,318) {The entry of f() holds a jump to the trampoline
+      while a program is attached. The trampoline fits r to the return
+      type of f()};
+    \node at (20,334) {before it tests it, and the first fmod\_ret
+      program that does not return 0 ends the list of fmod\_ret programs.};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

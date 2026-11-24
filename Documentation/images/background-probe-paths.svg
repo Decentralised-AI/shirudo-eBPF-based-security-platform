@@ -1,0 +1,650 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='840.0' height='312.0' viewBox='-72 -72 629.996 233.998' class='fig fig-f-ink' role='img'><!-- Documentation/figures/background-probe-paths.tex, sha256 9a988dbfb4e0ee1c9d29a40ccfb41bd642cfa247216a1898bb75a3f00a116590 --><style>.fig-f-ink{fill:var(--fig-ink,#171b22)}.fig-s-ink{stroke:var(--fig-ink,#171b22)}.fig-f-muted{fill:var(--fig-muted,#5d6675)}.fig-s-muted{stroke:var(--fig-muted,#5d6675)}.fig-f-line{fill:var(--fig-line,#8a93a0)}.fig-s-line{stroke:var(--fig-line,#8a93a0)}.fig-f-grid{fill:var(--fig-grid,#e2e6eb)}.fig-s-grid{stroke:var(--fig-grid,#e2e6eb)}.fig-f-axis{fill:var(--fig-axis,#c3c9d1)}.fig-s-axis{stroke:var(--fig-axis,#c3c9d1)}.fig-f-accent{fill:var(--fig-accent,#8b1e3f)}.fig-s-accent{stroke:var(--fig-accent,#8b1e3f)}.fig-f-s1{fill:var(--fig-s1,#2a78d6)}.fig-s-s1{stroke:var(--fig-s1,#2a78d6)}.fig-f-s2{fill:var(--fig-s2,#eb6834)}.fig-s-s2{stroke:var(--fig-s2,#eb6834)}.fig-f-s3{fill:var(--fig-s3,#1baf7a)}.fig-s-s3{stroke:var(--fig-s3,#1baf7a)}.fig-f-s4{fill:var(--fig-s4,#eda100)}.fig-s-s4{stroke:var(--fig-s4,#eda100)}.fig-f-free{fill:var(--fig-free,#dde2e8)}.fig-s-free{stroke:var(--fig-free,#dde2e8)}.fig-f-on{fill:var(--fig-on,#ffffff)}.fig-s-on{stroke:var(--fig-on,#ffffff)}@media (prefers-color-scheme:dark){.fig-f-ink{fill:var(--fig-ink,#e4e8ee)}.fig-s-ink{stroke:var(--fig-ink,#e4e8ee)}.fig-f-muted{fill:var(--fig-muted,#9ba5b3)}.fig-s-muted{stroke:var(--fig-muted,#9ba5b3)}.fig-f-line{fill:var(--fig-line,#8a93a0)}.fig-s-line{stroke:var(--fig-line,#8a93a0)}.fig-f-grid{fill:var(--fig-grid,#262d37)}.fig-s-grid{stroke:var(--fig-grid,#262d37)}.fig-f-axis{fill:var(--fig-axis,#39414c)}.fig-s-axis{stroke:var(--fig-axis,#39414c)}.fig-f-accent{fill:var(--fig-accent,#e8899f)}.fig-s-accent{stroke:var(--fig-accent,#e8899f)}.fig-f-s1{fill:var(--fig-s1,#3987e5)}.fig-s-s1{stroke:var(--fig-s1,#3987e5)}.fig-f-s2{fill:var(--fig-s2,#d95926)}.fig-s-s2{stroke:var(--fig-s2,#d95926)}.fig-f-s3{fill:var(--fig-s3,#199e70)}.fig-s-s3{stroke:var(--fig-s3,#199e70)}.fig-f-s4{fill:var(--fig-s4,#c98500)}.fig-s-s4{stroke:var(--fig-s4,#c98500)}.fig-f-free{fill:var(--fig-free,#2f3640)}.fig-s-free{stroke:var(--fig-free,#2f3640)}.fig-f-on{fill:var(--fig-on,#ffffff)}.fig-s-on{stroke:var(--fig-on,#ffffff)}}</style>
+<defs>
+<path id='background-probe-paths-g1-40' d='M.535-3.341C.535-1.253 1.371 .578 2.42 1.478H3.716C2.57 .439 1.821-1.157 1.821-2.934V-3.727C1.821-5.462 2.56-7.068 3.716-8.139H2.42C1.349-7.208 .535-5.408 .535-3.341Z'/>
+<path id='background-probe-paths-g1-41' d='M3.074-3.341C3.074-5.408 2.26-7.208 1.189-8.139H-.107C1.05-7.068 1.789-5.462 1.789-3.727V-2.934C1.789-1.157 1.039 .439-.107 1.478H1.189C2.238 .578 3.074-1.253 3.074-3.341Z'/>
+<path id='background-probe-paths-g1-66' d='M.878 0H4.669C5.773 0 6.597-.942 6.597-2.142C6.597-3.416 5.633-3.877 4.98-3.888V-3.952C5.665-3.995 6.319-4.423 6.319-5.558C6.319-6.715 5.569-7.475 4.337-7.475H.878V0ZM2.292-3.202H4.263C4.798-3.202 5.119-2.902 5.119-2.378V-2.013C5.119-1.489 4.798-1.2 4.263-1.2H2.292V-3.202ZM2.292-6.276H4.038C4.552-6.276 4.852-5.987 4.852-5.483V-5.151C4.852-4.659 4.552-4.359 4.038-4.359H2.292V-6.276Z'/>
+<path id='background-probe-paths-g1-70' d='M2.292 0V-3.159H5.248V-4.412H2.292V-6.222H5.687V-7.475H.878V0H2.292Z'/>
+<path id='background-probe-paths-g1-80' d='M2.292 0V-2.849H4.241C5.623-2.849 6.458-3.77 6.458-5.162C6.458-6.544 5.623-7.475 4.241-7.475H.878V0H2.292ZM2.292-6.244H4.113C4.659-6.244 4.991-5.955 4.991-5.408V-4.916C4.991-4.37 4.659-4.07 4.113-4.07H2.292V-6.244Z'/>
+<path id='background-probe-paths-g1-97' d='M2.174 .129C3.009 .129 3.62-.246 3.802-.964H3.866C3.952-.386 4.316 0 4.905 0H5.665V-1.092H5.109V-3.727C5.109-5.001 4.305-5.719 2.795-5.719C1.671-5.719 1.017-5.291 .61-4.648L1.424-3.92C1.692-4.305 2.056-4.627 2.699-4.627C3.427-4.627 3.738-4.263 3.738-3.641V-3.234H2.785C1.264-3.234 .396-2.667 .396-1.521C.396-.525 1.039 .129 2.174 .129ZM2.635-.867C2.099-.867 1.789-1.092 1.789-1.542V-1.724C1.789-2.163 2.142-2.41 2.86-2.41H3.738V-1.671C3.738-1.146 3.245-.867 2.635-.867Z'/>
+<path id='background-probe-paths-g1-98' d='M.793 0H2.163V-.932H2.206C2.42-.3 3.009 .129 3.748 .129C5.162 .129 5.944-.932 5.944-2.806C5.944-4.669 5.162-5.719 3.748-5.719C3.009-5.719 2.41-5.312 2.206-4.669H2.163V-7.925H.793V0ZM3.309-1.007C2.656-1.007 2.163-1.339 2.163-1.917V-3.695C2.163-4.241 2.656-4.595 3.309-4.595C4.016-4.595 4.509-4.07 4.509-3.277V-2.313C4.509-1.521 4.016-1.007 3.309-1.007Z'/>
+<path id='background-probe-paths-g1-99' d='M2.999 .129C4.08 .129 4.862-.364 5.226-1.349L4.177-1.853C3.973-1.349 3.652-.975 2.999-.975C2.238-.975 1.853-1.499 1.853-2.281V-3.299C1.853-4.08 2.238-4.616 2.999-4.616C3.588-4.616 3.941-4.273 4.07-3.802L5.194-4.305C4.862-5.184 4.123-5.719 2.999-5.719C1.349-5.719 .418-4.595 .418-2.806C.418-1.007 1.349 .129 2.999 .129Z'/>
+<path id='background-probe-paths-g1-101' d='M3.052 .129C4.091 .129 4.905-.268 5.366-.9L4.627-1.724C4.284-1.285 3.877-.964 3.202-.964C2.303-.964 1.842-1.51 1.842-2.313V-2.453H5.558V-2.902C5.558-4.434 4.755-5.719 3.009-5.719C1.371-5.719 .418-4.573 .418-2.806C.418-1.017 1.403 .129 3.052 .129ZM3.031-4.691C3.738-4.691 4.134-4.166 4.134-3.395V-3.299H1.842V-3.384C1.842-4.155 2.313-4.691 3.031-4.691Z'/>
+<path id='background-probe-paths-g1-102' d='M1.071 0H2.442V-4.509H3.588V-5.591H2.442V-6.833H3.588V-7.925H2.613C1.606-7.925 1.071-7.379 1.071-6.394V-5.591H.246V-4.509H1.071V0Z'/>
+<path id='background-probe-paths-g1-103' d='M5.837 .471C5.837-.535 5.248-1.125 3.877-1.125H2.378C1.885-1.125 1.649-1.264 1.649-1.542C1.649-1.789 1.831-1.949 2.046-2.046C2.292-1.981 2.581-1.949 2.902-1.949C4.423-1.949 5.216-2.699 5.216-3.823C5.216-4.509 4.927-5.055 4.348-5.376V-5.526H5.537V-6.576H4.669C4.155-6.576 3.877-6.308 3.877-5.762V-5.58C3.599-5.676 3.245-5.719 2.902-5.719C1.392-5.719 .589-4.959 .589-3.823C.589-3.084 .932-2.506 1.606-2.196V-2.153C1.071-2.035 .578-1.746 .578-1.167C.578-.718 .835-.353 1.296-.236V-.118C.675-.021 .3 .332 .3 .953C.3 1.778 1.017 2.27 2.902 2.27C5.044 2.27 5.837 1.639 5.837 .471ZM4.552 .632C4.552 1.103 4.155 1.328 3.266 1.328H2.581C1.724 1.328 1.403 1.071 1.403 .643C1.403 .418 1.489 .214 1.692 .064H3.599C4.295 .064 4.552 .278 4.552 .632ZM2.902-2.881C2.249-2.881 1.896-3.181 1.896-3.738V-3.92C1.896-4.487 2.249-4.777 2.902-4.777S3.909-4.487 3.909-3.92V-3.738C3.909-3.181 3.556-2.881 2.902-2.881Z'/>
+<path id='background-probe-paths-g1-105' d='M1.478-6.404C2.035-6.404 2.281-6.694 2.281-7.09V-7.304C2.281-7.7 2.035-7.99 1.478-7.99C.91-7.99 .675-7.7 .675-7.304V-7.09C.675-6.694 .91-6.404 1.478-6.404ZM.793 0H2.163V-5.591H.793V0Z'/>
+<path id='background-probe-paths-g1-107' d='M.793 0H2.163V-1.703L2.902-2.506L4.337 0H5.965L3.834-3.427L5.762-5.591H4.209L2.956-4.155L2.217-3.149H2.163V-7.925H.793V0Z'/>
+<path id='background-probe-paths-g1-108' d='M2.902 0V-1.092H2.163V-7.925H.793V-1.349C.793-.493 1.232 0 2.163 0H2.902Z'/>
+<path id='background-probe-paths-g1-109' d='M2.163 0V-3.695C2.163-4.295 2.677-4.595 3.202-4.595C3.813-4.595 4.102-4.198 4.102-3.395V0H5.473V-3.695C5.473-4.295 5.976-4.595 6.512-4.595C7.122-4.595 7.411-4.198 7.411-3.395V0H8.782V-3.534C8.782-4.927 8.161-5.719 7.068-5.719C6.18-5.719 5.558-5.216 5.355-4.595H5.333C5.066-5.344 4.477-5.719 3.716-5.719C2.881-5.719 2.431-5.248 2.217-4.659H2.163V-5.591H.793V0H2.163Z'/>
+<path id='background-probe-paths-g1-110' d='M2.163 0V-3.695C2.163-4.295 2.71-4.595 3.277-4.595C3.931-4.595 4.198-4.188 4.198-3.395V0H5.569V-3.534C5.569-4.927 4.927-5.719 3.781-5.719C2.913-5.719 2.442-5.259 2.217-4.659H2.163V-5.591H.793V0H2.163Z'/>
+<path id='background-probe-paths-g1-111' d='M3.009 .129C4.616 .129 5.612-1.007 5.612-2.806C5.612-4.595 4.616-5.719 3.009-5.719C1.414-5.719 .418-4.595 .418-2.806C.418-1.007 1.414 .129 3.009 .129ZM3.009-.975C2.303-.975 1.853-1.435 1.853-2.281V-3.32C1.853-4.155 2.303-4.616 3.009-4.616C3.727-4.616 4.177-4.155 4.177-3.32V-2.281C4.177-1.435 3.727-.975 3.009-.975Z'/>
+<path id='background-probe-paths-g1-112' d='M.793 2.142H2.163V-.932H2.206C2.42-.3 3.009 .129 3.748 .129C5.162 .129 5.944-.932 5.944-2.806C5.944-4.669 5.162-5.719 3.748-5.719C3.009-5.719 2.41-5.312 2.206-4.669H2.163V-5.591H.793V2.142ZM3.309-1.007C2.656-1.007 2.163-1.339 2.163-1.917V-3.695C2.163-4.241 2.656-4.595 3.309-4.595C4.016-4.595 4.509-4.07 4.509-3.277V-2.313C4.509-1.521 4.016-1.007 3.309-1.007Z'/>
+<path id='background-probe-paths-g1-114' d='M2.163 0V-3.427C2.163-4.038 2.645-4.295 3.566-4.295H3.995V-5.591H3.695C2.806-5.591 2.356-5.023 2.217-4.434H2.163V-5.591H.793V0H2.163Z'/>
+<path id='background-probe-paths-g1-116' d='M2.538 0H3.524V-1.092H2.463V-4.498H3.609V-5.591H2.463V-7.122H1.232V-6.169C1.232-5.783 1.103-5.591 .696-5.591H.268V-4.498H1.092V-1.424C1.092-.514 1.596 0 2.538 0Z'/>
+<path id='background-probe-paths-g1-118' d='M3.62 0L5.494-5.591H4.188L3.427-3.181L2.881-1.189H2.806L2.26-3.181L1.478-5.591H.129L1.992 0H3.62Z'/>
+<path id='background-probe-paths-g1-121' d='M3.245-2.635L2.86-1.221H2.795L2.431-2.635L1.457-5.591H.096L2.099 .268L1.842 1.05H.835V2.142H1.66C2.581 2.142 2.977 1.799 3.256 .996L5.505-5.591H4.22L3.245-2.635Z'/>
+<path id='background-probe-paths-g3-40' d='M.765-2.875C.765-1.078 1.521 .488 2.433 1.263H3.133C2.138 .378 1.456-1.18 1.456-2.47V-3.262C1.456-4.552 2.11-6.082 3.133-7.004H2.433C1.493-6.202 .765-4.654 .765-2.875Z'/>
+<path id='background-probe-paths-g3-41' d='M2.322-2.875C2.322-4.654 1.594-6.202 .654-7.004H-.046C.977-6.082 1.631-4.552 1.631-3.262V-2.47C1.631-1.18 .949 .378-.046 1.263H.654C1.567 .488 2.322-1.078 2.322-2.875Z'/>
+<path id='background-probe-paths-g3-44' d='M1.253-1.078C.866-1.078 .691-.857 .691-.534V-.405C.691-.157 .802 .028 1.051 .083C.949 .516 .728 .839 .359 1.226H.977C1.502 .774 1.815 .092 1.815-.405V-.534C1.815-.857 1.64-1.078 1.253-1.078Z'/>
+<path id='background-probe-paths-g3-46' d='M1.253 .111C1.64 .111 1.815-.111 1.815-.424V-.544C1.815-.857 1.64-1.078 1.253-1.078S.691-.857 .691-.544V-.424C.691-.111 .866 .111 1.253 .111Z'/>
+<path id='background-probe-paths-g3-58' d='M1.345 .111C1.733 .111 1.908-.111 1.908-.424V-.544C1.908-.857 1.733-1.078 1.345-1.078S.783-.857 .783-.544V-.424C.783-.111 .958 .111 1.345 .111ZM1.345-3.677C1.733-3.677 1.908-3.898 1.908-4.211V-4.331C1.908-4.645 1.733-4.866 1.345-4.866S.783-4.645 .783-4.331V-4.211C.783-3.898 .958-3.677 1.345-3.677Z'/>
+<path id='background-probe-paths-g3-65' d='M5.695 0L3.447-6.432H2.461L.212 0H.995L1.64-1.898H4.239L4.884 0H5.695ZM4.046-2.58H1.825L2.912-5.714H2.958L4.046-2.58Z'/>
+<path id='background-probe-paths-g3-66' d='M.857 0H3.778C4.728 0 5.437-.802 5.437-1.862C5.437-2.931 4.635-3.327 4.175-3.354V-3.41C4.599-3.474 5.216-3.815 5.216-4.774C5.216-5.778 4.562-6.432 3.502-6.432H.857V0ZM1.631-2.986H3.539C4.202-2.986 4.608-2.636 4.608-1.991V-1.677C4.608-1.032 4.202-.682 3.539-.682H1.631V-2.986ZM1.631-5.75H3.41C4.018-5.75 4.387-5.428 4.387-4.857V-4.543C4.387-3.972 4.018-3.649 3.41-3.649H1.631V-5.75Z'/>
+<path id='background-probe-paths-g3-70' d='M1.631 0V-2.912H4.423V-3.594H1.631V-5.75H4.691V-6.432H.857V0H1.631Z'/>
+<path id='background-probe-paths-g3-84' d='M5.068-5.75V-6.432H.203V-5.75H2.249V0H3.023V-5.75H5.068Z'/>
+<path id='background-probe-paths-g3-95' d='M4.93 1.521V.875H.276V1.521H4.93Z'/>
+<path id='background-probe-paths-g3-97' d='M4.654 0V-.645H4.11V-3.262C4.11-4.267 3.428-4.866 2.285-4.866C1.428-4.866 .857-4.442 .599-3.935L1.041-3.52C1.299-3.953 1.677-4.23 2.249-4.23C3.004-4.23 3.373-3.861 3.373-3.189V-2.719H2.433C1.051-2.719 .405-2.221 .405-1.327C.405-.442 .995 .111 2 .111C2.663 .111 3.17-.194 3.373-.774H3.419C3.474-.332 3.695 0 4.239 0H4.654ZM2.12-.516C1.548-.516 1.18-.783 1.18-1.253V-1.447C1.18-1.908 1.557-2.166 2.396-2.166H3.373V-1.382C3.373-.894 2.848-.516 2.12-.516Z'/>
+<path id='background-probe-paths-g3-98' d='M.783 0H1.521V-.774H1.557C1.843-.184 2.295 .111 2.949 .111C4.138 .111 4.884-.857 4.884-2.378S4.138-4.866 2.949-4.866C2.295-4.866 1.806-4.58 1.557-3.981H1.521V-6.819H.783V0ZM2.746-.553C2.073-.553 1.521-.903 1.521-1.521V-3.29C1.521-3.815 2.073-4.202 2.746-4.202C3.576-4.202 4.092-3.631 4.092-2.783V-1.972C4.092-1.124 3.576-.553 2.746-.553Z'/>
+<path id='background-probe-paths-g3-99' d='M2.553 .111C3.456 .111 4.073-.332 4.377-1.014L3.843-1.373C3.585-.829 3.152-.544 2.553-.544C1.677-.544 1.226-1.143 1.226-1.972V-2.783C1.226-3.612 1.677-4.211 2.553-4.211C3.133-4.211 3.539-3.926 3.714-3.437L4.331-3.751C4.055-4.405 3.493-4.866 2.553-4.866C1.216-4.866 .433-3.898 .433-2.378S1.216 .111 2.553 .111Z'/>
+<path id='background-probe-paths-g3-100' d='M3.824 0H4.562V-6.819H3.824V-3.981H3.788C3.539-4.58 3.05-4.866 2.396-4.866C1.207-4.866 .461-3.898 .461-2.378S1.207 .111 2.396 .111C3.05 .111 3.502-.184 3.788-.774H3.824V0ZM2.599-.553C1.769-.553 1.253-1.124 1.253-1.972V-2.783C1.253-3.631 1.769-4.202 2.599-4.202C3.271-4.202 3.824-3.815 3.824-3.29V-1.521C3.824-.903 3.271-.553 2.599-.553Z'/>
+<path id='background-probe-paths-g3-101' d='M2.571 .111C3.465 .111 4.147-.332 4.451-.977L3.926-1.355C3.677-.829 3.216-.534 2.617-.534C1.733-.534 1.207-1.152 1.207-1.972V-2.193H4.626V-2.543C4.626-3.889 3.843-4.866 2.571-4.866C1.281-4.866 .433-3.889 .433-2.378S1.281 .111 2.571 .111ZM2.571-4.248C3.327-4.248 3.834-3.686 3.834-2.848V-2.746H1.207V-2.811C1.207-3.64 1.769-4.248 2.571-4.248Z'/>
+<path id='background-probe-paths-g3-102' d='M1.041 0H1.779V-4.11H2.801V-4.755H1.779V-6.174H2.801V-6.819H2.083C1.382-6.819 1.041-6.368 1.041-5.714V-4.755H.267V-4.11H1.041V0Z'/>
+<path id='background-probe-paths-g3-103' d='M4.792 .525C4.792-.258 4.285-.737 3.106-.737H2.092C1.659-.737 1.364-.811 1.364-1.097C1.364-1.392 1.677-1.548 1.991-1.631C2.129-1.603 2.295-1.585 2.451-1.585C3.539-1.585 4.248-2.258 4.248-3.225C4.248-3.732 4.046-4.156 3.705-4.451V-4.755H4.608V-5.4H3.898C3.502-5.4 3.345-5.133 3.345-4.764V-4.681C3.087-4.801 2.783-4.866 2.442-4.866C1.364-4.866 .654-4.193 .654-3.225C.654-2.562 .986-2.037 1.548-1.769V-1.733C1.069-1.613 .728-1.382 .728-.903C.728-.581 .885-.369 1.152-.24V-.138C.682-.009 .396 .267 .396 .783C.396 1.53 1.004 1.954 2.488 1.954C4.018 1.954 4.792 1.502 4.792 .525ZM4.101 .581C4.101 1.097 3.622 1.355 2.801 1.355H2.12C1.373 1.355 1.087 1.014 1.087 .599C1.087 .304 1.226 .092 1.53-.046H3.115C3.852-.046 4.101 .203 4.101 .581ZM2.451-2.175C1.825-2.175 1.428-2.47 1.428-3.096V-3.354C1.428-3.981 1.825-4.276 2.451-4.276S3.474-3.981 3.474-3.354V-3.096C3.474-2.47 3.078-2.175 2.451-2.175Z'/>
+<path id='background-probe-paths-g3-104' d='M.783 0H1.521V-3.299C1.521-3.907 2.092-4.202 2.682-4.202C3.391-4.202 3.76-3.769 3.76-2.921V0H4.497V-3.05C4.497-4.202 3.88-4.866 2.903-4.866C2.193-4.866 1.788-4.516 1.557-3.981H1.521V-6.819H.783V0Z'/>
+<path id='background-probe-paths-g3-105' d='M1.152-5.87C1.465-5.87 1.603-6.036 1.603-6.285V-6.405C1.603-6.654 1.465-6.819 1.152-6.819S.7-6.654 .7-6.405V-6.285C.7-6.036 .839-5.87 1.152-5.87ZM.783 0H1.521V-4.755H.783V0Z'/>
+<path id='background-probe-paths-g3-107' d='M.783 0H1.521V-1.696L2.23-2.424L3.806 0H4.7L2.765-2.875L4.525-4.755H3.631L2.285-3.308L1.557-2.497H1.521V-6.819H.783V0Z'/>
+<path id='background-probe-paths-g3-108' d='M2.221 0V-.645H1.521V-6.819H.783V-.765C.783-.323 1.06 0 1.567 0H2.221Z'/>
+<path id='background-probe-paths-g3-109' d='M1.521 0V-3.299C1.521-3.907 2.073-4.202 2.654-4.202C3.354-4.202 3.677-3.769 3.677-2.921V0H4.414V-3.299C4.414-3.907 4.949-4.202 5.529-4.202C6.248-4.202 6.571-3.76 6.571-2.921V0H7.308V-3.05C7.308-4.202 6.727-4.866 5.76-4.866C4.949-4.866 4.488-4.414 4.313-3.898H4.294C4.036-4.58 3.465-4.866 2.838-4.866C2.101-4.866 1.769-4.469 1.557-3.981H1.521V-4.755H.783V0H1.521Z'/>
+<path id='background-probe-paths-g3-110' d='M1.521 0V-3.299C1.521-3.907 2.092-4.202 2.682-4.202C3.391-4.202 3.76-3.769 3.76-2.921V0H4.497V-3.05C4.497-4.202 3.88-4.866 2.903-4.866C2.193-4.866 1.788-4.516 1.557-3.981H1.521V-4.755H.783V0H1.521Z'/>
+<path id='background-probe-paths-g3-111' d='M2.58 .111C3.852 .111 4.728-.866 4.728-2.378S3.852-4.866 2.58-4.866S.433-3.889 .433-2.378S1.309 .111 2.58 .111ZM2.58-.544C1.788-.544 1.226-1.032 1.226-2.037V-2.719C1.226-3.723 1.788-4.211 2.58-4.211S3.935-3.723 3.935-2.719V-2.037C3.935-1.032 3.373-.544 2.58-.544Z'/>
+<path id='background-probe-paths-g3-112' d='M.783 1.843H1.521V-.774H1.557C1.843-.184 2.295 .111 2.949 .111C4.138 .111 4.884-.857 4.884-2.378S4.138-4.866 2.949-4.866C2.295-4.866 1.806-4.58 1.557-3.981H1.521V-4.755H.783V1.843ZM2.746-.553C2.073-.553 1.521-.903 1.521-1.521V-3.29C1.521-3.815 2.073-4.202 2.746-4.202C3.576-4.202 4.092-3.631 4.092-2.783V-1.972C4.092-1.124 3.576-.553 2.746-.553Z'/>
+<path id='background-probe-paths-g3-114' d='M1.521 0V-3.225C1.521-3.677 2-4.018 2.792-4.018H3.225V-4.755H2.94C2.166-4.755 1.733-4.331 1.567-3.88H1.521V-4.755H.783V0H1.521Z'/>
+<path id='background-probe-paths-g3-115' d='M2.212 .111C3.299 .111 3.972-.452 3.972-1.373C3.972-2.092 3.566-2.553 2.516-2.709L2.147-2.765C1.557-2.857 1.235-3.041 1.235-3.502C1.235-3.953 1.557-4.239 2.166-4.239S3.179-3.953 3.391-3.659L3.88-4.101C3.493-4.58 2.986-4.866 2.221-4.866C1.253-4.866 .525-4.405 .525-3.465C.525-2.58 1.18-2.221 2.055-2.092L2.433-2.037C3.06-1.944 3.262-1.659 3.262-1.29C3.262-.802 2.894-.516 2.267-.516C1.668-.516 1.226-.783 .857-1.244L.332-.82C.756-.258 1.336 .111 2.212 .111Z'/>
+<path id='background-probe-paths-g3-116' d='M2.755 0V-.645H1.788V-4.11H2.829V-4.755H1.788V-6.073H1.124V-5.188C1.124-4.866 1.023-4.755 .71-4.755H.267V-4.11H1.051V-.783C1.051-.323 1.327 0 1.834 0H2.755Z'/>
+<path id='background-probe-paths-g3-117' d='M3.714 0H4.451V-4.755H3.714V-1.465C3.714-.839 3.142-.553 2.562-.553C1.852-.553 1.474-.986 1.474-1.834V-4.755H.737V-1.705C.737-.553 1.364 .111 2.341 .111C3.133 .111 3.493-.323 3.677-.774H3.714V0Z'/>
+<path id='background-probe-paths-g3-119' d='M1.557 0H2.451L3.115-2.285L3.52-3.732H3.539L3.953-2.285L4.617 0H5.529L6.792-4.755H6.101L5.585-2.7L5.096-.617H5.078L4.488-2.7L3.87-4.755H3.216L2.617-2.7L2.037-.617H2.018L1.511-2.7L1.004-4.755H.286L1.557 0Z'/>
+<path id='background-probe-paths-g3-120' d='M.194 0H1.014L2.35-1.862H2.378L3.612 0H4.479L2.765-2.451L4.442-4.755H3.622L2.368-2.986H2.341L1.133-4.755H.267L1.954-2.396L.194 0Z'/>
+<path id='background-probe-paths-g3-121' d='M2.562-1.521L2.304-.746H2.258L2.037-1.521L.894-4.755H.157L1.935 .184L1.576 1.198H.829V1.843H1.207C1.908 1.843 2.101 1.677 2.313 1.106L4.442-4.755H3.714L2.562-1.521Z'/>
+</defs>
+<g id='background-probe-paths-page1'>
+<g stroke-miterlimit='10' transform='matrix(.996 0 0 -.996 -72 -72)' stroke-width='1.12921' class='fig-f-ink fig-s-ink'>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M7.528-30.112V-54.202C7.528-56.697 9.55-58.719 12.045-58.719H108.404C110.899-58.719 112.921-56.697 112.921-54.202V-30.112C112.921-27.618 110.899-25.595 108.404-25.595H12.045C9.55-25.595 7.528-27.618 7.528-30.112ZM112.921-58.719'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M143.033-30.112V-54.202C143.033-56.697 145.056-58.719 147.55-58.719H243.91C246.404-58.719 248.427-56.697 248.427-54.202V-30.112C248.427-27.618 246.404-25.595 243.91-25.595H147.55C145.056-25.595 143.033-27.618 143.033-30.112ZM248.427-58.719'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-accent fig-f-accent'>
+<path d='M489.325-30.112V-54.202C489.325-56.697 491.347-58.719 493.842-58.719H620.313C622.808-58.719 624.83-56.697 624.83-54.202V-30.112C624.83-27.618 622.808-25.595 620.313-25.595H493.842C491.347-25.595 489.325-27.618 489.325-30.112ZM624.83-58.719'/>
+</g>
+<g class='fig-s-line'>
+<path d='M112.921-42.157H133.906' fill='none'/>
+<g transform='translate(133.623 -42.157)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M248.427-42.157H480.197' fill='none'/>
+<g transform='translate(479.915 -42.157)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M7.528-100.876V-124.966C7.528-127.461 9.55-129.483 12.045-129.483H108.404C110.899-129.483 112.921-127.461 112.921-124.966V-100.876C112.921-98.382 110.899-96.359 108.404-96.359H12.045C9.55-96.359 7.528-98.382 7.528-100.876ZM112.921-129.483'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M143.033-100.876V-124.966C143.033-127.461 145.056-129.483 147.55-129.483H243.91C246.404-129.483 248.427-127.461 248.427-124.966V-100.876C248.427-98.382 246.404-96.359 243.91-96.359H147.55C145.056-96.359 143.033-98.382 143.033-100.876ZM248.427-129.483'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M263.483-100.876V-124.966C263.483-127.461 265.505-129.483 268-129.483H349.303C351.797-129.483 353.82-127.461 353.82-124.966V-100.876C353.82-98.382 351.797-96.359 349.303-96.359H268C265.505-96.359 263.483-98.382 263.483-100.876ZM353.82-129.483'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M368.876-100.876V-124.966C368.876-127.461 370.898-129.483 373.393-129.483H454.696C457.19-129.483 459.213-127.461 459.213-124.966V-100.876C459.213-98.382 457.19-96.359 454.696-96.359H373.393C370.898-96.359 368.876-98.382 368.876-100.876ZM459.213-129.483'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-accent fig-f-accent'>
+<path d='M489.325-100.876V-124.966C489.325-127.461 491.347-129.483 493.842-129.483H620.313C622.808-129.483 624.83-127.461 624.83-124.966V-100.876C624.83-98.382 622.808-96.359 620.313-96.359H493.842C491.347-96.359 489.325-98.382 489.325-100.876ZM624.83-129.483'/>
+</g>
+<g class='fig-s-line'>
+<path d='M112.921-112.921H133.906' fill='none'/>
+<g transform='translate(133.623 -112.921)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M248.427-112.921H254.355' fill='none'/>
+<g transform='translate(254.073 -112.921)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M353.82-112.921H359.748' fill='none'/>
+<g transform='translate(359.466 -112.921)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M459.213-112.921H480.197' fill='none'/>
+<g transform='translate(479.915 -112.921)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M7.528-171.64V-195.73C7.528-198.225 9.55-200.247 12.045-200.247H108.404C110.899-200.247 112.921-198.225 112.921-195.73V-171.64C112.921-169.146 110.899-167.123 108.404-167.123H12.045C9.55-167.123 7.528-169.146 7.528-171.64ZM112.921-200.247'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M143.033-171.64V-195.73C143.033-198.225 145.056-200.247 147.55-200.247H243.91C246.404-200.247 248.427-198.225 248.427-195.73V-171.64C248.427-169.146 246.404-167.123 243.91-167.123H147.55C145.056-167.123 143.033-169.146 143.033-171.64ZM248.427-200.247'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M263.483-171.64V-195.73C263.483-198.225 265.505-200.247 268-200.247H349.303C351.797-200.247 353.82-198.225 353.82-195.73V-171.64C353.82-169.146 351.797-167.123 349.303-167.123H268C265.505-167.123 263.483-169.146 263.483-171.64ZM353.82-200.247'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-accent fig-f-accent'>
+<path d='M489.325-171.64V-195.73C489.325-198.225 491.347-200.247 493.842-200.247H620.313C622.808-200.247 624.83-198.225 624.83-195.73V-171.64C624.83-169.146 622.808-167.123 620.313-167.123H493.842C491.347-167.123 489.325-169.146 489.325-171.64ZM624.83-200.247'/>
+</g>
+<g class='fig-s-line'>
+<path d='M112.921-183.685H133.906' fill='none'/>
+<g transform='translate(133.623 -183.685)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M248.427-183.685H254.355' fill='none'/>
+<g transform='translate(254.073 -183.685)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M353.82-183.685H480.197' fill='none'/>
+<g transform='translate(479.915 -183.685)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -90.337)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-69.04' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-63.962' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-58.708' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-55.461' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-51.974' y='-72' href='#background-probe-paths-g3-121'/>
+<use x='-47.867' y='-72' href='#background-probe-paths-g3-44'/>
+<use x='-43.168' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-40.208' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-35.241' y='-72' href='#background-probe-paths-g3-120'/>
+<use x='-30.551' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-28.238' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-24.992' y='-72' href='#background-probe-paths-g3-44'/>
+<use x='-20.293' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-17.296' y='-72' href='#background-probe-paths-g3-109'/>
+<use x='-9.22' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-4.04' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='1.325' y='-72' href='#background-probe-paths-g3-95'/>
+<use x='6.551' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='9.899' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='14.978' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='18.224' y='-72' href='#background-probe-paths-g3-44'/>
+<use x='22.923' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='25.439' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='29.944' y='-72' href='#background-probe-paths-g3-109'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -161.101)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-107'/>
+<use x='-67.125' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-61.76' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-58.412' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-53.232' y='-72' href='#background-probe-paths-g3-98'/>
+<use x='-47.867' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-42.974' y='-72' href='#background-probe-paths-g3-44'/>
+<use x='-38.275' y='-72' href='#background-probe-paths-g3-107'/>
+<use x='-33.4' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-30.051' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-24.973' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-21.726' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-16.361' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-13.013' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-7.833' y='-72' href='#background-probe-paths-g3-98'/>
+<use x='-2.468' y='-72' href='#background-probe-paths-g3-101'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -231.865)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-107'/>
+<use x='-67.125' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-61.76' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-58.412' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-53.232' y='-72' href='#background-probe-paths-g3-98'/>
+<use x='-47.867' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-42.974' y='-72' href='#background-probe-paths-g3-46'/>
+<use x='-40.458' y='-72' href='#background-probe-paths-g3-109'/>
+<use x='-32.382' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-27.128' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='-24.659' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-21.412' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-19.099' y='-72' href='#background-probe-paths-g3-44'/>
+<use x='-14.4' y='-72' href='#background-probe-paths-g3-107'/>
+<use x='-9.526' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-6.177' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-1.099' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='2.148' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='7.513' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='10.861' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='16.041' y='-72' href='#background-probe-paths-g3-98'/>
+<use x='21.406' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='26.3' y='-72' href='#background-probe-paths-g3-46'/>
+<use x='28.816' y='-72' href='#background-probe-paths-g3-109'/>
+<use x='36.891' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='42.145' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='44.615' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='47.861' y='-72' href='#background-probe-paths-g3-105'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 106.339 -111.416)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-101'/>
+<use x='-66.002' y='-72' href='#background-probe-paths-g1-110'/>
+<use x='-59.681' y='-72' href='#background-probe-paths-g1-116'/>
+<use x='-55.66' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-51.349' y='-72' href='#background-probe-paths-g1-121'/>
+<use x='-43.179' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-37.192' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-30.892' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-27.13' y='-72' href='#background-probe-paths-g1-40'/>
+<use x='-23.507' y='-72' href='#background-probe-paths-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 108.461 -124.214)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-64.878' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='-59.513' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-57.2' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-53.852' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-48.773' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-44.121' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-38.691' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-34.038' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-29.099' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='-26.629' y='-72' href='#background-probe-paths-g3-108'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 229.16 -111.416)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-66'/>
+<use x='-64.873' y='-72' href='#background-probe-paths-g1-80'/>
+<use x='-57.982' y='-72' href='#background-probe-paths-g1-70'/>
+<use x='-49.242' y='-72' href='#background-probe-paths-g1-116'/>
+<use x='-45.222' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-41.115' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-35.106' y='-72' href='#background-probe-paths-g1-109'/>
+<use x='-25.56' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-19.11' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-13.058' y='-72' href='#background-probe-paths-g1-108'/>
+<use x='-9.897' y='-72' href='#background-probe-paths-g1-105'/>
+<use x='-6.93' y='-72' href='#background-probe-paths-g1-110'/>
+<use x='-.609' y='-72' href='#background-probe-paths-g1-101'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 243.632 -124.214)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-109'/>
+<use x='-63.925' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-58.985' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='-53.62' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-46.359' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-43.399' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-38.219' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-32.641' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-29.644' y='-72' href='#background-probe-paths-g3-40'/>
+<use x='-26.546' y='-72' href='#background-probe-paths-g3-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 608.172 -111.416)' class='fig-f-accent'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-65.55' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-61.379' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-55.327' y='-72' href='#background-probe-paths-g1-103'/>
+<use x='-49.468' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-45.362' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-39.352' y='-72' href='#background-probe-paths-g1-109'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 578.756 -124.214)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-67.061' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-63.879' y='-72' href='#background-probe-paths-g3-103'/>
+<use x='-59.032' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-53.778' y='-72' href='#background-probe-paths-g3-109'/>
+<use x='-45.702' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-40.624' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-35.37' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-32.123' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='-25.436' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-22.189' y='-72' href='#background-probe-paths-g3-121'/>
+<use x='-17.573' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-12.208' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-7.13' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='.418' y='-72' href='#background-probe-paths-g3-98'/>
+<use x='5.737' y='-72' href='#background-probe-paths-g3-121'/>
+<use x='12.536' y='-72' href='#background-probe-paths-g3-66'/>
+<use x='18.345' y='-72' href='#background-probe-paths-g3-84'/>
+<use x='23.636' y='-72' href='#background-probe-paths-g3-70'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 101.883 -182.18)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-63.454' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-57.004' y='-72' href='#background-probe-paths-g1-108'/>
+<use x='-53.843' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-47.834' y='-72' href='#background-probe-paths-g1-99'/>
+<use x='-42.373' y='-72' href='#background-probe-paths-g1-101'/>
+<use x='-33.838' y='-72' href='#background-probe-paths-g1-105'/>
+<use x='-30.871' y='-72' href='#background-probe-paths-g1-110'/>
+<use x='-22.013' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-18.25' y='-72' href='#background-probe-paths-g1-40'/>
+<use x='-14.627' y='-72' href='#background-probe-paths-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 92.761 -194.978)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-66.922' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-61.668' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-58.421' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-54.934' y='-72' href='#background-probe-paths-g3-121'/>
+<use x='-48.135' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-42.955' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-37.377' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-35.065' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-29.811' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='-25.371' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-22.124' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-18.729' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-13.475' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-8.823' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-5.576' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-3.263' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='1.917' y='-72' href='#background-probe-paths-g3-110'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 240.657 -182.18)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-98'/>
+<use x='-65.55' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-61.379' y='-72' href='#background-probe-paths-g1-101'/>
+<use x='-55.381' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-49.371' y='-72' href='#background-probe-paths-g1-107'/>
+<use x='-43.33' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-36.88' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-30.828' y='-72' href='#background-probe-paths-g1-105'/>
+<use x='-27.861' y='-72' href='#background-probe-paths-g1-110'/>
+<use x='-21.54' y='-72' href='#background-probe-paths-g1-116'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 225.356 -194.978)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-66.82' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-61.242' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-58.245' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-54.999' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-51.641' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-46.701' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-42.104' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-34.843' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-29.903' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-24.474' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-21.227' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='-15.973' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-8.712' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-3.633' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='1.621' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='4.867' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='8.355' y='-72' href='#background-probe-paths-g3-121'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 363.274 -182.18)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-107'/>
+<use x='-65.959' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-59.509' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-55.338' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-49.285' y='-72' href='#background-probe-paths-g1-98'/>
+<use x='-42.835' y='-72' href='#background-probe-paths-g1-101'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 358.814 -194.978)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-69.688' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-66.441' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='-59.753' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='-54.499' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-49.56' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-44.306' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='-38.941' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='-36.425' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-31.346' y='-72' href='#background-probe-paths-g3-114'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 460.795 -182.18)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-65.55' y='-72' href='#background-probe-paths-g1-101'/>
+<use x='-59.552' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-55.241' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-48.941' y='-72' href='#background-probe-paths-g1-101'/>
+<use x='-43.04' y='-72' href='#background-probe-paths-g1-118'/>
+<use x='-37.493' y='-72' href='#background-probe-paths-g1-101'/>
+<use x='-31.494' y='-72' href='#background-probe-paths-g1-110'/>
+<use x='-25.173' y='-72' href='#background-probe-paths-g1-116'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 460.266 -194.978)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-69.688' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-66.441' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='-59.753' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-54.388' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-51.04' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-45.86' y='-72' href='#background-probe-paths-g3-103'/>
+<use x='-40.976' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-37.618' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-32.678' y='-72' href='#background-probe-paths-g3-109'/>
+<use x='-24.603' y='-72' href='#background-probe-paths-g3-115'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 608.172 -182.18)' class='fig-f-accent'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-65.55' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-61.379' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-55.327' y='-72' href='#background-probe-paths-g1-103'/>
+<use x='-49.468' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-45.362' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-39.352' y='-72' href='#background-probe-paths-g1-109'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 600.231 -194.978)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='-67.56' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-64.313' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-60.919' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-55.665' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-51.012' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-45.582' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-40.273' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-37.026' y='-72' href='#background-probe-paths-g3-95'/>
+<use x='-31.8' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-28.451' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-23.373' y='-72' href='#background-probe-paths-g3-103'/>
+<use x='-18.489' y='-72' href='#background-probe-paths-g3-115'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 106.339 -252.944)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-101'/>
+<use x='-66.002' y='-72' href='#background-probe-paths-g1-110'/>
+<use x='-59.681' y='-72' href='#background-probe-paths-g1-116'/>
+<use x='-55.66' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-51.349' y='-72' href='#background-probe-paths-g1-121'/>
+<use x='-43.179' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-37.192' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-30.892' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-27.13' y='-72' href='#background-probe-paths-g1-40'/>
+<use x='-23.507' y='-72' href='#background-probe-paths-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 99.088 -265.742)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-66.876' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-61.696' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-56.617' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-51.678' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-47.025' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='-39.588' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-36.591' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-31.337' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-26.083' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-21.43' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-18.184' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-15.871' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-10.691' y='-72' href='#background-probe-paths-g3-110'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 253.266 -252.944)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-68.238' y='-72' href='#background-probe-paths-g1-116'/>
+<use x='-64.217' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-60.111' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-54.101' y='-72' href='#background-probe-paths-g1-99'/>
+<use x='-48.64' y='-72' href='#background-probe-paths-g1-101'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 224.371 -265.742)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-69.003' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-63.749' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-58.495' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-53.842' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-50.596' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-48.283' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-43.103' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-35.666' y='-72' href='#background-probe-paths-g3-103'/>
+<use x='-30.782' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-27.424' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-22.485' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-17.12' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='-9.683' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-6.436' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-3.078' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='1.861' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='6.458' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='11.537' y='-72' href='#background-probe-paths-g3-114'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 364.417 -252.944)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-102'/>
+<use x='-68.238' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-61.788' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-57.617' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-51.564' y='-72' href='#background-probe-paths-g1-98'/>
+<use x='-45.114' y='-72' href='#background-probe-paths-g1-101'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 349.739 -265.742)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-66.82' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-61.566' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-54.305' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='-51.345' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-46.165' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-40.587' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-37.34' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='-32.086' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-24.825' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='-22.309' y='-72' href='#background-probe-paths-g3-105'/>
+<use x='-19.997' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-14.743' y='-72' href='#background-probe-paths-g3-107'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 608.172 -252.944)' class='fig-f-accent'>
+<use x='-72' y='-72' href='#background-probe-paths-g1-112'/>
+<use x='-65.55' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-61.379' y='-72' href='#background-probe-paths-g1-111'/>
+<use x='-55.327' y='-72' href='#background-probe-paths-g1-103'/>
+<use x='-49.468' y='-72' href='#background-probe-paths-g1-114'/>
+<use x='-45.362' y='-72' href='#background-probe-paths-g1-97'/>
+<use x='-39.352' y='-72' href='#background-probe-paths-g1-109'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 600.231 -265.742)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='-67.56' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-64.313' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-60.919' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-55.665' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='-51.012' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-45.582' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-40.273' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-37.026' y='-72' href='#background-probe-paths-g3-95'/>
+<use x='-31.8' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-28.451' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-23.373' y='-72' href='#background-probe-paths-g3-103'/>
+<use x='-18.489' y='-72' href='#background-probe-paths-g3-115'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -298.112)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-probe-paths-g3-65'/>
+<use x='-63.888' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-60.539' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-55.461' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='-52.214' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='-46.96' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-43.566' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='-36.129' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='-30.764' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='-27.415' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='-22.235' y='-72' href='#background-probe-paths-g3-98'/>
+<use x='-16.87' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='-9.609' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='-4.669' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='.696' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='6.061' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='12.748' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='19.871' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='24.311' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='27.521' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='32.599' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='40.147' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='45.327' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='52.764' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='56.011' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='61.265' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='68.526' y='-72' href='#background-probe-paths-g3-119'/>
+<use x='75.547' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='80.44' y='-72' href='#background-probe-paths-g3-121'/>
+<use x='87.239' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='92.419' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='97.673' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='100.919' y='-72' href='#background-probe-paths-g3-58'/>
+<use x='105.803' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='109.05' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='114.304' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='121.565' y='-72' href='#background-probe-paths-g3-107'/>
+<use x='126.283' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='131.361' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='134.756' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='140.01' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='145.088' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='149.787' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='153.135' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='158.214' y='-72' href='#background-probe-paths-g3-112'/>
+<use x='163.579' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='166.095' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='171.034' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='175.631' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='180.71' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='187.397' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='190.644' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='195.898' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='203.159' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='206.508' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='211.586' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='214.833' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='220.087' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='223.482' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='230.919' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='235.858' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='241.223' y='-72' href='#background-probe-paths-g3-100'/>
+<use x='246.588' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='249.937' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='255.015' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='259.464' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='266.152' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='271.276' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='276.456' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='279.453' y='-72' href='#background-probe-paths-g3-40'/>
+<use x='282.552' y='-72' href='#background-probe-paths-g3-41'/>
+<use x='287.834' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='291.044' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='298.407' y='-72' href='#background-probe-paths-g3-103'/>
+<use x='303.235' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='308.313' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='313.743' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='318.34' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='323.52' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='328.774' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='332.021' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='335.37' y='-72' href='#background-probe-paths-g3-111'/>
+<use x='340.55' y='-72' href='#background-probe-paths-g3-108'/>
+<use x='345.249' y='-72' href='#background-probe-paths-g3-98'/>
+<use x='350.614' y='-72' href='#background-probe-paths-g3-97'/>
+<use x='355.553' y='-72' href='#background-probe-paths-g3-99'/>
+<use x='360.206' y='-72' href='#background-probe-paths-g3-107'/>
+<use x='367.264' y='-72' href='#background-probe-paths-g3-119'/>
+<use x='374.368' y='-72' href='#background-probe-paths-g3-104'/>
+<use x='379.621' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='384.7' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='392.137' y='-72' href='#background-probe-paths-g3-102'/>
+<use x='395.134' y='-72' href='#background-probe-paths-g3-40'/>
+<use x='398.232' y='-72' href='#background-probe-paths-g3-41'/>
+<use x='403.514' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='406.863' y='-72' href='#background-probe-paths-g3-101'/>
+<use x='411.941' y='-72' href='#background-probe-paths-g3-116'/>
+<use x='415.188' y='-72' href='#background-probe-paths-g3-117'/>
+<use x='420.442' y='-72' href='#background-probe-paths-g3-114'/>
+<use x='423.836' y='-72' href='#background-probe-paths-g3-110'/>
+<use x='429.09' y='-72' href='#background-probe-paths-g3-115'/>
+<use x='433.549' y='-72' href='#background-probe-paths-g3-46'/>
+</g>
+</g>
+</g>
+</svg>

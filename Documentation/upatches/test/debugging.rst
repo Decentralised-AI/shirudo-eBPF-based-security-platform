@@ -219,8 +219,17 @@ Read the verifier log
           against the target kernel's ``vmlinux.h``, or test for the field
           with ``bpf_core_field_exists()`` and skip the access.
       * - ``<function>() is not modifiable``
-        - ``fmod_ret`` on a function the kernel does not admit. Attach
-          elsewhere. :doc:`/upatches/write/attach-kinds` lists the rules.
+        - ``fmod_ret`` on a function the kernel does not admit: nobody
+          declared it a target, and this kernel's BTF has no tag for it.
+          Attach elsewhere. :doc:`/upatches/write/attach-kinds` lists the
+          rules.
+      * - ``At program exit the register R0 should be 0 or one of
+          <list>``
+        - An ``fmod_ret`` program on a function the kernel build tagged
+          can return a value that is not in the function's list. Return 0
+          or one of the listed errors, each as a constant, and declare
+          the program ``long BPF_PROG(...)`` when the function returns
+          ``long``.
       * - ``<function> is not sleepable``
         - A ``.s`` section on a function or hook that cannot sleep. Use
           the section without ``.s``.

@@ -184,11 +184,14 @@ without ``CAP_BPF``. What bounds a target is the attach point.
      - Limit
      - Constant
    * - ``fentry``, ``fexit``, ``fmod_ret``, ``lsm``
-     - 36 programs per kernel function on x86-64, 37 on arm64 and 38 on
-       riscv64, counted together for all four kinds. An ``lsm`` program
-       counts on the hook's ``bpf_lsm_<hook>`` function, which shirudo's
-       own programs share.
-     - ``BPF_MAX_TRAMP_LINKS`` in ``include/linux/bpf.h``
+     - As many programs per kernel function as fit its trampoline image
+       of 4 KB, all four kinds together. On x86-64 that is 57 ``fentry``
+       or ``fexit`` programs or about 35 ``fmod_ret`` or ``lsm``
+       programs, on arm64 about 33 of the latter. The attach of one
+       more fails with ``E2BIG``. An ``lsm`` program counts on the
+       hook's ``bpf_lsm_<hook>`` function, which shirudo's own programs
+       share.
+     - ``BPF_TRAMP_IMAGE_MAX_SIZE`` in ``include/linux/bpf.h``
    * - ``tp_btf``
      - No limit per tracepoint
      -

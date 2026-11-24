@@ -1,0 +1,87 @@
+% SPDX-License-Identifier: BSD-2-Clause
+% Copyright (c) 2026 Authors of shirudo
+%
+% How a kernel function becomes an fmod_ret target: at the link,
+% resolve_btfids reads the machine code, finds the errors each function
+% returns and writes them into BTF as a tag; at load, the verifier reads
+% the tag and holds the program to it (concepts/background/fmod-ret.rst).
+\documentclass[tikz,dvisvgm]{standalone}
+\usepackage{shirudo-figure}
+
+\begin{document}
+\begin{tikzpicture}[
+    stage/.style={box, rounded corners=3bp},
+    tag/.style={draw=fig-accent, fill=fig-accent, fill opacity=0.08,
+      text opacity=1, rounded corners=4.5bp}]
+  \useasboundingbox (0,0) rectangle (840,372);
+
+  % The kernel build.
+  \draw[box] (10,44) rectangle (180,124);
+  \draw[frame] (220,30) rectangle (640,138);
+  \foreach \x in {234,335,436,537}
+    \draw[stage] (\x,66) rectangle ++(89,58);
+  \draw[box] (680,44) rectangle (830,124);
+  \draw[tag] (60,164) rectangle (780,196);
+
+  \draw[flow] (180,84) -- (218,84);
+  \draw[flow] (640,84) -- (678,84);
+  \foreach \x in {323,424,525}
+    \draw[flow] (\x,95) -- ++(10,0);
+  \draw[link, thin] (755,124) -- (755,164);
+
+  \draw[link, thin, dash pattern=on 2.25bp off 3bp] (10,222) -- (830,222);
+
+  % The running kernel.
+  \draw[box] (10,254) rectangle (270,326);
+  \draw[box] (310,254) rectangle (590,326);
+  \draw[box] (630,254) rectangle (830,326);
+  \draw[flow] (270,290) -- (308,290);
+  \draw[flow] (590,290) -- (628,290);
+  \draw[flow, draw=fig-accent] (450,196) -- (450,252);
+
+  \begin{scope}[every node/.append style={anchor=base}]
+    \node[title] at (95,70) {vmlinux, modules};
+    \node[small, note] at (95,90) {machine code after};
+    \node[small, note] at (95,106) {inlining and the link};
+
+    \node[mono] at (430,52) {resolve\_btfids -{}-fmodret\_scan};
+    \foreach \x/\t/\a/\b in {278/decode/LLVM's MC/layer,
+        379/analyze/constants that/reach a return,
+        480/filter/errors/that count,
+        581/tag/one list/per function} {
+      \node[small] at (\x,84) {\t};
+      \node[small, note] at (\x,102) {\a};
+      \node[small, note] at (\x,116) {\b};
+    }
+
+    \node[title] at (755,70) {BTF};
+    \node[small, note] at (755,90) {types of the kernel,};
+    \node[small, note] at (755,106) {and the tags};
+
+    \node[mono] at (420,184) {DECL\_TAG
+      \textquotesingle bpf\_fmodret\_retval:-95,-29,-27,-26,-22,-21,-19,-9,-1\textquotesingle{}
+      on FUNC \textquotesingle vfs\_fallocate\textquotesingle};
+
+    \node[small, note, anchor=base east] at (830,214) {kernel build};
+    \node[small, note, anchor=base east] at (830,240) {running kernel};
+
+    \node[mono] at (140,278) {SEC("fmod\_ret/vfs\_fallocate")};
+    \node[small] at (140,298) {a program that returns};
+    \node[small] at (140,314) {0 or -EFBIG, which is -27};
+
+    \node[title] at (450,278) {verifier, at the load};
+    \node[small] at (450,298) {the target has a tag, and R0 at};
+    \node[small] at (450,314) {each exit is 0 or in its list};
+
+    \node[title] at (730,278) {trampoline};
+    \node[small] at (730,298) {0: calls the function};
+    \node[small] at (730,314) {-27: skips it};
+
+    \node[small, color=fig-accent, anchor=base west] at (460,238) {the list};
+  \end{scope}
+
+  \node[small, note, anchor=base west] at (10,356) {The list is that of
+    one x86-64 build. Another compiler, configuration or kernel release
+    gives another list.};
+\end{tikzpicture}
+\end{document}

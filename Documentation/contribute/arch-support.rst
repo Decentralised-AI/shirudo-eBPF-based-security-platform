@@ -54,10 +54,17 @@ Comparison
      - Included in the external kernel build
      - Included in the external kernel build
    * - BPF trampolines (``lsm``, ``fentry``, ``fexit``, ``fmod_ret``)
-     - 36 programs per function
-     - 37 programs per function
-     - 38 programs per function, and only on a kernel built without
+     - As many programs per function as fit a 4 KB image: 57 ``fentry``
+       or ``fexit`` programs, about 35 of the other two kinds
+     - As many as fit a 4 KB image: about 33 ``lsm`` or ``fmod_ret``
+       programs
+     - As many as fit a 4 KB image, and only on a kernel built without
        ``CONFIG_CFI``
+   * - ``fmod_ret`` on functions the kernel build tags
+       (``CONFIG_BPF_FMODRET_SCAN``)
+     - Yes
+     - Yes
+     - No, only on declared targets
    * - BPF arenas
      - Yes
      - Yes; atomic read-modify-write on arena memory needs the LSE

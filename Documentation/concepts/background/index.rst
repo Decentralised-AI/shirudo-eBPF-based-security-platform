@@ -18,6 +18,8 @@ its page.
    co-re-btf
    bpf-signing
    bpf-lsm
+   fentry-fexit
+   fmod-ret
    keyrings
    xattrs
    dm-verity

@@ -1,0 +1,718 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='840.0' height='392.0' viewBox='-72 -72 629.996 293.998' class='fig fig-f-ink' role='img'><!-- Documentation/figures/background-trampoline.tex, sha256 0cf59a9cde43166c0746da185e76f06ed5037f557007f8bde006a256888c8864 --><style>.fig-f-ink{fill:var(--fig-ink,#171b22)}.fig-s-ink{stroke:var(--fig-ink,#171b22)}.fig-f-muted{fill:var(--fig-muted,#5d6675)}.fig-s-muted{stroke:var(--fig-muted,#5d6675)}.fig-f-line{fill:var(--fig-line,#8a93a0)}.fig-s-line{stroke:var(--fig-line,#8a93a0)}.fig-f-grid{fill:var(--fig-grid,#e2e6eb)}.fig-s-grid{stroke:var(--fig-grid,#e2e6eb)}.fig-f-axis{fill:var(--fig-axis,#c3c9d1)}.fig-s-axis{stroke:var(--fig-axis,#c3c9d1)}.fig-f-accent{fill:var(--fig-accent,#8b1e3f)}.fig-s-accent{stroke:var(--fig-accent,#8b1e3f)}.fig-f-s1{fill:var(--fig-s1,#2a78d6)}.fig-s-s1{stroke:var(--fig-s1,#2a78d6)}.fig-f-s2{fill:var(--fig-s2,#eb6834)}.fig-s-s2{stroke:var(--fig-s2,#eb6834)}.fig-f-s3{fill:var(--fig-s3,#1baf7a)}.fig-s-s3{stroke:var(--fig-s3,#1baf7a)}.fig-f-s4{fill:var(--fig-s4,#eda100)}.fig-s-s4{stroke:var(--fig-s4,#eda100)}.fig-f-free{fill:var(--fig-free,#dde2e8)}.fig-s-free{stroke:var(--fig-free,#dde2e8)}.fig-f-on{fill:var(--fig-on,#ffffff)}.fig-s-on{stroke:var(--fig-on,#ffffff)}@media (prefers-color-scheme:dark){.fig-f-ink{fill:var(--fig-ink,#e4e8ee)}.fig-s-ink{stroke:var(--fig-ink,#e4e8ee)}.fig-f-muted{fill:var(--fig-muted,#9ba5b3)}.fig-s-muted{stroke:var(--fig-muted,#9ba5b3)}.fig-f-line{fill:var(--fig-line,#8a93a0)}.fig-s-line{stroke:var(--fig-line,#8a93a0)}.fig-f-grid{fill:var(--fig-grid,#262d37)}.fig-s-grid{stroke:var(--fig-grid,#262d37)}.fig-f-axis{fill:var(--fig-axis,#39414c)}.fig-s-axis{stroke:var(--fig-axis,#39414c)}.fig-f-accent{fill:var(--fig-accent,#e8899f)}.fig-s-accent{stroke:var(--fig-accent,#e8899f)}.fig-f-s1{fill:var(--fig-s1,#3987e5)}.fig-s-s1{stroke:var(--fig-s1,#3987e5)}.fig-f-s2{fill:var(--fig-s2,#d95926)}.fig-s-s2{stroke:var(--fig-s2,#d95926)}.fig-f-s3{fill:var(--fig-s3,#199e70)}.fig-s-s3{stroke:var(--fig-s3,#199e70)}.fig-f-s4{fill:var(--fig-s4,#c98500)}.fig-s-s4{stroke:var(--fig-s4,#c98500)}.fig-f-free{fill:var(--fig-free,#2f3640)}.fig-s-free{stroke:var(--fig-free,#2f3640)}.fig-f-on{fill:var(--fig-on,#ffffff)}.fig-s-on{stroke:var(--fig-on,#ffffff)}}</style>
+<defs>
+<path id='background-trampoline-g1-40' d='M.535-3.341C.535-1.253 1.371 .578 2.42 1.478H3.716C2.57 .439 1.821-1.157 1.821-2.934V-3.727C1.821-5.462 2.56-7.068 3.716-8.139H2.42C1.349-7.208 .535-5.408 .535-3.341Z'/>
+<path id='background-trampoline-g1-41' d='M3.074-3.341C3.074-5.408 2.26-7.208 1.189-8.139H-.107C1.05-7.068 1.789-5.462 1.789-3.727V-2.934C1.789-1.157 1.039 .439-.107 1.478H1.189C2.238 .578 3.074-1.253 3.074-3.341Z'/>
+<path id='background-trampoline-g1-97' d='M2.174 .129C3.009 .129 3.62-.246 3.802-.964H3.866C3.952-.386 4.316 0 4.905 0H5.665V-1.092H5.109V-3.727C5.109-5.001 4.305-5.719 2.795-5.719C1.671-5.719 1.017-5.291 .61-4.648L1.424-3.92C1.692-4.305 2.056-4.627 2.699-4.627C3.427-4.627 3.738-4.263 3.738-3.641V-3.234H2.785C1.264-3.234 .396-2.667 .396-1.521C.396-.525 1.039 .129 2.174 .129ZM2.635-.867C2.099-.867 1.789-1.092 1.789-1.542V-1.724C1.789-2.163 2.142-2.41 2.86-2.41H3.738V-1.671C3.738-1.146 3.245-.867 2.635-.867Z'/>
+<path id='background-trampoline-g1-98' d='M.793 0H2.163V-.932H2.206C2.42-.3 3.009 .129 3.748 .129C5.162 .129 5.944-.932 5.944-2.806C5.944-4.669 5.162-5.719 3.748-5.719C3.009-5.719 2.41-5.312 2.206-4.669H2.163V-7.925H.793V0ZM3.309-1.007C2.656-1.007 2.163-1.339 2.163-1.917V-3.695C2.163-4.241 2.656-4.595 3.309-4.595C4.016-4.595 4.509-4.07 4.509-3.277V-2.313C4.509-1.521 4.016-1.007 3.309-1.007Z'/>
+<path id='background-trampoline-g1-100' d='M4.263 0H5.633V-7.925H4.263V-4.669H4.209C4.016-5.312 3.406-5.719 2.667-5.719C1.264-5.719 .482-4.669 .482-2.806C.482-.932 1.264 .129 2.667 .129C3.406 .129 4.005-.3 4.209-.932H4.263V0ZM3.106-1.007C2.399-1.007 1.917-1.521 1.917-2.313V-3.277C1.917-4.07 2.399-4.595 3.106-4.595C3.759-4.595 4.263-4.241 4.263-3.695V-1.917C4.263-1.339 3.759-1.007 3.106-1.007Z'/>
+<path id='background-trampoline-g1-101' d='M3.052 .129C4.091 .129 4.905-.268 5.366-.9L4.627-1.724C4.284-1.285 3.877-.964 3.202-.964C2.303-.964 1.842-1.51 1.842-2.313V-2.453H5.558V-2.902C5.558-4.434 4.755-5.719 3.009-5.719C1.371-5.719 .418-4.573 .418-2.806C.418-1.017 1.403 .129 3.052 .129ZM3.031-4.691C3.738-4.691 4.134-4.166 4.134-3.395V-3.299H1.842V-3.384C1.842-4.155 2.313-4.691 3.031-4.691Z'/>
+<path id='background-trampoline-g1-102' d='M1.071 0H2.442V-4.509H3.588V-5.591H2.442V-6.833H3.588V-7.925H2.613C1.606-7.925 1.071-7.379 1.071-6.394V-5.591H.246V-4.509H1.071V0Z'/>
+<path id='background-trampoline-g1-105' d='M1.478-6.404C2.035-6.404 2.281-6.694 2.281-7.09V-7.304C2.281-7.7 2.035-7.99 1.478-7.99C.91-7.99 .675-7.7 .675-7.304V-7.09C.675-6.694 .91-6.404 1.478-6.404ZM.793 0H2.163V-5.591H.793V0Z'/>
+<path id='background-trampoline-g1-108' d='M2.902 0V-1.092H2.163V-7.925H.793V-1.349C.793-.493 1.232 0 2.163 0H2.902Z'/>
+<path id='background-trampoline-g1-109' d='M2.163 0V-3.695C2.163-4.295 2.677-4.595 3.202-4.595C3.813-4.595 4.102-4.198 4.102-3.395V0H5.473V-3.695C5.473-4.295 5.976-4.595 6.512-4.595C7.122-4.595 7.411-4.198 7.411-3.395V0H8.782V-3.534C8.782-4.927 8.161-5.719 7.068-5.719C6.18-5.719 5.558-5.216 5.355-4.595H5.333C5.066-5.344 4.477-5.719 3.716-5.719C2.881-5.719 2.431-5.248 2.217-4.659H2.163V-5.591H.793V0H2.163Z'/>
+<path id='background-trampoline-g1-110' d='M2.163 0V-3.695C2.163-4.295 2.71-4.595 3.277-4.595C3.931-4.595 4.198-4.188 4.198-3.395V0H5.569V-3.534C5.569-4.927 4.927-5.719 3.781-5.719C2.913-5.719 2.442-5.259 2.217-4.659H2.163V-5.591H.793V0H2.163Z'/>
+<path id='background-trampoline-g1-111' d='M3.009 .129C4.616 .129 5.612-1.007 5.612-2.806C5.612-4.595 4.616-5.719 3.009-5.719C1.414-5.719 .418-4.595 .418-2.806C.418-1.007 1.414 .129 3.009 .129ZM3.009-.975C2.303-.975 1.853-1.435 1.853-2.281V-3.32C1.853-4.155 2.303-4.616 3.009-4.616C3.727-4.616 4.177-4.155 4.177-3.32V-2.281C4.177-1.435 3.727-.975 3.009-.975Z'/>
+<path id='background-trampoline-g1-112' d='M.793 2.142H2.163V-.932H2.206C2.42-.3 3.009 .129 3.748 .129C5.162 .129 5.944-.932 5.944-2.806C5.944-4.669 5.162-5.719 3.748-5.719C3.009-5.719 2.41-5.312 2.206-4.669H2.163V-5.591H.793V2.142ZM3.309-1.007C2.656-1.007 2.163-1.339 2.163-1.917V-3.695C2.163-4.241 2.656-4.595 3.309-4.595C4.016-4.595 4.509-4.07 4.509-3.277V-2.313C4.509-1.521 4.016-1.007 3.309-1.007Z'/>
+<path id='background-trampoline-g1-114' d='M2.163 0V-3.427C2.163-4.038 2.645-4.295 3.566-4.295H3.995V-5.591H3.695C2.806-5.591 2.356-5.023 2.217-4.434H2.163V-5.591H.793V0H2.163Z'/>
+<path id='background-trampoline-g1-116' d='M2.538 0H3.524V-1.092H2.463V-4.498H3.609V-5.591H2.463V-7.122H1.232V-6.169C1.232-5.783 1.103-5.591 .696-5.591H.268V-4.498H1.092V-1.424C1.092-.514 1.596 0 2.538 0Z'/>
+<path id='background-trampoline-g1-121' d='M3.245-2.635L2.86-1.221H2.795L2.431-2.635L1.457-5.591H.096L2.099 .268L1.842 1.05H.835V2.142H1.66C2.581 2.142 2.977 1.799 3.256 .996L5.505-5.591H4.22L3.245-2.635Z'/>
+<path id='background-trampoline-g3-40' d='M2.042-3.098C2.042-1.156 2.989 .538 4.115 1.375H4.922C3.766 .508 2.79-.966 2.79-2.67V-3.527C2.79-5.23 3.766-6.705 4.922-7.572H4.115C2.989-6.735 2.042-5.041 2.042-3.098Z'/>
+<path id='background-trampoline-g3-41' d='M3.935-3.098C3.935-5.041 2.989-6.735 1.863-7.572H1.056C2.212-6.705 3.188-5.23 3.188-3.527V-2.67C3.188-.966 2.212 .508 1.056 1.375H1.863C2.989 .538 3.935-1.156 3.935-3.098Z'/>
+<path id='background-trampoline-g3-44' d='M2.032 1.405H2.7L3.846-1.355H2.56L2.032 1.405Z'/>
+<path id='background-trampoline-g3-59' d='M2.032 1.405H2.7L3.846-1.355H2.56L2.032 1.405ZM2.989-3.856C3.527-3.856 3.726-4.115 3.726-4.453V-4.633C3.726-4.971 3.527-5.23 2.989-5.23S2.252-4.971 2.252-4.633V-4.453C2.252-4.115 2.451-3.856 2.989-3.856Z'/>
+<path id='background-trampoline-g3-97' d='M5.479 0V-.697H4.762V-3.527C4.762-4.613 3.995-5.26 2.79-5.26C1.743-5.26 1.086-4.762 .827-4.224L1.365-3.826C1.634-4.294 2.052-4.583 2.74-4.583C3.517-4.583 3.965-4.194 3.965-3.447V-2.939H2.869C1.325-2.939 .658-2.391 .658-1.445C.658-.478 1.345 .12 2.421 .12C3.258 .12 3.746-.249 3.965-.837H4.015C4.075-.359 4.314 0 4.932 0H5.479ZM2.56-.548C1.903-.548 1.494-.827 1.494-1.355V-1.564C1.494-2.062 1.923-2.341 2.869-2.341H3.965V-1.494C3.965-.966 3.377-.548 2.56-.548Z'/>
+<path id='background-trampoline-g3-98' d='M.946 0H1.743V-.837H1.783C2.112-.209 2.65 .12 3.367 .12C4.623 .12 5.38-.887 5.38-2.57S4.623-5.26 3.367-5.26C2.65-5.26 2.112-4.932 1.783-4.304H1.743V-7.372H.946V0ZM3.059-.588C2.351-.588 1.743-.956 1.743-1.644V-3.497C1.743-4.184 2.351-4.553 3.059-4.553C3.985-4.553 4.523-3.935 4.523-3.009V-2.132C4.523-1.205 3.985-.588 3.059-.588Z'/>
+<path id='background-trampoline-g3-102' d='M.827 0H5.191V-.677H3.357V-4.463H5.42V-5.141H3.357V-6.695H5.42V-7.372H3.696C2.919-7.372 2.56-6.884 2.56-6.197V-5.141H.727V-4.463H2.56V-.677H.827V0Z'/>
+<path id='background-trampoline-g5-44' d='M1.253-1.078C.866-1.078 .691-.857 .691-.534V-.405C.691-.157 .802 .028 1.051 .083C.949 .516 .728 .839 .359 1.226H.977C1.502 .774 1.815 .092 1.815-.405V-.534C1.815-.857 1.64-1.078 1.253-1.078Z'/>
+<path id='background-trampoline-g5-46' d='M1.253 .111C1.64 .111 1.815-.111 1.815-.424V-.544C1.815-.857 1.64-1.078 1.253-1.078S.691-.857 .691-.544V-.424C.691-.111 .866 .111 1.253 .111Z'/>
+<path id='background-trampoline-g5-52' d='M4.193 0V-1.263H5.124V-1.908H4.193V-6.432H3.041L.35-1.944V-1.263H3.456V0H4.193ZM3.41-5.833H3.456V-1.908H1.078L3.41-5.833Z'/>
+<path id='background-trampoline-g5-65' d='M5.695 0L3.447-6.432H2.461L.212 0H.995L1.64-1.898H4.239L4.884 0H5.695ZM4.046-2.58H1.825L2.912-5.714H2.958L4.046-2.58Z'/>
+<path id='background-trampoline-g5-66' d='M.857 0H3.778C4.728 0 5.437-.802 5.437-1.862C5.437-2.931 4.635-3.327 4.175-3.354V-3.41C4.599-3.474 5.216-3.815 5.216-4.774C5.216-5.778 4.562-6.432 3.502-6.432H.857V0ZM1.631-2.986H3.539C4.202-2.986 4.608-2.636 4.608-1.991V-1.677C4.608-1.032 4.202-.682 3.539-.682H1.631V-2.986ZM1.631-5.75H3.41C4.018-5.75 4.387-5.428 4.387-4.857V-4.543C4.387-3.972 4.018-3.649 3.41-3.649H1.631V-5.75Z'/>
+<path id='background-trampoline-g5-69' d='M4.783 0V-.682H1.631V-2.912H4.599V-3.594H1.631V-5.75H4.783V-6.432H.857V0H4.783Z'/>
+<path id='background-trampoline-g5-75' d='M4.681 0H5.64L3.078-3.677L5.474-6.432H4.525L2.58-4.129L1.659-3.013H1.631V-6.432H.857V0H1.631V-2.147L2.543-3.161L4.681 0Z'/>
+<path id='background-trampoline-g5-95' d='M4.93 1.521V.875H.276V1.521H4.93Z'/>
+<path id='background-trampoline-g5-97' d='M4.654 0V-.645H4.11V-3.262C4.11-4.267 3.428-4.866 2.285-4.866C1.428-4.866 .857-4.442 .599-3.935L1.041-3.52C1.299-3.953 1.677-4.23 2.249-4.23C3.004-4.23 3.373-3.861 3.373-3.189V-2.719H2.433C1.051-2.719 .405-2.221 .405-1.327C.405-.442 .995 .111 2 .111C2.663 .111 3.17-.194 3.373-.774H3.419C3.474-.332 3.695 0 4.239 0H4.654ZM2.12-.516C1.548-.516 1.18-.783 1.18-1.253V-1.447C1.18-1.908 1.557-2.166 2.396-2.166H3.373V-1.382C3.373-.894 2.848-.516 2.12-.516Z'/>
+<path id='background-trampoline-g5-98' d='M.783 0H1.521V-.774H1.557C1.843-.184 2.295 .111 2.949 .111C4.138 .111 4.884-.857 4.884-2.378S4.138-4.866 2.949-4.866C2.295-4.866 1.806-4.58 1.557-3.981H1.521V-6.819H.783V0ZM2.746-.553C2.073-.553 1.521-.903 1.521-1.521V-3.29C1.521-3.815 2.073-4.202 2.746-4.202C3.576-4.202 4.092-3.631 4.092-2.783V-1.972C4.092-1.124 3.576-.553 2.746-.553Z'/>
+<path id='background-trampoline-g5-99' d='M2.553 .111C3.456 .111 4.073-.332 4.377-1.014L3.843-1.373C3.585-.829 3.152-.544 2.553-.544C1.677-.544 1.226-1.143 1.226-1.972V-2.783C1.226-3.612 1.677-4.211 2.553-4.211C3.133-4.211 3.539-3.926 3.714-3.437L4.331-3.751C4.055-4.405 3.493-4.866 2.553-4.866C1.216-4.866 .433-3.898 .433-2.378S1.216 .111 2.553 .111Z'/>
+<path id='background-trampoline-g5-100' d='M3.824 0H4.562V-6.819H3.824V-3.981H3.788C3.539-4.58 3.05-4.866 2.396-4.866C1.207-4.866 .461-3.898 .461-2.378S1.207 .111 2.396 .111C3.05 .111 3.502-.184 3.788-.774H3.824V0ZM2.599-.553C1.769-.553 1.253-1.124 1.253-1.972V-2.783C1.253-3.631 1.769-4.202 2.599-4.202C3.271-4.202 3.824-3.815 3.824-3.29V-1.521C3.824-.903 3.271-.553 2.599-.553Z'/>
+<path id='background-trampoline-g5-101' d='M2.571 .111C3.465 .111 4.147-.332 4.451-.977L3.926-1.355C3.677-.829 3.216-.534 2.617-.534C1.733-.534 1.207-1.152 1.207-1.972V-2.193H4.626V-2.543C4.626-3.889 3.843-4.866 2.571-4.866C1.281-4.866 .433-3.889 .433-2.378S1.281 .111 2.571 .111ZM2.571-4.248C3.327-4.248 3.834-3.686 3.834-2.848V-2.746H1.207V-2.811C1.207-3.64 1.769-4.248 2.571-4.248Z'/>
+<path id='background-trampoline-g5-102' d='M1.041 0H1.779V-4.11H2.801V-4.755H1.779V-6.174H2.801V-6.819H2.083C1.382-6.819 1.041-6.368 1.041-5.714V-4.755H.267V-4.11H1.041V0Z'/>
+<path id='background-trampoline-g5-103' d='M4.792 .525C4.792-.258 4.285-.737 3.106-.737H2.092C1.659-.737 1.364-.811 1.364-1.097C1.364-1.392 1.677-1.548 1.991-1.631C2.129-1.603 2.295-1.585 2.451-1.585C3.539-1.585 4.248-2.258 4.248-3.225C4.248-3.732 4.046-4.156 3.705-4.451V-4.755H4.608V-5.4H3.898C3.502-5.4 3.345-5.133 3.345-4.764V-4.681C3.087-4.801 2.783-4.866 2.442-4.866C1.364-4.866 .654-4.193 .654-3.225C.654-2.562 .986-2.037 1.548-1.769V-1.733C1.069-1.613 .728-1.382 .728-.903C.728-.581 .885-.369 1.152-.24V-.138C.682-.009 .396 .267 .396 .783C.396 1.53 1.004 1.954 2.488 1.954C4.018 1.954 4.792 1.502 4.792 .525ZM4.101 .581C4.101 1.097 3.622 1.355 2.801 1.355H2.12C1.373 1.355 1.087 1.014 1.087 .599C1.087 .304 1.226 .092 1.53-.046H3.115C3.852-.046 4.101 .203 4.101 .581ZM2.451-2.175C1.825-2.175 1.428-2.47 1.428-3.096V-3.354C1.428-3.981 1.825-4.276 2.451-4.276S3.474-3.981 3.474-3.354V-3.096C3.474-2.47 3.078-2.175 2.451-2.175Z'/>
+<path id='background-trampoline-g5-104' d='M.783 0H1.521V-3.299C1.521-3.907 2.092-4.202 2.682-4.202C3.391-4.202 3.76-3.769 3.76-2.921V0H4.497V-3.05C4.497-4.202 3.88-4.866 2.903-4.866C2.193-4.866 1.788-4.516 1.557-3.981H1.521V-6.819H.783V0Z'/>
+<path id='background-trampoline-g5-105' d='M1.152-5.87C1.465-5.87 1.603-6.036 1.603-6.285V-6.405C1.603-6.654 1.465-6.819 1.152-6.819S.7-6.654 .7-6.405V-6.285C.7-6.036 .839-5.87 1.152-5.87ZM.783 0H1.521V-4.755H.783V0Z'/>
+<path id='background-trampoline-g5-108' d='M2.221 0V-.645H1.521V-6.819H.783V-.765C.783-.323 1.06 0 1.567 0H2.221Z'/>
+<path id='background-trampoline-g5-109' d='M1.521 0V-3.299C1.521-3.907 2.073-4.202 2.654-4.202C3.354-4.202 3.677-3.769 3.677-2.921V0H4.414V-3.299C4.414-3.907 4.949-4.202 5.529-4.202C6.248-4.202 6.571-3.76 6.571-2.921V0H7.308V-3.05C7.308-4.202 6.727-4.866 5.76-4.866C4.949-4.866 4.488-4.414 4.313-3.898H4.294C4.036-4.58 3.465-4.866 2.838-4.866C2.101-4.866 1.769-4.469 1.557-3.981H1.521V-4.755H.783V0H1.521Z'/>
+<path id='background-trampoline-g5-110' d='M1.521 0V-3.299C1.521-3.907 2.092-4.202 2.682-4.202C3.391-4.202 3.76-3.769 3.76-2.921V0H4.497V-3.05C4.497-4.202 3.88-4.866 2.903-4.866C2.193-4.866 1.788-4.516 1.557-3.981H1.521V-4.755H.783V0H1.521Z'/>
+<path id='background-trampoline-g5-111' d='M2.58 .111C3.852 .111 4.728-.866 4.728-2.378S3.852-4.866 2.58-4.866S.433-3.889 .433-2.378S1.309 .111 2.58 .111ZM2.58-.544C1.788-.544 1.226-1.032 1.226-2.037V-2.719C1.226-3.723 1.788-4.211 2.58-4.211S3.935-3.723 3.935-2.719V-2.037C3.935-1.032 3.373-.544 2.58-.544Z'/>
+<path id='background-trampoline-g5-112' d='M.783 1.843H1.521V-.774H1.557C1.843-.184 2.295 .111 2.949 .111C4.138 .111 4.884-.857 4.884-2.378S4.138-4.866 2.949-4.866C2.295-4.866 1.806-4.58 1.557-3.981H1.521V-4.755H.783V1.843ZM2.746-.553C2.073-.553 1.521-.903 1.521-1.521V-3.29C1.521-3.815 2.073-4.202 2.746-4.202C3.576-4.202 4.092-3.631 4.092-2.783V-1.972C4.092-1.124 3.576-.553 2.746-.553Z'/>
+<path id='background-trampoline-g5-114' d='M1.521 0V-3.225C1.521-3.677 2-4.018 2.792-4.018H3.225V-4.755H2.94C2.166-4.755 1.733-4.331 1.567-3.88H1.521V-4.755H.783V0H1.521Z'/>
+<path id='background-trampoline-g5-115' d='M2.212 .111C3.299 .111 3.972-.452 3.972-1.373C3.972-2.092 3.566-2.553 2.516-2.709L2.147-2.765C1.557-2.857 1.235-3.041 1.235-3.502C1.235-3.953 1.557-4.239 2.166-4.239S3.179-3.953 3.391-3.659L3.88-4.101C3.493-4.58 2.986-4.866 2.221-4.866C1.253-4.866 .525-4.405 .525-3.465C.525-2.58 1.18-2.221 2.055-2.092L2.433-2.037C3.06-1.944 3.262-1.659 3.262-1.29C3.262-.802 2.894-.516 2.267-.516C1.668-.516 1.226-.783 .857-1.244L.332-.82C.756-.258 1.336 .111 2.212 .111Z'/>
+<path id='background-trampoline-g5-116' d='M2.755 0V-.645H1.788V-4.11H2.829V-4.755H1.788V-6.073H1.124V-5.188C1.124-4.866 1.023-4.755 .71-4.755H.267V-4.11H1.051V-.783C1.051-.323 1.327 0 1.834 0H2.755Z'/>
+<path id='background-trampoline-g5-117' d='M3.714 0H4.451V-4.755H3.714V-1.465C3.714-.839 3.142-.553 2.562-.553C1.852-.553 1.474-.986 1.474-1.834V-4.755H.737V-1.705C.737-.553 1.364 .111 2.341 .111C3.133 .111 3.493-.323 3.677-.774H3.714V0Z'/>
+<path id='background-trampoline-g5-118' d='M2.691 0L4.368-4.755H3.659L2.811-2.396L2.295-.774H2.249L1.733-2.396L.903-4.755H.166L1.834 0H2.691Z'/>
+<path id='background-trampoline-g5-119' d='M1.557 0H2.451L3.115-2.285L3.52-3.732H3.539L3.953-2.285L4.617 0H5.529L6.792-4.755H6.101L5.585-2.7L5.096-.617H5.078L4.488-2.7L3.87-4.755H3.216L2.617-2.7L2.037-.617H2.018L1.511-2.7L1.004-4.755H.286L1.557 0Z'/>
+<path id='background-trampoline-g5-120' d='M.194 0H1.014L2.35-1.862H2.378L3.612 0H4.479L2.765-2.451L4.442-4.755H3.622L2.368-2.986H2.341L1.133-4.755H.267L1.954-2.396L.194 0Z'/>
+<path id='background-trampoline-g5-121' d='M2.562-1.521L2.304-.746H2.258L2.037-1.521L.894-4.755H.157L1.935 .184L1.576 1.198H.829V1.843H1.207C1.908 1.843 2.101 1.677 2.313 1.106L4.442-4.755H3.714L2.562-1.521Z'/>
+</defs>
+<g id='background-trampoline-page1'>
+<g stroke-miterlimit='10' transform='matrix(.996 0 0 -.996 -72 -72)' stroke-width='1.12921' class='fig-f-ink fig-s-ink'>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M7.528-30.112V-54.202C7.528-56.697 9.55-58.719 12.045-58.719H93.348C95.843-58.719 97.865-56.697 97.865-54.202V-30.112C97.865-27.618 95.843-25.595 93.348-25.595H12.045C9.55-25.595 7.528-27.618 7.528-30.112ZM97.865-58.719'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M135.505-30.112V-54.202C135.505-56.697 137.528-58.719 140.022-58.719H243.91C246.404-58.719 248.427-56.697 248.427-54.202V-30.112C248.427-27.618 246.404-25.595 243.91-25.595H140.022C137.528-25.595 135.505-27.618 135.505-30.112ZM248.427-58.719'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M511.909-30.112V-54.202C511.909-56.697 513.931-58.719 516.426-58.719H620.313C622.808-58.719 624.83-56.697 624.83-54.202V-30.112C624.83-27.618 622.808-25.595 620.313-25.595H516.426C513.931-25.595 511.909-27.618 511.909-30.112ZM624.83-58.719'/>
+</g>
+<g class='fig-s-line'>
+<path d='M97.865-42.157H126.378' fill='none'/>
+<g transform='translate(126.095 -42.157)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M248.427-42.157H502.781' fill='none'/>
+<g transform='translate(502.499 -42.157)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M7.528-108.404V-132.494C7.528-134.989 9.55-137.011 12.045-137.011H93.348C95.843-137.011 97.865-134.989 97.865-132.494V-108.404C97.865-105.91 95.843-103.887 93.348-103.887H12.045C9.55-103.887 7.528-105.91 7.528-108.404ZM97.865-137.011'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M135.505-108.404V-132.494C135.505-134.989 137.528-137.011 140.022-137.011H243.91C246.404-137.011 248.427-134.989 248.427-132.494V-108.404C248.427-105.91 246.404-103.887 243.91-103.887H140.022C137.528-103.887 135.505-105.91 135.505-108.404ZM248.427-137.011'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M286.067-99.371V-141.528C286.067-144.022 288.089-146.045 290.584-146.045H469.752C472.247-146.045 474.269-144.022 474.269-141.528V-99.371C474.269-96.876 472.247-94.854 469.752-94.854H290.584C288.089-94.854 286.067-96.876 286.067-99.371ZM474.269-146.045'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M511.909-108.404V-132.494C511.909-134.989 513.931-137.011 516.426-137.011H620.313C622.808-137.011 624.83-134.989 624.83-132.494V-108.404C624.83-105.91 622.808-103.887 620.313-103.887H516.426C513.931-103.887 511.909-105.91 511.909-108.404ZM624.83-137.011'/>
+</g>
+<g class='fig-s-line'>
+<path d='M97.865-120.449H126.378' fill='none'/>
+<g transform='translate(126.095 -120.449)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M248.427-120.449H276.939' fill='none'/>
+<g transform='translate(276.657 -120.449)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M474.269-120.449H502.781' fill='none'/>
+<g transform='translate(502.499 -120.449)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M7.528-201.752V-225.842C7.528-228.337 9.55-230.359 12.045-230.359H93.348C95.843-230.359 97.865-228.337 97.865-225.842V-201.752C97.865-199.258 95.843-197.236 93.348-197.236H12.045C9.55-197.236 7.528-199.258 7.528-201.752ZM97.865-230.359'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M135.505-201.752V-225.842C135.505-228.337 137.528-230.359 140.022-230.359H243.91C246.404-230.359 248.427-228.337 248.427-225.842V-201.752C248.427-199.258 246.404-197.236 243.91-197.236H140.022C137.528-197.236 135.505-199.258 135.505-201.752ZM248.427-230.359'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M286.067-182.179V-245.415C286.067-247.91 288.089-249.932 290.584-249.932H469.752C472.247-249.932 474.269-247.91 474.269-245.415V-182.179C474.269-179.685 472.247-177.663 469.752-177.663H290.584C288.089-177.663 286.067-179.685 286.067-182.179ZM474.269-249.932'/>
+</g>
+<g fill-opacity='0.08' class='fig-s-line fig-f-line'>
+<path d='M511.909-201.752V-225.842C511.909-228.337 513.931-230.359 516.426-230.359H620.313C622.808-230.359 624.83-228.337 624.83-225.842V-201.752C624.83-199.258 622.808-197.236 620.313-197.236H516.426C513.931-197.236 511.909-199.258 511.909-201.752ZM624.83-230.359'/>
+</g>
+<g class='fig-s-line'>
+<path d='M97.865-213.797H126.378' fill='none'/>
+<g transform='translate(126.095 -213.797)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M248.427-213.797H276.939' fill='none'/>
+<g transform='translate(276.657 -213.797)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M474.269-206.269H502.781' fill='none'/>
+<g transform='translate(502.499 -206.269)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M511.909-221.325H483.397' fill='none'/>
+<g transform='matrix(-1 0 0 -1 483.679 -221.325)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g class='fig-s-line'>
+<path d='M380.168-249.932V-264.988H52.697V-239.487' fill='none'/>
+<g transform='matrix(0 1 -1 0 52.697 -239.769)' stroke-dasharray='none' stroke-dashoffset='0.0' stroke-linejoin='miter' class='fig-f-line'>
+ <path d='M6.642 0L.565 3.175V0V-3.175Z'/>
+ </g>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -90.337)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-66.746' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-59.383' y='-72' href='#background-trampoline-g5-112'/>
+<use x='-54.018' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-50.67' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-45.49' y='-72' href='#background-trampoline-g5-103'/>
+<use x='-40.606' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-37.248' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-32.308' y='-72' href='#background-trampoline-g5-109'/>
+<use x='-22.05' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-17.111' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-13.947' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-10.7' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-5.761' y='-72' href='#background-trampoline-g5-99'/>
+<use x='-1.108' y='-72' href='#background-trampoline-g5-104'/>
+<use x='4.146' y='-72' href='#background-trampoline-g5-101'/>
+<use x='9.224' y='-72' href='#background-trampoline-g5-100'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -159.596)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-102'/>
+<use x='-69.04' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-63.962' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-58.708' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-55.461' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-51.974' y='-72' href='#background-trampoline-g5-121'/>
+<use x='-45.175' y='-72' href='#background-trampoline-g5-112'/>
+<use x='-39.81' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-36.462' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-31.282' y='-72' href='#background-trampoline-g5-103'/>
+<use x='-26.398' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-23.04' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-18.1' y='-72' href='#background-trampoline-g5-109'/>
+<use x='-10.025' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-3.337' y='-72' href='#background-trampoline-g5-111'/>
+<use x='1.843' y='-72' href='#background-trampoline-g5-110'/>
+<use x='7.097' y='-72' href='#background-trampoline-g5-108'/>
+<use x='9.52' y='-72' href='#background-trampoline-g5-121'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -242.405)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-119'/>
+<use x='-64.896' y='-72' href='#background-trampoline-g5-105'/>
+<use x='-62.584' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-59.337' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-51.9' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-46.96' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-39.523' y='-72' href='#background-trampoline-g5-102'/>
+<use x='-36.563' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-31.596' y='-72' href='#background-trampoline-g5-120'/>
+<use x='-26.906' y='-72' href='#background-trampoline-g5-105'/>
+<use x='-24.594' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-19.164' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-13.984' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-8.406' y='-72' href='#background-trampoline-g5-102'/>
+<use x='-5.409' y='-72' href='#background-trampoline-g5-109'/>
+<use x='2.666' y='-72' href='#background-trampoline-g5-111'/>
+<use x='7.846' y='-72' href='#background-trampoline-g5-100'/>
+<use x='13.211' y='-72' href='#background-trampoline-g5-95'/>
+<use x='18.437' y='-72' href='#background-trampoline-g5-114'/>
+<use x='21.786' y='-72' href='#background-trampoline-g5-101'/>
+<use x='26.864' y='-72' href='#background-trampoline-g5-116'/>
+<use x='32.294' y='-72' href='#background-trampoline-g5-112'/>
+<use x='37.659' y='-72' href='#background-trampoline-g5-114'/>
+<use x='41.007' y='-72' href='#background-trampoline-g5-111'/>
+<use x='46.187' y='-72' href='#background-trampoline-g5-103'/>
+<use x='51.071' y='-72' href='#background-trampoline-g5-114'/>
+<use x='54.429' y='-72' href='#background-trampoline-g5-97'/>
+<use x='59.368' y='-72' href='#background-trampoline-g5-109'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 100.877 -118.191)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g3-102'/>
+<use x='-66' y='-72' href='#background-trampoline-g3-40'/>
+<use x='-60' y='-72' href='#background-trampoline-g3-97'/>
+<use x='-54' y='-72' href='#background-trampoline-g3-44'/>
+<use x='-42' y='-72' href='#background-trampoline-g3-98'/>
+<use x='-36' y='-72' href='#background-trampoline-g3-41'/>
+<use x='-30' y='-72' href='#background-trampoline-g3-59'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 100.877 -196.483)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g3-102'/>
+<use x='-66' y='-72' href='#background-trampoline-g3-40'/>
+<use x='-60' y='-72' href='#background-trampoline-g3-97'/>
+<use x='-54' y='-72' href='#background-trampoline-g3-44'/>
+<use x='-42' y='-72' href='#background-trampoline-g3-98'/>
+<use x='-36' y='-72' href='#background-trampoline-g3-41'/>
+<use x='-30' y='-72' href='#background-trampoline-g3-59'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 100.877 -289.831)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g3-102'/>
+<use x='-66' y='-72' href='#background-trampoline-g3-40'/>
+<use x='-60' y='-72' href='#background-trampoline-g3-97'/>
+<use x='-54' y='-72' href='#background-trampoline-g3-44'/>
+<use x='-42' y='-72' href='#background-trampoline-g3-98'/>
+<use x='-36' y='-72' href='#background-trampoline-g3-41'/>
+<use x='-30' y='-72' href='#background-trampoline-g3-59'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 238.08 -111.416)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-101'/>
+<use x='-66.002' y='-72' href='#background-trampoline-g1-110'/>
+<use x='-59.681' y='-72' href='#background-trampoline-g1-116'/>
+<use x='-55.66' y='-72' href='#background-trampoline-g1-114'/>
+<use x='-51.349' y='-72' href='#background-trampoline-g1-121'/>
+<use x='-43.179' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-37.192' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-30.892' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-27.13' y='-72' href='#background-trampoline-g1-40'/>
+<use x='-23.507' y='-72' href='#background-trampoline-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 252.732 -124.214)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-64.878' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-59.624' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-54.444' y='-72' href='#background-trampoline-g5-112'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 615.337 -118.191)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-98'/>
+<use x='-65.55' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-59.498' y='-72' href='#background-trampoline-g1-100'/>
+<use x='-53.048' y='-72' href='#background-trampoline-g1-121'/>
+<use x='-44.878' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-38.89' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-32.591' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-28.828' y='-72' href='#background-trampoline-g1-40'/>
+<use x='-25.205' y='-72' href='#background-trampoline-g1-41'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 238.08 -189.708)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-101'/>
+<use x='-66.002' y='-72' href='#background-trampoline-g1-110'/>
+<use x='-59.681' y='-72' href='#background-trampoline-g1-116'/>
+<use x='-55.66' y='-72' href='#background-trampoline-g1-114'/>
+<use x='-51.349' y='-72' href='#background-trampoline-g1-121'/>
+<use x='-43.179' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-37.192' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-30.892' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-27.13' y='-72' href='#background-trampoline-g1-40'/>
+<use x='-23.507' y='-72' href='#background-trampoline-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 222.905 -202.506)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-99'/>
+<use x='-67.347' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-62.408' y='-72' href='#background-trampoline-g5-108'/>
+<use x='-59.938' y='-72' href='#background-trampoline-g5-108'/>
+<use x='-57.422' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-50.734' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-47.488' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-42.234' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-34.972' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-31.726' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-28.368' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-23.428' y='-72' href='#background-trampoline-g5-109'/>
+<use x='-15.353' y='-72' href='#background-trampoline-g5-112'/>
+<use x='-9.988' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-4.808' y='-72' href='#background-trampoline-g5-108'/>
+<use x='-2.292' y='-72' href='#background-trampoline-g5-105'/>
+<use x='.02' y='-72' href='#background-trampoline-g5-110'/>
+<use x='5.274' y='-72' href='#background-trampoline-g5-101'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 425.02 -182.18)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-116'/>
+<use x='-67.98' y='-72' href='#background-trampoline-g1-114'/>
+<use x='-63.873' y='-72' href='#background-trampoline-g1-97'/>
+<use x='-57.864' y='-72' href='#background-trampoline-g1-109'/>
+<use x='-48.318' y='-72' href='#background-trampoline-g1-112'/>
+<use x='-41.868' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-35.816' y='-72' href='#background-trampoline-g1-108'/>
+<use x='-32.655' y='-72' href='#background-trampoline-g1-105'/>
+<use x='-29.688' y='-72' href='#background-trampoline-g1-110'/>
+<use x='-23.367' y='-72' href='#background-trampoline-g1-101'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 391.535 -197.236)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-67.495' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-62.63' y='-72' href='#background-trampoline-g5-118'/>
+<use x='-58.153' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-53.075' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-46.387' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-39.264' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-34.325' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-29.071' y='-72' href='#background-trampoline-g5-100'/>
+<use x='-21.523' y='-72' href='#background-trampoline-g5-98'/>
+<use x='-16.343' y='-72' href='#background-trampoline-g5-44'/>
+<use x='-11.644' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-8.249' y='-72' href='#background-trampoline-g5-117'/>
+<use x='-2.995' y='-72' href='#background-trampoline-g5-110'/>
+<use x='2.259' y='-72' href='#background-trampoline-g5-115'/>
+<use x='8.947' y='-72' href='#background-trampoline-g5-116'/>
+<use x='12.193' y='-72' href='#background-trampoline-g5-104'/>
+<use x='17.447' y='-72' href='#background-trampoline-g5-101'/>
+<use x='24.709' y='-72' href='#background-trampoline-g5-102'/>
+<use x='27.669' y='-72' href='#background-trampoline-g5-101'/>
+<use x='32.747' y='-72' href='#background-trampoline-g5-110'/>
+<use x='38.001' y='-72' href='#background-trampoline-g5-116'/>
+<use x='41.248' y='-72' href='#background-trampoline-g5-114'/>
+<use x='44.735' y='-72' href='#background-trampoline-g5-121'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 396.776 -209.281)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g5-112'/>
+<use x='-66.635' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-63.287' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-58.107' y='-72' href='#background-trampoline-g5-103'/>
+<use x='-53.223' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-49.865' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-44.925' y='-72' href='#background-trampoline-g5-109'/>
+<use x='-36.85' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-32.392' y='-72' href='#background-trampoline-g5-44'/>
+<use x='-27.693' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-24.344' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-19.266' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-14.826' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-11.616' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-6.436' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-3.088' y='-72' href='#background-trampoline-g5-101'/>
+<use x='1.991' y='-72' href='#background-trampoline-g5-115'/>
+<use x='8.678' y='-72' href='#background-trampoline-g5-97'/>
+<use x='15.801' y='-72' href='#background-trampoline-g5-97'/>
+<use x='20.74' y='-72' href='#background-trampoline-g5-110'/>
+<use x='25.994' y='-72' href='#background-trampoline-g5-100'/>
+<use x='33.542' y='-72' href='#background-trampoline-g5-98'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 615.337 -189.708)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-98'/>
+<use x='-65.55' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-59.498' y='-72' href='#background-trampoline-g1-100'/>
+<use x='-53.048' y='-72' href='#background-trampoline-g1-121'/>
+<use x='-44.878' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-38.89' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-32.591' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-28.828' y='-72' href='#background-trampoline-g1-40'/>
+<use x='-25.205' y='-72' href='#background-trampoline-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 599.662 -202.506)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-68.652' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-63.573' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-60.327' y='-72' href='#background-trampoline-g5-117'/>
+<use x='-55.073' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-51.678' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-46.424' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-39.736' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-36.526' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-29.163' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-25.917' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-20.663' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-13.401' y='-72' href='#background-trampoline-g5-99'/>
+<use x='-8.749' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-3.809' y='-72' href='#background-trampoline-g5-108'/>
+<use x='-1.339' y='-72' href='#background-trampoline-g5-108'/>
+<use x='1.177' y='-72' href='#background-trampoline-g5-101'/>
+<use x='6.255' y='-72' href='#background-trampoline-g5-114'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 238.08 -283.056)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-101'/>
+<use x='-66.002' y='-72' href='#background-trampoline-g1-110'/>
+<use x='-59.681' y='-72' href='#background-trampoline-g1-116'/>
+<use x='-55.66' y='-72' href='#background-trampoline-g1-114'/>
+<use x='-51.349' y='-72' href='#background-trampoline-g1-121'/>
+<use x='-43.179' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-37.192' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-30.892' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-27.13' y='-72' href='#background-trampoline-g1-40'/>
+<use x='-23.507' y='-72' href='#background-trampoline-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 219.173 -295.854)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-66.922' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-61.668' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-58.458' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-53.38' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-49.985' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-43.297' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-40.051' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-34.797' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-27.535' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-24.289' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-20.931' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-15.991' y='-72' href='#background-trampoline-g5-109'/>
+<use x='-7.916' y='-72' href='#background-trampoline-g5-112'/>
+<use x='-2.551' y='-72' href='#background-trampoline-g5-111'/>
+<use x='2.629' y='-72' href='#background-trampoline-g5-108'/>
+<use x='5.145' y='-72' href='#background-trampoline-g5-105'/>
+<use x='7.457' y='-72' href='#background-trampoline-g5-110'/>
+<use x='12.711' y='-72' href='#background-trampoline-g5-101'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 425.02 -264.989)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-116'/>
+<use x='-67.98' y='-72' href='#background-trampoline-g1-114'/>
+<use x='-63.873' y='-72' href='#background-trampoline-g1-97'/>
+<use x='-57.864' y='-72' href='#background-trampoline-g1-109'/>
+<use x='-48.318' y='-72' href='#background-trampoline-g1-112'/>
+<use x='-41.868' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-35.816' y='-72' href='#background-trampoline-g1-108'/>
+<use x='-32.655' y='-72' href='#background-trampoline-g1-105'/>
+<use x='-29.688' y='-72' href='#background-trampoline-g1-110'/>
+<use x='-23.367' y='-72' href='#background-trampoline-g1-101'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 391.535 -280.045)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-67.495' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-62.63' y='-72' href='#background-trampoline-g5-118'/>
+<use x='-58.153' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-53.075' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-46.387' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-39.264' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-34.325' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-29.071' y='-72' href='#background-trampoline-g5-100'/>
+<use x='-21.523' y='-72' href='#background-trampoline-g5-98'/>
+<use x='-16.343' y='-72' href='#background-trampoline-g5-44'/>
+<use x='-11.644' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-8.249' y='-72' href='#background-trampoline-g5-117'/>
+<use x='-2.995' y='-72' href='#background-trampoline-g5-110'/>
+<use x='2.259' y='-72' href='#background-trampoline-g5-115'/>
+<use x='8.947' y='-72' href='#background-trampoline-g5-116'/>
+<use x='12.193' y='-72' href='#background-trampoline-g5-104'/>
+<use x='17.447' y='-72' href='#background-trampoline-g5-101'/>
+<use x='24.709' y='-72' href='#background-trampoline-g5-102'/>
+<use x='27.669' y='-72' href='#background-trampoline-g5-101'/>
+<use x='32.747' y='-72' href='#background-trampoline-g5-110'/>
+<use x='38.001' y='-72' href='#background-trampoline-g5-116'/>
+<use x='41.248' y='-72' href='#background-trampoline-g5-114'/>
+<use x='44.735' y='-72' href='#background-trampoline-g5-121'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 383.383 -292.09)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-67.061' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-61.807' y='-72' href='#background-trampoline-g5-100'/>
+<use x='-54.259' y='-72' href='#background-trampoline-g5-102'/>
+<use x='-51.262' y='-72' href='#background-trampoline-g5-109'/>
+<use x='-43.186' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-38.006' y='-72' href='#background-trampoline-g5-100'/>
+<use x='-32.641' y='-72' href='#background-trampoline-g5-95'/>
+<use x='-27.415' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-24.067' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-18.988' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-13.559' y='-72' href='#background-trampoline-g5-112'/>
+<use x='-8.194' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-4.845' y='-72' href='#background-trampoline-g5-111'/>
+<use x='.335' y='-72' href='#background-trampoline-g5-103'/>
+<use x='5.219' y='-72' href='#background-trampoline-g5-114'/>
+<use x='8.577' y='-72' href='#background-trampoline-g5-97'/>
+<use x='13.516' y='-72' href='#background-trampoline-g5-109'/>
+<use x='21.591' y='-72' href='#background-trampoline-g5-115'/>
+<use x='26.05' y='-72' href='#background-trampoline-g5-44'/>
+<use x='30.749' y='-72' href='#background-trampoline-g5-99'/>
+<use x='35.402' y='-72' href='#background-trampoline-g5-97'/>
+<use x='40.341' y='-72' href='#background-trampoline-g5-108'/>
+<use x='42.811' y='-72' href='#background-trampoline-g5-108'/>
+<use x='45.327' y='-72' href='#background-trampoline-g5-115'/>
+<use x='52.015' y='-72' href='#background-trampoline-g5-116'/>
+<use x='55.261' y='-72' href='#background-trampoline-g5-104'/>
+<use x='60.515' y='-72' href='#background-trampoline-g5-101'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 391.67 -304.135)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g5-98'/>
+<use x='-66.635' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-61.455' y='-72' href='#background-trampoline-g5-100'/>
+<use x='-56.09' y='-72' href='#background-trampoline-g5-121'/>
+<use x='-51.983' y='-72' href='#background-trampoline-g5-44'/>
+<use x='-47.284' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-43.889' y='-72' href='#background-trampoline-g5-117'/>
+<use x='-38.635' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-33.381' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-26.694' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-23.447' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-18.193' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-10.932' y='-72' href='#background-trampoline-g5-102'/>
+<use x='-7.972' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-3.004' y='-72' href='#background-trampoline-g5-120'/>
+<use x='1.685' y='-72' href='#background-trampoline-g5-105'/>
+<use x='3.998' y='-72' href='#background-trampoline-g5-116'/>
+<use x='9.428' y='-72' href='#background-trampoline-g5-112'/>
+<use x='14.793' y='-72' href='#background-trampoline-g5-114'/>
+<use x='18.141' y='-72' href='#background-trampoline-g5-111'/>
+<use x='23.321' y='-72' href='#background-trampoline-g5-103'/>
+<use x='28.205' y='-72' href='#background-trampoline-g5-114'/>
+<use x='31.563' y='-72' href='#background-trampoline-g5-97'/>
+<use x='36.502' y='-72' href='#background-trampoline-g5-109'/>
+<use x='44.578' y='-72' href='#background-trampoline-g5-115'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 402.069 -316.18)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g5-119'/>
+<use x='-64.896' y='-72' href='#background-trampoline-g5-105'/>
+<use x='-62.584' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-59.337' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-51.9' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-46.868' y='-72' href='#background-trampoline-g5-44'/>
+<use x='-42.169' y='-72' href='#background-trampoline-g5-98'/>
+<use x='-34.621' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-29.681' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-24.427' y='-72' href='#background-trampoline-g5-100'/>
+<use x='-16.879' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-13.633' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-8.379' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-1.117' y='-72' href='#background-trampoline-g5-114'/>
+<use x='2.231' y='-72' href='#background-trampoline-g5-101'/>
+<use x='7.309' y='-72' href='#background-trampoline-g5-115'/>
+<use x='11.814' y='-72' href='#background-trampoline-g5-117'/>
+<use x='17.068' y='-72' href='#background-trampoline-g5-108'/>
+<use x='19.538' y='-72' href='#background-trampoline-g5-116'/>
+<use x='24.968' y='-72' href='#background-trampoline-g5-114'/>
+</g>
+<g transform='matrix(1.004 0 0 -1.004 615.337 -283.056)' stroke='none' class='fig-f-ink'>
+<use x='-72' y='-72' href='#background-trampoline-g1-98'/>
+<use x='-65.55' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-59.498' y='-72' href='#background-trampoline-g1-100'/>
+<use x='-53.048' y='-72' href='#background-trampoline-g1-121'/>
+<use x='-44.878' y='-72' href='#background-trampoline-g1-111'/>
+<use x='-38.89' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-32.591' y='-72' href='#background-trampoline-g1-102'/>
+<use x='-28.828' y='-72' href='#background-trampoline-g1-40'/>
+<use x='-25.205' y='-72' href='#background-trampoline-g1-41'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 585.684 -295.854)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-68.652' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-63.573' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-60.327' y='-72' href='#background-trampoline-g5-117'/>
+<use x='-55.073' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-51.678' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-46.424' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-39.736' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-34.158' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-30.949' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-23.586' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-20.339' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-15.085' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-7.824' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-4.577' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-1.219' y='-72' href='#background-trampoline-g5-97'/>
+<use x='3.72' y='-72' href='#background-trampoline-g5-109'/>
+<use x='11.796' y='-72' href='#background-trampoline-g5-112'/>
+<use x='17.161' y='-72' href='#background-trampoline-g5-111'/>
+<use x='22.341' y='-72' href='#background-trampoline-g5-108'/>
+<use x='24.857' y='-72' href='#background-trampoline-g5-105'/>
+<use x='27.169' y='-72' href='#background-trampoline-g5-110'/>
+<use x='32.423' y='-72' href='#background-trampoline-g5-101'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 213.548 -332.741)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-68.753' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-63.499' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-56.238' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-52.991' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-49.634' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-44.694' y='-72' href='#background-trampoline-g5-109'/>
+<use x='-36.619' y='-72' href='#background-trampoline-g5-112'/>
+<use x='-31.254' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-26.074' y='-72' href='#background-trampoline-g5-108'/>
+<use x='-23.558' y='-72' href='#background-trampoline-g5-105'/>
+<use x='-21.245' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-15.991' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-8.73' y='-72' href='#background-trampoline-g5-114'/>
+<use x='-5.382' y='-72' href='#background-trampoline-g5-101'/>
+<use x='-.303' y='-72' href='#background-trampoline-g5-116'/>
+<use x='2.943' y='-72' href='#background-trampoline-g5-117'/>
+<use x='8.197' y='-72' href='#background-trampoline-g5-114'/>
+<use x='11.592' y='-72' href='#background-trampoline-g5-110'/>
+<use x='16.846' y='-72' href='#background-trampoline-g5-115'/>
+<use x='23.534' y='-72' href='#background-trampoline-g5-114'/>
+<use x='29.112' y='-72' href='#background-trampoline-g5-116'/>
+<use x='32.321' y='-72' href='#background-trampoline-g5-111'/>
+<use x='39.684' y='-72' href='#background-trampoline-g5-116'/>
+<use x='42.931' y='-72' href='#background-trampoline-g5-104'/>
+<use x='48.185' y='-72' href='#background-trampoline-g5-101'/>
+<use x='55.446' y='-72' href='#background-trampoline-g5-99'/>
+<use x='60.099' y='-72' href='#background-trampoline-g5-97'/>
+<use x='65.039' y='-72' href='#background-trampoline-g5-108'/>
+<use x='67.508' y='-72' href='#background-trampoline-g5-108'/>
+<use x='70.024' y='-72' href='#background-trampoline-g5-101'/>
+<use x='75.103' y='-72' href='#background-trampoline-g5-114'/>
+</g>
+<g stroke='none' transform='matrix(1.004 0 0 -1.004 79.798 -359.843)' class='fig-f-muted'>
+<use x='-72' y='-72' href='#background-trampoline-g5-65'/>
+<use x='-63.888' y='-72' href='#background-trampoline-g5-102'/>
+<use x='-60.891' y='-72' href='#background-trampoline-g5-117'/>
+<use x='-55.637' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-50.383' y='-72' href='#background-trampoline-g5-99'/>
+<use x='-45.73' y='-72' href='#background-trampoline-g5-116'/>
+<use x='-42.483' y='-72' href='#background-trampoline-g5-105'/>
+<use x='-40.171' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-34.991' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-27.554' y='-72' href='#background-trampoline-g5-104'/>
+<use x='-22.3' y='-72' href='#background-trampoline-g5-97'/>
+<use x='-17.36' y='-72' href='#background-trampoline-g5-115'/>
+<use x='-10.673' y='-72' href='#background-trampoline-g5-111'/>
+<use x='-5.493' y='-72' href='#background-trampoline-g5-110'/>
+<use x='-.239' y='-72' href='#background-trampoline-g5-101'/>
+<use x='7.023' y='-72' href='#background-trampoline-g5-116'/>
+<use x='10.269' y='-72' href='#background-trampoline-g5-114'/>
+<use x='13.627' y='-72' href='#background-trampoline-g5-97'/>
+<use x='18.567' y='-72' href='#background-trampoline-g5-109'/>
+<use x='26.642' y='-72' href='#background-trampoline-g5-112'/>
+<use x='32.007' y='-72' href='#background-trampoline-g5-111'/>
+<use x='37.187' y='-72' href='#background-trampoline-g5-108'/>
+<use x='39.703' y='-72' href='#background-trampoline-g5-105'/>
+<use x='42.015' y='-72' href='#background-trampoline-g5-110'/>
+<use x='47.269' y='-72' href='#background-trampoline-g5-101'/>
+<use x='54.531' y='-72' href='#background-trampoline-g5-102'/>
+<use x='57.491' y='-72' href='#background-trampoline-g5-111'/>
+<use x='62.671' y='-72' href='#background-trampoline-g5-114'/>
+<use x='68.248' y='-72' href='#background-trampoline-g5-97'/>
+<use x='73.188' y='-72' href='#background-trampoline-g5-108'/>
+<use x='75.658' y='-72' href='#background-trampoline-g5-108'/>
+<use x='80.357' y='-72' href='#background-trampoline-g5-105'/>
+<use x='82.669' y='-72' href='#background-trampoline-g5-116'/>
+<use x='85.916' y='-72' href='#background-trampoline-g5-115'/>
+<use x='92.604' y='-72' href='#background-trampoline-g5-112'/>
+<use x='97.969' y='-72' href='#background-trampoline-g5-114'/>
+<use x='101.317' y='-72' href='#background-trampoline-g5-111'/>
+<use x='106.497' y='-72' href='#background-trampoline-g5-103'/>
+<use x='111.381' y='-72' href='#background-trampoline-g5-114'/>
+<use x='114.739' y='-72' href='#background-trampoline-g5-97'/>
+<use x='119.678' y='-72' href='#background-trampoline-g5-109'/>
+<use x='127.754' y='-72' href='#background-trampoline-g5-115'/>
+<use x='132.212' y='-72' href='#background-trampoline-g5-46'/>
+<use x='136.911' y='-72' href='#background-trampoline-g5-69'/>
+<use x='142.304' y='-72' href='#background-trampoline-g5-97'/>
+<use x='147.243' y='-72' href='#background-trampoline-g5-99'/>
+<use x='151.896' y='-72' href='#background-trampoline-g5-104'/>
+<use x='159.333' y='-72' href='#background-trampoline-g5-97'/>
+<use x='164.273' y='-72' href='#background-trampoline-g5-116'/>
+<use x='167.436' y='-72' href='#background-trampoline-g5-116'/>
+<use x='170.683' y='-72' href='#background-trampoline-g5-97'/>
+<use x='175.622' y='-72' href='#background-trampoline-g5-99'/>
+<use x='180.275' y='-72' href='#background-trampoline-g5-104'/>
+<use x='187.712' y='-72' href='#background-trampoline-g5-97'/>
+<use x='192.652' y='-72' href='#background-trampoline-g5-110'/>
+<use x='197.906' y='-72' href='#background-trampoline-g5-100'/>
+<use x='205.454' y='-72' href='#background-trampoline-g5-100'/>
+<use x='210.819' y='-72' href='#background-trampoline-g5-101'/>
+<use x='215.897' y='-72' href='#background-trampoline-g5-116'/>
+<use x='219.144' y='-72' href='#background-trampoline-g5-97'/>
+<use x='224.083' y='-72' href='#background-trampoline-g5-99'/>
+<use x='228.736' y='-72' href='#background-trampoline-g5-104'/>
+<use x='236.173' y='-72' href='#background-trampoline-g5-103'/>
+<use x='241.001' y='-72' href='#background-trampoline-g5-101'/>
+<use x='246.079' y='-72' href='#background-trampoline-g5-110'/>
+<use x='251.333' y='-72' href='#background-trampoline-g5-101'/>
+<use x='256.412' y='-72' href='#background-trampoline-g5-114'/>
+<use x='259.769' y='-72' href='#background-trampoline-g5-97'/>
+<use x='264.709' y='-72' href='#background-trampoline-g5-116'/>
+<use x='267.919' y='-72' href='#background-trampoline-g5-101'/>
+<use x='272.997' y='-72' href='#background-trampoline-g5-115'/>
+<use x='279.685' y='-72' href='#background-trampoline-g5-97'/>
+<use x='286.807' y='-72' href='#background-trampoline-g5-110'/>
+<use x='292.061' y='-72' href='#background-trampoline-g5-101'/>
+<use x='297.093' y='-72' href='#background-trampoline-g5-119'/>
+<use x='306.38' y='-72' href='#background-trampoline-g5-105'/>
+<use x='308.693' y='-72' href='#background-trampoline-g5-109'/>
+<use x='316.768' y='-72' href='#background-trampoline-g5-97'/>
+<use x='321.707' y='-72' href='#background-trampoline-g5-103'/>
+<use x='326.536' y='-72' href='#background-trampoline-g5-101'/>
+<use x='333.797' y='-72' href='#background-trampoline-g5-111'/>
+<use x='338.922' y='-72' href='#background-trampoline-g5-102'/>
+<use x='344.102' y='-72' href='#background-trampoline-g5-97'/>
+<use x='349.041' y='-72' href='#background-trampoline-g5-116'/>
+<use x='354.471' y='-72' href='#background-trampoline-g5-109'/>
+<use x='362.546' y='-72' href='#background-trampoline-g5-111'/>
+<use x='367.726' y='-72' href='#background-trampoline-g5-115'/>
+<use x='372.166' y='-72' href='#background-trampoline-g5-116'/>
+<use x='377.596' y='-72' href='#background-trampoline-g5-52'/>
+<use x='385.329' y='-72' href='#background-trampoline-g5-75'/>
+<use x='391.193' y='-72' href='#background-trampoline-g5-66'/>
+<use x='397.095' y='-72' href='#background-trampoline-g5-46'/>
+</g>
+</g>
+</g>
+</svg>
