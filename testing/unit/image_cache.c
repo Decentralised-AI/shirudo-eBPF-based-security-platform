@@ -10,10 +10,11 @@
 #include "unit.h"
 
 #undef IMAGE_CACHE_DIR
-#define IMAGE_CACHE_DIR "/tmp"
+#define IMAGE_CACHE_DIR "/tmp/shirudo-unit-image-cache"
 #include "../../util/image_cache.c"
 
 static char staging_path[PATH_MAX];
+static char removed_mapping[128];
 
 int __wrap_fsetxattr(int fd, const char *name, const void *value, size_t size,
 		     int flags)
@@ -24,6 +25,19 @@ int __wrap_fsetxattr(int fd, const char *name, const void *value, size_t size,
 int __wrap_seal_label(const char *path)
 {
 	return strscpy(staging_path, path, sizeof(staging_path)) < 0 ? -E2BIG : 0;
+}
+
+/* Without root there is no mapping to remove: record the name asked for. */
+int __wrap_dm_verity_remove(struct dm_verity *device, bool deferred)
+{
+	if (strscpy(removed_mapping, device->name, sizeof(removed_mapping)) < 0)
+		return -E2BIG;
+	return -ENXIO;
+}
+
+static void make_cache_dir(void)
+{
+	ASSERT_TRUE(!mkdir(IMAGE_CACHE_DIR, 0700) || errno == EEXIST);
 }
 
 /* Keep getaddrinfo busy after SIGINT to catch cleanup that waits for it. */
@@ -69,6 +83,7 @@ static void interrupted_download_removes_staging(void)
 
 	if (version->ares || !quick_exit_enabled())
 		unit_skip("requires libcurl's threaded resolver and quick cleanup");
+	make_cache_dir();
 	ASSERT_EQ(setenv("no_proxy", "*", 1), 0);
 	sigemptyset(&action.sa_mask);
 	ASSERT_EQ(sigaction(SIGINT, &action, NULL), 0);
@@ -86,10 +101,36 @@ static void interrupted_download_removes_staging(void)
 	ASSERT_TRUE(staging_path[0]);
 	EXPECT_EQ(access(staging_path, F_OK), -1);
 	EXPECT_EQ(errno, ENOENT);
+	rmdir(IMAGE_CACHE_DIR);
+}
+
+/* A fetch killed after its first file leaves this behind. */
+static void fetch_removes_stale_staging(void)
+{
+	static const char stale[] = IMAGE_CACHE_DIR "/incoming-stale0";
+	struct config_update_target target = {};
+	int fd;
+
+	make_cache_dir();
+	ASSERT_TRUE(!mkdir(stale, 0700) || errno == EEXIST);
+	fd = open(IMAGE_CACHE_DIR "/incoming-stale0/image.roothash",
+		  O_WRONLY | O_CREAT | O_CLOEXEC, 0600);
+	ASSERT_TRUE(fd >= 0);
+	close(fd);
+	EXPECT_EQ(image_cache_fetch(IMAGE_CACHE_DIR "/missing", &target,
+				    unexpected_verify, NULL), -ENOENT);
+	EXPECT_STREQ(removed_mapping, "shirudo-verify-incoming-stale0");
+	EXPECT_EQ(access(stale, F_OK), -1);
+	EXPECT_EQ(errno, ENOENT);
+	ASSERT_TRUE(staging_path[0]);
+	EXPECT_EQ(access(staging_path, F_OK), -1);
+	EXPECT_EQ(errno, ENOENT);
+	rmdir(IMAGE_CACHE_DIR);
 }
 
 static const struct unit_case cases[] = {
 	UNIT_CASE(interrupted_download_removes_staging),
+	UNIT_CASE(fetch_removes_stale_staging),
 	{}
 };
 

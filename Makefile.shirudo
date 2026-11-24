@@ -1142,6 +1142,7 @@ build/unit/%: testing/unit/%.c testing/unit/unit.c testing/unit/unit.h \
 build/unit/curl: LDFLAGS += -Wl,--wrap=curl_slist_free_all
 build/unit/image_cache: testing/unit/image_cache_test.h
 build/unit/image_cache: LDFLAGS += -Wl,--wrap=fsetxattr -Wl,--wrap=seal_label \
+				  -Wl,--wrap=dm_verity_remove \
 				  -Wl,--export-dynamic-symbol,getaddrinfo
 
 unit-tests: $(UNIT_TESTS)
