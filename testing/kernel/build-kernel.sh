@@ -18,6 +18,8 @@ usage: ${0##*/} [options]
   -h, --help
 
 Environment: CC/HOSTCC are not read; MAKEFLAGS is passed through.
+LLVM_CONFIG names the llvm-config whose headers and libraries the fmod_ret
+scan uses, if not that of the LLVM version.
 USAGE
 }
 
@@ -72,14 +74,16 @@ FRAGMENTS=("$REPO/kernel-ci.conf" "$REPO/kernel-ci.$ARCH.conf")
 # Toolchain
 # ---------------------------------------------------------------------------
 # One LLVM version throughout: the unversioned tools for suffix "", or
-# clang-20, ld.lld-20 and so on for "-20".  The newest complete versioned
-# install is the default because resolve_btfids's fmod_ret scan
-# (BPF_FMODRET_SCAN) needs the headers of LLVM 17 or later, which the
-# distribution default may lack, and Kbuild takes llvm-config with the
-# same suffix.
+# clang-20, ld.lld-20 and so on for "-20".  resolve_btfids's fmod_ret scan
+# (BPF_FMODRET_SCAN) needs the headers of LLVM 17 or later, which a
+# compiler package does not bring.  Kbuild takes them from llvm-config
+# with the same suffix, or from LLVM_CONFIG.  An install without them is
+# not complete, and the newest complete versioned install is the default.
 llvm_complete() {
-	local t
+	local t inc
 	for t in clang ld.lld llvm-objcopy llvm-ar llvm-nm; do have "$t$1" || return 1; done
+	inc="$("${LLVM_CONFIG:-llvm-config$1}" --includedir 2>/dev/null)" || return 1
+	[ -e "$inc/llvm/MC/MCInstrDesc.h" ]
 }
 newest_llvm() {
 	local v best=""
@@ -90,7 +94,8 @@ newest_llvm() {
 }
 [ -n "$LLVM_VER" ] || LLVM_VER="$(newest_llvm)"
 LLVM_SFX="${LLVM_VER:+-$LLVM_VER}"
-llvm_complete "$LLVM_SFX" || die "LLVM toolchain is incomplete ($LLVM_SFX)"
+llvm_complete "$LLVM_SFX" ||
+	die "LLVM toolchain is incomplete ($LLVM_SFX): clang, ld.lld, llvm-objcopy, llvm-ar, llvm-nm, llvm-config and the LLVM headers are required"
 OBJCOPY="llvm-objcopy$LLVM_SFX"
 
 # ---------------------------------------------------------------------------
