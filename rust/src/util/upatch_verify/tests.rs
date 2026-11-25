@@ -111,11 +111,14 @@ fn a_missing_archive_is_stale() {
 }
 
 #[test]
-fn links_of_a_missing_archive_are_stale() {
-    assert_eq!(
-        links_complete(ABSENT, c"/nonexistent/shirudo-unit.upatch"),
-        -ESTALE
-    );
+fn links_use_the_open_archive_after_its_path_is_removed() {
+    let dir = TempDir::new();
+    let file = file_of(&dir, "u", &fixture());
+    let u = Upatch::read(&file).unwrap();
+
+    assert!(verified_specs(&u).is_ok());
+    std::fs::remove_file(dir.join("u")).unwrap();
+    assert_ne!(links_complete(ABSENT, &u), -ESTALE);
 }
 
 #[test]

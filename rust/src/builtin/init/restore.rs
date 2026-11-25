@@ -154,7 +154,7 @@ fn restore_one(
             ));
             return Err(-EINVAL);
         }
-        if links_complete(upatch, &file) != 1 {
+        if links_complete(upatch, &u) != 1 {
             error(&cat!(
                 "boot-restore: ",
                 upatch,

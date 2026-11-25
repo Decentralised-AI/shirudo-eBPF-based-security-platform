@@ -224,15 +224,10 @@ fn links_complete_specs(name: &[u8], specs: &[ProgSpec]) -> c_int {
     }
 }
 
-/// 1 when every link the signed metadata of the archive at `path` implies
-/// is pinned for `name`, 0 when one is missing, -ESTALE when the archive
-/// is gone or unusable, or another -errno when that cannot be told.
-pub(crate) fn links_complete(name: &[u8], path: &CStr) -> c_int {
-    let u = match Upatch::open(path) {
-        Ok(u) => u,
-        Err(err) => return stale_unless_resources(err),
-    };
-    match verified_specs(&u) {
+/// 1 when every link the signed metadata in `u` implies is pinned for
+/// `name`, 0 when one is missing, or -errno.
+pub(crate) fn links_complete(name: &[u8], u: &Upatch) -> c_int {
+    match verified_specs(u) {
         Ok(specs) => links_complete_specs(name, specs.as_slice()),
         Err(err) => stale_unless_resources(err),
     }
@@ -374,7 +369,10 @@ impl Walk<'_, '_> {
     fn links_unverified(&mut self, name: &[u8]) -> c_int {
         match archive_path(name) {
             Ok(path) => {
-                let complete = links_complete(name, &path);
+                let complete = match Upatch::open(&path) {
+                    Ok(u) => links_complete(name, &u),
+                    Err(err) => stale_unless_resources(err),
+                };
                 self.links(name, complete)
             }
             Err(err) => {
