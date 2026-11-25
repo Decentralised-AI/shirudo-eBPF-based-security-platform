@@ -29,6 +29,7 @@ fn one_event(pcr: u32) -> Evidence {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn pcr_replay_follows_reset_count_across_a_restart() {
     let view = one_event(15);
     let mut pcrs = [[0u8; 32]; 24];
@@ -48,6 +49,7 @@ fn pcr_replay_follows_reset_count_across_a_restart() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn nvpcr_replay_follows_reset_count_and_its_fixed_start() {
     let view = one_event(CONFIG_NVPCR_INDEX);
     let pcrs = [[0u8; 32]; 24];

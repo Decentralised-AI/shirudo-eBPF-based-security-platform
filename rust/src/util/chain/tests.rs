@@ -16,6 +16,7 @@ fn sha256(data: &[u8]) -> [u8; 32] {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn sha256_2_hashes_the_concatenation() {
     let mut two = [0u8; 32];
 
@@ -42,6 +43,7 @@ fn sha256_2_hashes_the_concatenation() {
 
 /// A failure must be reported, not left to a zeroed digest to mismatch.
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn sha256_2_reports_a_failure() {
     let mut out = [0xffu8; 32];
 
@@ -52,6 +54,7 @@ fn sha256_2_reports_a_failure() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn chain_events_hash_their_documented_input() {
     let cert = [0xa5u8; 32];
     let mut event = [0u8; 32];
@@ -92,6 +95,7 @@ fn upatch_tags_are_distinct() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn java_unload_event_hashes_its_documented_input() {
     let payload = [0x3cu8; 32];
     let mut name = [b'n'; NAME_MAX + 1];
@@ -107,6 +111,7 @@ fn java_unload_event_hashes_its_documented_input() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn chain_fold_extends_like_the_register() {
     let mut chain = [0u8; 32];
     let event = [0x5au8; 32];
@@ -150,6 +155,7 @@ fn history_root_after(n: usize) -> Vec<u8> {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn history_root_matches_the_reference() {
     for n in [0, 1, 3] {
         assert_eq!(history_root_after(n), HISTORY_ROOTS[n]);
@@ -157,6 +163,7 @@ fn history_root_matches_the_reference() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "OpenSSL SHA-256 is foreign code")]
 fn history_root_differs_from_the_projection_root() {
     const PROJECTION_ROOTS: [&[u8]; 3] = [
         b"04f83540c1727aefcf3c53449a99594c8fd1cc15e1466dbdbf3168cc8f9dc136",
