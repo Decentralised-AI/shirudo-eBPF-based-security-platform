@@ -883,6 +883,7 @@ mod record_tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(miri, ignore = "gmtime_r is a foreign call")]
     fn prepared_tree_record_has_room_for_the_register_value() {
         let op = TreeOperation {
             seq: 1,

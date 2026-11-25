@@ -51,6 +51,7 @@ fn lines(lines: &[&[u8]]) -> Vec<u8> {
 /// A record killed before its newline is no record yet: readers skip it,
 /// and the next append drops it rather than run on from it.
 #[test]
+#[cfg_attr(miri, ignore = "gmtime_r is a foreign call")]
 fn unfinished_append_is_no_record() {
     let dir = TempDir::new();
     use_log(&dir);
@@ -74,6 +75,7 @@ fn unfinished_append_is_no_record() {
 
 /// A NUL would end the walk early and hide the records after it.
 #[test]
+#[cfg_attr(miri, ignore = "gmtime_r is a foreign call")]
 fn nul_in_the_log_is_refused() {
     let dir = TempDir::new();
     use_log(&dir);
@@ -101,6 +103,7 @@ fn tree_record(seq: i64, op: &[u8]) -> Vec<u8> {
 /// Tree recovery asks whether an operation was measured this boot before
 /// it applies the operation again, which would measure it twice.
 #[test]
+#[cfg_attr(miri, ignore = "gmtime_r is a foreign call")]
 fn tree_op_measured_this_boot() {
     let dir = TempDir::new();
     use_log(&dir);
@@ -153,6 +156,7 @@ fn set_record(ty: &[u8], name: &[u8]) -> Vec<u8> {
 
 /// Only an init record's set says what boot restore loaded.
 #[test]
+#[cfg_attr(miri, ignore = "gmtime_r is a foreign call")]
 fn set_counts_in_an_init_record_alone() {
     let dir = TempDir::new();
     use_log(&dir);
@@ -254,6 +258,7 @@ fn upatch_records_name_type_and_direction() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore = "gmtime_r is a foreign call")]
 fn java_records_count_as_upatch_events() {
     let dir = TempDir::new();
     use_log(&dir);

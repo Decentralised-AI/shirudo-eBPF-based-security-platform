@@ -592,6 +592,7 @@ mod verified {
         /// A malformed init set cannot borrow fields from a separate
         /// upatch object or from the preceding set member.
         #[test]
+        #[cfg_attr(miri, ignore = "the measured record parser takes minutes under Miri")]
         fn init_set_members_need_their_own_fields() {
             let digest = "00".repeat(32);
             for set in [

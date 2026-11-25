@@ -1358,6 +1358,7 @@ mod event_record_tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(miri, ignore = "gmtime_r is a foreign call")]
     fn key_record_is_complete_before_the_register_extends() {
         let (line, len) =
             format_key_event(c"key_revoke", b"fingerprint", &[0x12; 32], &[0x34; 32]).unwrap();
