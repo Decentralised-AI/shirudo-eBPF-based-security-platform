@@ -162,29 +162,35 @@ fn eventlog() -> &'static [u8] {
     eventlog::path().to_bytes()
 }
 
-/// The eventlog's lines and bytes.
+/// The eventlog's complete lines and size from the same open file.
 fn count_eventlog() -> Option<(i64, i64)> {
     let path = OsStr::from_bytes(eventlog());
-    let bytes = std::fs::metadata(path).ok()?.len() as i64;
     let mut f = std::fs::File::open(path).ok()?;
-    let mut buf = vec![0u8; 65536];
-    let mut lines = 0;
+    let bytes = i64::try_from(f.metadata().ok()?.len()).ok()?;
+    let mut buf = [0u8; 65536];
+    let mut lines = 0i64;
 
-    while let Ok(n @ 1..) = f.read(&mut buf) {
-        lines += buf[..n].iter().filter(|&&c| c == b'\n').count() as i64;
+    loop {
+        match f.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                lines += i64::try_from(buf[..n].iter().filter(|&&c| c == b'\n').count()).ok()?
+            }
+            Err(_) => return None,
+        }
     }
     Some((lines, bytes))
 }
 
-/// The eventlog, up to its first NUL as the C string it was read as.
+/// Read all bytes. A NUL makes its line unparseable, but later lines remain.
 fn read_eventlog() -> Option<Vec<u8>> {
-    let buf = io::read(eventlog::path(), MAX_BYTES).ok()?;
-    Some(cstr(&buf).to_vec())
+    io::read(eventlog::path(), MAX_BYTES).ok()
 }
 
-/// The lines strtok_r() would give: the non-empty ones.
+/// Complete lines only. An unfinished final append is not a record.
 fn lines(text: &[u8]) -> impl Iterator<Item = &[u8]> {
-    text.split(|&c| c == b'\n').filter(|l| !l.is_empty())
+    text.split_inclusive(|&c| c == b'\n')
+        .filter_map(|line| line.strip_suffix(b"\n"))
 }
 
 /// Enough of an eventlog record for the table and events[]; the log
@@ -1985,4 +1991,19 @@ pub(crate) fn cmd_status(args: &[&CStr]) -> c_int {
         ret = 1;
     }
     ret
+}
+
+#[cfg(test)]
+mod tests {
+    use super::lines;
+
+    #[test]
+    fn eventlog_lines_continue_after_nul_and_skip_unfinished_tail() {
+        let text = b"first\nsecond\0bad\nthird\nunfinished";
+        assert_eq!(
+            lines(text).collect::<Vec<_>>(),
+            vec![&b"first"[..], &b"second\0bad"[..], &b"third"[..]]
+        );
+        assert_eq!(lines(b"\n").collect::<Vec<_>>(), vec![&b""[..]]);
+    }
 }
