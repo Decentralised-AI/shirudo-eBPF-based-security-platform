@@ -1591,7 +1591,7 @@ load and unload are measured as ``java_load`` and
 :Counters: ``SealWrite``, ``SealUnlink``, ``SealRename``, ``SealSetattr``,
    ``SealXattr`` for the jar; none for a refused load
 :Tests: ``t3014``, ``t3114``
-:Proofs: ``chain-events``, ``Shirudo.Events``
+:Proofs: ``Shirudo.Events``
 :Residual: R2, R24
 
 Residual risks
