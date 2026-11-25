@@ -54,8 +54,12 @@ pub(crate) const GUARD_PROG_LOAD: usize = 7;
 pub(crate) const GUARD_BPF: usize = 8;
 pub(crate) const GATE_HOOK_COUNT: usize = 9;
 /// `enum guard_map_index`.
+pub(crate) const GUARD_IDENTITY: usize = 0;
 pub(crate) const GUARD_TASKS: usize = 1;
+pub(crate) const GUARD_DEVICES: usize = 2;
 pub(crate) const GUARD_ROOTS: usize = 3;
+pub(crate) const GUARD_TAMPER: usize = 4;
+pub(crate) const GUARD_INTEGRITY: usize = 7;
 pub(crate) const GUARD_MAP_COUNT: usize = 8;
 
 const fn guard_map(def: MapDef, pin: &'static CStr) -> GuardMap {
@@ -359,7 +363,10 @@ pub(crate) fn config_root_begin(root: &[u8; 32], guard: &mut ConfigRootGuard) ->
     if guard.map_fd < 0 {
         return -errno();
     }
-    let ret = stage(root, guard);
+    let ret = guard_map_check(guard.map_fd, &GUARD_MAPS[GUARD_ROOTS])
+        .map(|_| 0)
+        .unwrap_or_else(|e| e);
+    let ret = if ret == 0 { stage(root, guard) } else { ret };
     if ret != 0 {
         // SAFETY: the descriptors opened here, closed once.
         unsafe {
@@ -494,6 +501,28 @@ fn obj_name(info: &[u8], off: usize) -> &[u8] {
     &info[off..off + OBJ_NAME_LEN]
 }
 
+/// Refuse a pin of another map shape before passing a key or value buffer to
+/// the kernel. A per-CPU map of the same value size needs a larger buffer.
+fn guard_map_matches(info: &Info<MAP_INFO_SIZE>, expected: &GuardMap) -> bool {
+    let def = &expected.def;
+    info.u32_at(MAP_ID) != 0
+        && info.u32_at(MAP_TYPE) == def.map_type
+        && info.u32_at(MAP_KEY_SIZE) == def.key_size
+        && info.u32_at(MAP_VALUE_SIZE) == def.value_size
+        && info.u32_at(MAP_MAX_ENTRIES) == def.max_entries
+        && info.u32_at(MAP_FLAGS) == def.flags
+        && identity::guard_name_matches(obj_name(info.bytes(), MAP_NAME), def.name)
+}
+
+pub(crate) fn guard_map_check(fd: c_int, expected: &GuardMap) -> Result<u32, c_int> {
+    let mut info = Info::<MAP_INFO_SIZE>::new();
+    info.read(fd)?;
+    if !guard_map_matches(&info, expected) {
+        return Err(-EPROTO);
+    }
+    Ok(info.u32_at(MAP_ID))
+}
+
 /// The IDs of the maps the guards share, each checked against its pin's
 /// expected shape and name.
 fn guard_map_ids() -> Result<[u32; GUARD_MAP_COUNT], c_int> {
@@ -504,37 +533,24 @@ fn guard_map_ids() -> Result<[u32; GUARD_MAP_COUNT], c_int> {
         if fd < 0 {
             return Err(-errno());
         }
-        let mut info = Info::<MAP_INFO_SIZE>::new();
-        let ret = match info.read(fd) {
-            Err(e) => e,
-            Ok(()) => {
-                let name = obj_name(info.bytes(), MAP_NAME);
-                let def = &expected.def;
-                let ok = info.u32_at(MAP_ID) != 0
-                    && info.u32_at(MAP_TYPE) == def.map_type
-                    && info.u32_at(MAP_KEY_SIZE) == def.key_size
-                    && info.u32_at(MAP_VALUE_SIZE) == def.value_size
-                    && info.u32_at(MAP_MAX_ENTRIES) == def.max_entries
-                    && info.u32_at(MAP_FLAGS) == def.flags
-                    && identity::guard_name_matches(name, def.name);
-                if ok { 0 } else { -EPROTO }
-            }
-        };
+        let checked = guard_map_check(fd, expected);
         // SAFETY: the pin opened above.
         unsafe { close(fd) };
-        if ret != 0 {
-            crate::log::err(
-                &[
-                    &b"image: invalid guard map "[..],
-                    expected.pin.to_bytes(),
-                    b": ",
-                    text(ret).as_bytes(),
-                ]
-                .concat(),
-            );
-            return Err(ret);
+        match checked {
+            Ok(found) => *id = found,
+            Err(e) => {
+                crate::log::err(
+                    &[
+                        &b"image: invalid guard map "[..],
+                        expected.pin.to_bytes(),
+                        b": ",
+                        text(e).as_bytes(),
+                    ]
+                    .concat(),
+                );
+                return Err(e);
+            }
         }
-        *id = info.u32_at(MAP_ID);
     }
     Ok(ids)
 }
@@ -709,4 +725,52 @@ pub(crate) fn image_guards_ready() -> c_int {
         }
     }
     0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        GUARD_MAPS, MAP_FLAGS, MAP_ID, MAP_KEY_SIZE, MAP_MAX_ENTRIES, MAP_NAME, MAP_TYPE,
+        MAP_VALUE_SIZE, guard_map_matches,
+    };
+    use crate::util::bpf_info::{Info, MAP_INFO_SIZE};
+
+    fn set_u32(info: &mut Info<MAP_INFO_SIZE>, offset: usize, value: u32) {
+        info.set(offset, &value.to_ne_bytes());
+    }
+
+    #[test]
+    fn pinned_map_shape_requires_every_field() {
+        for map in &GUARD_MAPS {
+            let mut info = Info::<MAP_INFO_SIZE>::new();
+            let def = &map.def;
+            set_u32(&mut info, MAP_ID, 1);
+            set_u32(&mut info, MAP_TYPE, def.map_type);
+            set_u32(&mut info, MAP_KEY_SIZE, def.key_size);
+            set_u32(&mut info, MAP_VALUE_SIZE, def.value_size);
+            set_u32(&mut info, MAP_MAX_ENTRIES, def.max_entries);
+            set_u32(&mut info, MAP_FLAGS, def.flags);
+            let name = def.name.to_bytes();
+            info.set(MAP_NAME, &name[..name.len().min(15)]);
+            assert!(guard_map_matches(&info, map));
+
+            for (offset, value) in [
+                (MAP_ID, 0),
+                (MAP_TYPE, def.map_type ^ 1),
+                (MAP_KEY_SIZE, def.key_size ^ 1),
+                (MAP_VALUE_SIZE, def.value_size ^ 1),
+                (MAP_MAX_ENTRIES, def.max_entries ^ 1),
+                (MAP_FLAGS, def.flags ^ 1),
+            ] {
+                let mut altered = Info::<MAP_INFO_SIZE>::new();
+                altered.set(0, info.bytes());
+                set_u32(&mut altered, offset, value);
+                assert!(!guard_map_matches(&altered, map));
+            }
+            let mut altered = Info::<MAP_INFO_SIZE>::new();
+            altered.set(0, info.bytes());
+            altered.set(MAP_NAME, b"wrong");
+            assert!(!guard_map_matches(&altered, map));
+        }
+    }
 }

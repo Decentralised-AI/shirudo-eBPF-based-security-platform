@@ -6,15 +6,14 @@
 //! the private bpffs. The tamper counters account for attempts on
 //! shirudo's own state; these guard the running kernel.
 
-use core::ffi::{CStr, c_int};
+use core::ffi::c_int;
 
+use crate::util::image_guards::{GUARD_INTEGRITY, GUARD_MAPS};
 use crate::util::tamper::{Counters, Point, counters_read, point_meaning, point_name};
 
 /// `INTEGRITY_MAX` of `bpf/lib/integrity.h`: the integrity points there
 /// are.
 pub(crate) const INTEGRITY_MAX: usize = 22;
-/// INTEGRITY_PIN of util/paths.h.
-pub(crate) const INTEGRITY_PIN: &CStr = c"/run/shirudo/bpffs/integrity";
 
 pub(crate) type IntegrityCounts = Counters<INTEGRITY_MAX>;
 
@@ -146,7 +145,7 @@ pub(crate) fn meaning(point: usize) -> &'static [u8] {
 
 /// The integrity counters, as tamper::read() reads the tamper counters.
 pub(crate) fn read() -> Result<IntegrityCounts, c_int> {
-    counters_read(INTEGRITY_PIN)
+    counters_read(&GUARD_MAPS[GUARD_INTEGRITY])
 }
 
 #[cfg(test)]

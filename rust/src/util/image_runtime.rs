@@ -47,7 +47,7 @@ use crate::util::identity;
 use crate::util::image_bootstrap::{self, ImageBootstrap, path_valid};
 use crate::util::image_cache::{SEAL_LABEL, XATTR_SEAL, fetch_verified};
 use crate::util::image_config;
-use crate::util::image_guards::image_guards_ready;
+use crate::util::image_guards::{GUARD_DEVICES, GUARD_MAPS, guard_map_check, image_guards_ready};
 use crate::util::image_keys::{self, RUNTIME_CERT_PATH};
 use crate::util::io::{kernel_dev, read_whole};
 use crate::util::json::JsonEmit;
@@ -342,6 +342,9 @@ fn device_observed(device: u64, root: Option<&[u8; 32]>, kind: u32) -> c_int {
     }
     // SAFETY: the map bpf_obj_get() opened, the fd's from here.
     let map = unsafe { OwnedFd::from_raw_fd(fd) };
+    if let Err(e) = guard_map_check(map.as_raw_fd(), &GUARD_MAPS[GUARD_DEVICES]) {
+        return e;
+    }
     let dev = kernel_dev(device);
     let (mut key, mut next) = (0u64, 0u64);
     // SAFETY: the map and room for its first key.

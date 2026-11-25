@@ -14,9 +14,6 @@ use crate::util::bpf_sys::bpf_obj_get_info_by_fd;
 pub(crate) const LINK_INFO_SIZE: usize = 64;
 pub(crate) const PROG_INFO_SIZE: usize = 232;
 pub(crate) const MAP_INFO_SIZE: usize = 104;
-/// Where `struct bpf_map_info` keeps its value size and entry count.
-pub(crate) const MAP_VALUE_SIZE: usize = 12;
-pub(crate) const MAP_MAX_ENTRIES: usize = 16;
 
 /// An info structure of `N` bytes.
 #[repr(C, align(8))]

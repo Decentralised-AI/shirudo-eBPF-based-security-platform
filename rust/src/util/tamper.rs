@@ -7,15 +7,12 @@
 
 use core::ffi::{CStr, c_int};
 
-use crate::errno::EPROTO;
 use crate::sys::libc::{close, errno};
-use crate::util::bpf_info::{Info, MAP_INFO_SIZE, MAP_MAX_ENTRIES, MAP_VALUE_SIZE};
 use crate::util::bpf_sys::{bpf_map_lookup_elem, bpf_obj_get};
+use crate::util::image_guards::{GUARD_MAPS, GUARD_TAMPER, GuardMap, guard_map_check};
 
 /// `TAMPER_MAX` of `bpf/lib/tamper.h`: the tamper points there are.
 pub(crate) const TAMPER_MAX: usize = 43;
-/// TAMPER_PIN of util/paths.h.
-const TAMPER_PIN: &CStr = c"/run/shirudo/bpffs/tamper";
 
 /// The counters of a guard map: each point's refusals, and their sum,
 /// as `struct tamper_counts` and `struct integrity_counts` lay them out.
@@ -274,24 +271,21 @@ pub(crate) fn point_meaning(points: &[Point], point: usize) -> &'static CStr {
 /// The tamper counters: -ENOENT before init, -EPROTO for a map of another
 /// shape, or another -errno.
 pub(crate) fn read() -> Result<TamperCounts, c_int> {
-    counters_read(TAMPER_PIN)
+    counters_read(&GUARD_MAPS[GUARD_TAMPER])
 }
 
 /// The N counters of the array map pinned at `pin`, as read() reads the
 /// tamper counters.
-pub(crate) fn counters_read<const N: usize>(pin: &CStr) -> Result<Counters<N>, c_int> {
+pub(crate) fn counters_read<const N: usize>(map: &GuardMap) -> Result<Counters<N>, c_int> {
     let mut count = [0u64; N];
-    let total = counters_read_into(pin, &mut count)?;
+    let total = counters_read_into(map, &mut count)?;
     Ok(Counters { count, total })
 }
 
-fn read_map(fd: c_int, count: &mut [u64]) -> Result<u64, c_int> {
-    let mut info = Info::<MAP_INFO_SIZE>::new();
-    info.read(fd)?;
-    if info.u32_at(MAP_MAX_ENTRIES) as usize != count.len()
-        || info.u32_at(MAP_VALUE_SIZE) as usize != size_of::<u64>()
-    {
-        return Err(-EPROTO);
+fn read_map(fd: c_int, map: &GuardMap, count: &mut [u64]) -> Result<u64, c_int> {
+    guard_map_check(fd, map)?;
+    if count.len() != map.def.max_entries as usize {
+        return Err(-crate::errno::EPROTO);
     }
     let mut total = 0u64;
     for (key, value) in (0u32..).zip(count.iter_mut()) {
@@ -309,13 +303,13 @@ fn read_map(fd: c_int, count: &mut [u64]) -> Result<u64, c_int> {
 
 /// The counters of the array map pinned at `pin` into `count`, as many
 /// as it holds, which must be the map's entries: their sum.
-fn counters_read_into(pin: &CStr, count: &mut [u64]) -> Result<u64, c_int> {
+fn counters_read_into(map: &GuardMap, count: &mut [u64]) -> Result<u64, c_int> {
     // SAFETY: a C string.
-    let fd = unsafe { bpf_obj_get(pin.as_ptr()) };
+    let fd = unsafe { bpf_obj_get(map.pin.as_ptr()) };
     if fd < 0 {
         return Err(-errno());
     }
-    let ret = read_map(fd, count);
+    let ret = read_map(fd, map, count);
     // SAFETY: the pin opened above.
     unsafe { close(fd) };
     ret

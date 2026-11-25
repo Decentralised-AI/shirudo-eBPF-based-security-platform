@@ -9,8 +9,8 @@ use core::ffi::{CStr, c_int};
 use crate::errno::{EINVAL, ENOSYS, EPROTO};
 use crate::sys::identity::Identity;
 use crate::sys::libc::{close, errno, prctl};
-use crate::util::bpf_info::{Info, MAP_INFO_SIZE, MAP_VALUE_SIZE};
 use crate::util::bpf_sys::{bpf_map_lookup_elem, bpf_obj_get};
+use crate::util::image_guards::{GUARD_IDENTITY, GUARD_MAPS, guard_map_check};
 
 /// IDENTITY_PIN of util/paths.h.
 pub(crate) const IDENTITY_PIN: &CStr = c"/run/shirudo/bpffs/identity";
@@ -63,12 +63,8 @@ pub(crate) fn read(out: &mut Identity) -> c_int {
 }
 
 fn lookup(fd: c_int, out: &mut Identity) -> c_int {
-    let mut info = Info::<MAP_INFO_SIZE>::new();
-    if let Err(err) = info.read(fd) {
+    if let Err(err) = guard_map_check(fd, &GUARD_MAPS[GUARD_IDENTITY]) {
         return err;
-    }
-    if info.u32_at(MAP_VALUE_SIZE) as usize != size_of::<Identity>() {
-        return -EPROTO;
     }
     let zero = 0u32;
     // SAFETY: the map, a key of its size, and room for a value of its
