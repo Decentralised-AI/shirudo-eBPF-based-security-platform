@@ -96,3 +96,86 @@ fn report_is_bounded_as_the_c_buffer_was() {
     rep.check(true, b"abc");
     assert_eq!(rep.text(), b"");
 }
+
+#[test]
+fn config_collection_keeps_pcr_history_across_restart_but_refuses_old_nvpcr_record() {
+    use crate::util::config_measure::CONFIG_NVPCR_INDEX;
+
+    let mut config = Evidence::default();
+    config.present = true;
+    config.reset_count = 7;
+    config.restart_count = 3;
+    config.pcr = 15;
+    config.value = [0x42; 32];
+    let mut quote = TpmAttest::zeroed();
+    quote.reset_count = 7;
+    quote.restart_count = 4;
+    let mut values = [[0u8; 32]; 24];
+    values[15] = config.value;
+
+    assert!(quote_matches_config(&config, &quote, &values, false));
+    quote.reset_count = 8;
+    assert!(!quote_matches_config(&config, &quote, &values, false));
+    quote.reset_count = 7;
+
+    config.pcr = CONFIG_NVPCR_INDEX;
+    assert!(quote_matches_config(&config, &quote, &values, true));
+    let bytes = config.value;
+    let mut certified = TpmAttest::zeroed();
+    certified.reset_count = 7;
+    certified.restart_count = 4;
+    certified.nv_data = bytes.as_ptr();
+    certified.nv_len = 32;
+    assert!(!nvpcr_matches_config(&config, &certified, &bytes));
+    certified.restart_count = 3;
+    assert!(nvpcr_matches_config(&config, &certified, &bytes));
+    certified.reset_count = 8;
+    assert!(!nvpcr_matches_config(&config, &certified, &bytes));
+}
+
+#[test]
+fn config_nvpcr_replay_input_needs_the_listed_name_and_full_value() {
+    let name = [0x53; NAME_LEN];
+    let mut signed = Signed {
+        bytes: vec![0x42; 32],
+        attest: TpmAttest::zeroed(),
+        checked: true,
+    };
+    signed.attest.ty = ST_ATTEST_NV;
+    signed.attest.index_name = name;
+    signed.attest.index_name_len = NAME_LEN;
+    signed.attest.nv_data = signed.bytes.as_ptr();
+    signed.attest.nv_len = 32;
+    assert_eq!(certified_nvpcr_value(&signed, &name), Some([0x42; 32]));
+    assert_eq!(certified_nvpcr_value(&signed, &[0x54; NAME_LEN]), None);
+
+    signed.attest.offset = 1;
+    assert_eq!(certified_nvpcr_value(&signed, &name), None);
+    signed.attest.offset = 0;
+    signed.attest.nv_len = 33;
+    assert_eq!(certified_nvpcr_value(&signed, &name), None);
+    signed.attest.nv_len = 32;
+    signed.attest.ty = ST_ATTEST_QUOTE;
+    assert_eq!(certified_nvpcr_value(&signed, &name), None);
+    signed.attest.ty = ST_ATTEST_NV;
+    signed.checked = false;
+    assert_eq!(certified_nvpcr_value(&signed, &name), None);
+}
+
+#[test]
+fn config_nvpcr_evidence_requires_all_certification_fields() {
+    let base =
+        br#"{"nonce":"","pcr_mask":1,"pcrs":[],"ak":{},"quote":{},"register":{},"eventlog":[]}"#;
+    let incomplete = br#"{"nonce":"","pcr_mask":1,"pcrs":[],"ak":{},"quote":{},"register":{},"eventlog":[],"config_nvpcr":{"name":"00","attest":"00"}}"#;
+    let complete = br#"{"nonce":"","pcr_mask":1,"pcrs":[],"ak":{},"quote":{},"register":{},"eventlog":[],"config_nvpcr":{"name":"00","attest":"00","signature":"00"}}"#;
+
+    assert_eq!(
+        parse_evidence(&mut Parse::new(), base),
+        Ok((false, false, false))
+    );
+    assert_eq!(parse_evidence(&mut Parse::new(), incomplete), Err(-EINVAL));
+    assert_eq!(
+        parse_evidence(&mut Parse::new(), complete),
+        Ok((false, false, true))
+    );
+}

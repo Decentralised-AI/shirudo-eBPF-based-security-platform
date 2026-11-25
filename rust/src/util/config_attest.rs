@@ -389,3 +389,6 @@ pub(crate) fn verify(
         },
     )
 }
+
+#[cfg(test)]
+mod tests;

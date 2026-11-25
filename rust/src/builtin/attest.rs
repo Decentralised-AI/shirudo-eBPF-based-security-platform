@@ -1212,3 +1212,6 @@ pub(crate) fn cmd_attest(args: &[&CStr]) -> c_int {
     }
     evidence(args)
 }
+
+#[cfg(test)]
+mod tests;
