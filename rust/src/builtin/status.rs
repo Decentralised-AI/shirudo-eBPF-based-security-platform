@@ -23,7 +23,7 @@ use crate::sys::libc::{
     access, close, explicit_bzero, fwrite, gethostname, stderr, stdout, strerror,
 };
 use crate::sys::version::shirudo_version_id;
-use crate::text::{cstr, name_has_suffix};
+use crate::text::{cstr, name_has_suffix, strscpy, strsprintf};
 use crate::util::bpf_sys::bpf_obj_get;
 use crate::util::bpm_tree_state;
 use crate::util::chain::{self, ChainStatus};
@@ -334,19 +334,26 @@ fn size(bytes: u64) -> Vec<u8> {
     cstr(&out).to_vec()
 }
 
+fn system_row(indent: &[u8], label: &[u8], value: &[u8]) {
+    print(&[indent, &pad(label, 22), b" "].concat());
+    // SAFETY: value is a byte slice and stdout is an open stream.
+    unsafe { fputs_sanitized(value, stdout) };
+    print(b"\n");
+}
+
 fn print_system(si: &Sysinfo) {
     let field = |label: &[u8], value: &[u8]| row(b"  ", label, value);
 
     print(b"\nSystem:\n");
-    field(b"OS:", &si.os_pretty);
-    field(b"Kernel:", &si.kernel_release);
+    system_row(b"  ", b"OS:", &si.os_pretty);
+    system_row(b"  ", b"Kernel:", &si.kernel_release);
     if !si.kernel_version.is_empty() {
-        field(b"Kernel version:", &si.kernel_version);
+        system_row(b"  ", b"Kernel version:", &si.kernel_version);
     }
     if !si.kernel_build_id.is_empty() {
         field(b"Kernel build ID:", &si.kernel_build_id);
     }
-    field(b"Architecture:", &si.machine);
+    system_row(b"  ", b"Architecture:", &si.machine);
     if si.nproc > 0 {
         field(b"CPUs:", si.nproc.to_string().as_bytes());
     }
@@ -375,10 +382,10 @@ fn print_system(si: &Sysinfo) {
         field(b"Uptime:", up.as_bytes());
     }
     if !si.machine_id.is_empty() {
-        field(b"Machine ID:", &si.machine_id);
+        system_row(b"  ", b"Machine ID:", &si.machine_id);
     }
     if !si.boot_id.is_empty() {
-        field(b"Boot ID:", &si.boot_id);
+        system_row(b"  ", b"Boot ID:", &si.boot_id);
     }
 }
 
@@ -969,22 +976,16 @@ fn cert_info(der: &[u8]) -> Result<CertInfo, c_int> {
 /// `, ...` once the next does not fit.
 fn note(names: &mut [u8; UNMEASURED_NAMES], name: &[u8]) {
     let used = cstr(names).len();
-    let room = UNMEASURED_NAMES - used;
-    let text = [if used != 0 { &b", "[..] } else { b"" }, name].concat();
+    if names[..used].ends_with(b"...") {
+        return;
+    }
 
-    if used >= 3 && names[..used].ends_with(b"...") {
+    let sep: &[u8] = if used == 0 { b"" } else { b", " };
+    if strsprintf(&mut names[used..], &[sep, name]).is_ok() || used == 0 {
         return;
     }
-    if text.len() < room {
-        names[used..used + text.len()].copy_from_slice(&text);
-        names[used + text.len()] = 0;
-        return;
-    }
-    names[used] = 0;
-    if used != 0 {
-        let n = b", ...".len().min(room - 1);
-        names[used..used + n].copy_from_slice(&b", ..."[..n]);
-        names[used + n] = 0;
+    if strscpy(&mut names[used..], b", ...").is_err() {
+        names[UNMEASURED_NAMES - 4..].copy_from_slice(b"...\0");
     }
 }
 
@@ -1440,7 +1441,7 @@ impl Report {
         e.obj_open();
         e.kv_int(b"schema", 1);
         e.kv_string(b"version_id", version_id());
-        e.kv_string(b"host", &self.hostname);
+        e.kv_string_lossy(b"host", &self.hostname);
         e.kv_bool(b"is_target", self.is_target);
         e.kv_bool(b"is_operator", self.is_operator);
         e.kv_string(b"status", conditions::status_verdict(cin).to_bytes());
@@ -1646,7 +1647,7 @@ impl Report {
                 _ => {}
             }
         }
-        row(b"", b"Host:", &self.hostname);
+        system_row(b"", b"Host:", &self.hostname);
         row(b"", b"Roles:", roles(self.is_target, self.is_operator));
         match cstr(&reason) {
             [] => row(b"", b"Status:", verdict),

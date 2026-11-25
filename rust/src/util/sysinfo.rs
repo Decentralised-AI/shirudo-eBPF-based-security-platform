@@ -350,20 +350,27 @@ pub(crate) fn gather() -> Sysinfo {
 }
 
 pub(crate) fn emit_json(e: &mut JsonEmit, si: &Sysinfo) {
+    let options = kernel_config(&si.kernel_release).unwrap_or_default();
+
+    emit_system_json(e, si, &options);
+}
+
+fn emit_system_json(e: &mut JsonEmit, si: &Sysinfo, options: &[(Vec<u8>, Vec<u8>)]) {
     e.obj_open_key(b"system");
-    e.kv_string(b"hostname", &si.hostname);
-    e.kv_string(b"os", &si.os_pretty);
-    e.kv_string(b"kernel_release", &si.kernel_release);
-    e.kv_string(b"kernel_version", &si.kernel_version);
+    e.kv_string_lossy(b"hostname", &si.hostname);
+    e.kv_string_lossy(b"os", &si.os_pretty);
+    e.kv_string_lossy(b"kernel_release", &si.kernel_release);
+    e.kv_string_lossy(b"kernel_version", &si.kernel_version);
     e.kv_string(b"kernel_build_id", &si.kernel_build_id);
     e.obj_open_key(b"kernel_config");
-    for (key, value) in kernel_config(&si.kernel_release).unwrap_or_default() {
-        e.kv_string(&key, &value);
+    for (key, value) in options {
+        e.key_lossy(key);
+        e.str_lossy(value);
     }
     e.obj_close();
-    e.kv_string(b"architecture", &si.machine);
-    e.kv_string(b"machine_id", &si.machine_id);
-    e.kv_string(b"boot_id", &si.boot_id);
+    e.kv_string_lossy(b"architecture", &si.machine);
+    e.kv_string_lossy(b"machine_id", &si.machine_id);
+    e.kv_string_lossy(b"boot_id", &si.boot_id);
     e.kv_int(b"nproc", si.nproc);
     e.kv_int(b"mem_total_kb", si.mem_total_kb);
     e.kv_int(b"mem_avail_kb", si.mem_avail_kb);
