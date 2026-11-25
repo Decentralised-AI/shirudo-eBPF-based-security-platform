@@ -25,9 +25,11 @@ use super::{err, helper_main, out};
 use crate::errno::{EACCES, EIO, EKEYREJECTED, ENOENT};
 use crate::sys::identity::Identity;
 use crate::sys::tss2::{ESYS_TR_NONE, Esys_Free, RC_SUCCESS, Rc, Tpm2bDigest, Tpm2bName, Zeroed};
+use crate::util::bpf_info::{Info, MAP_INFO_SIZE};
 use crate::util::chain::{PCR_MASK, memneq_explicit};
 use crate::util::crypto_openssl::{hmac_sha256, sha256};
 use crate::util::identity::IDENTITY_PIN;
+use crate::util::image_guards::{GUARD_IDENTITY, GUARD_MAPS};
 use crate::util::tpm::{Branches, Key, Tpm};
 use crate::util::tpm_wire::{RegisterPolicy, register_policy};
 
@@ -94,6 +96,21 @@ fn set_errno(e: c_int) {
     unsafe { *libc::__errno_location() = e };
 }
 
+/// The map information the kernel would report for init's identity map.
+fn identity_map_info() -> Info<MAP_INFO_SIZE> {
+    let def = &GUARD_MAPS[GUARD_IDENTITY].def;
+    let mut info = Info::new();
+    info.set(0, &def.map_type.to_ne_bytes());
+    info.set(4, &1u32.to_ne_bytes());
+    info.set(8, &def.key_size.to_ne_bytes());
+    info.set(12, &def.value_size.to_ne_bytes());
+    info.set(16, &def.max_entries.to_ne_bytes());
+    info.set(20, &def.flags.to_ne_bytes());
+    let name = def.name.to_bytes();
+    info.set(24, &name[..name.len().min(15)]);
+    info
+}
+
 /// The identity map init would have pinned, the test's or its error,
 /// faked at the bpf() syscall.
 /// The syscall hook of test-tpm-session.
@@ -123,14 +140,12 @@ fn fake_bpf(number: c_long, args: [c_long; 6]) -> Option<c_long> {
                 {
                     let len = at(4).cast::<u32>().read_unaligned() as usize;
                     let info = at(8).cast::<u64>().read_unaligned() as *mut u8;
+                    let map_info = identity_map_info();
                     info.write_bytes(0, len);
-                    info.add(8)
-                        .cast::<u32>()
-                        .write_unaligned(size_of::<u32>() as u32);
-                    info.add(12)
-                        .cast::<u32>()
-                        .write_unaligned(size_of::<Identity>() as u32);
-                    info.add(16).cast::<u32>().write_unaligned(1);
+                    info.copy_from_nonoverlapping(
+                        map_info.bytes().as_ptr(),
+                        len.min(MAP_INFO_SIZE),
+                    );
                     return Some(0);
                 }
                 BPF_MAP_LOOKUP_ELEM
