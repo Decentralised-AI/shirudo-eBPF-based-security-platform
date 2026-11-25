@@ -366,3 +366,15 @@ fn name_has_suffix_wants_a_stem() {
     assert!(!name_has_suffix(b"", b""));
     assert!(name_has_suffix(b"a", b""));
 }
+
+#[test]
+fn find_reads_only_the_counted_bytes() {
+    let text = b"a\0b..c";
+
+    assert_eq!(find(text, b".."), Some(3));
+    assert_eq!(find(&text[..4], b".."), None);
+    assert_eq!(find(text, b"..C"), None);
+    assert_eq!(find(text, b""), Some(0));
+    assert_eq!(find(b"", b""), Some(0));
+    assert!(!contains(&text[..3], b".."));
+}

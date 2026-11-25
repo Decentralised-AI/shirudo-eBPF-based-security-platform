@@ -321,6 +321,14 @@ fn meminfo_keeps_values_before_an_invalid_line() {
 }
 
 #[test]
+fn memory_of_this_host_is_read() {
+    let (total_kb, avail_kb) = read_mem();
+
+    assert!(total_kb > 0);
+    assert!((0..=total_kb).contains(&avail_kb));
+}
+
+#[test]
 fn system_json_keeps_invalid_external_text_readable() {
     let si = Sysinfo {
         hostname: b"node\xff".to_vec(),
