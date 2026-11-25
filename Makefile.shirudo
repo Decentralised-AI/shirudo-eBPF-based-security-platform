@@ -1208,17 +1208,18 @@ $(FUZZ_TARGETS): $(FUZZ_HEADERS) $(FUZZ_STAMP) $(RUST_FUZZ_LIB)
 FUZZ_NAMES := kernel beefile elf tree-state image prog-metadata upatch upatch-info \
 	     bpm-tar bpm-index bpm-info bpm-package oci-manifest oci-http \
 	     oci-ref registry-auth config tpm-wire json tree cms eventlog otel \
-	     attest config-update decoder kconfig quote-check rodata serializer
+	     attest attest-report config-update decoder kconfig quote-check rodata serializer
 FUZZ_MAIN_DIR := build/fuzz-main
 FUZZ_RUST_TARGETS := $(addprefix $(FUZZ_OUT)/fuzz-,$(FUZZ_NAMES))
 REPLAY_OUT := build/fuzz-replay
 
-$(FUZZ_OUT)/fuzz-attest $(REPLAY_OUT)/fuzz-attest: FUZZ_LIBS += $(TSS2_LIBS)
+$(FUZZ_OUT)/fuzz-attest $(REPLAY_OUT)/fuzz-attest \
+$(FUZZ_OUT)/fuzz-attest-report $(REPLAY_OUT)/fuzz-attest-report: FUZZ_LIBS += $(TSS2_LIBS)
 $(FUZZ_OUT)/fuzz-decoder $(REPLAY_OUT)/fuzz-decoder: FUZZ_LIBS += $(LUAJIT_LIBS)
 # Its map's lookups come from the input through a wrap of syscall().
 $(FUZZ_OUT)/fuzz-serializer $(REPLAY_OUT)/fuzz-serializer: FUZZ_LIBS += -Wl,--wrap=syscall
-$(FUZZ_OUT)/fuzz-attest $(FUZZ_OUT)/fuzz-otel $(FUZZ_OUT)/fuzz-beefile \
-$(REPLAY_OUT)/fuzz-attest $(REPLAY_OUT)/fuzz-otel $(REPLAY_OUT)/fuzz-beefile: \
+$(FUZZ_OUT)/fuzz-attest $(FUZZ_OUT)/fuzz-attest-report $(FUZZ_OUT)/fuzz-otel $(FUZZ_OUT)/fuzz-beefile \
+$(REPLAY_OUT)/fuzz-attest $(REPLAY_OUT)/fuzz-attest-report $(REPLAY_OUT)/fuzz-otel $(REPLAY_OUT)/fuzz-beefile: \
 	$(VERSION_OBJ)
 
 $(FUZZ_MAIN_DIR)/%.o: testing/fuzz/target.rs.in

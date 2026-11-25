@@ -4,7 +4,7 @@
 //! The commands, one module for each. The table in `commands`
 //! dispatches to them with the command line from the command's name on.
 
-mod attest;
+pub(crate) mod attest;
 mod bpm;
 mod build;
 mod commands;

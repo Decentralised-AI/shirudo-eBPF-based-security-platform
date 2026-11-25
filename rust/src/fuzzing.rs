@@ -82,7 +82,7 @@ impl StdoutCapture {
         Self(file)
     }
 
-    fn take(&self) -> Vec<u8> {
+    pub(crate) fn take(&self) -> Vec<u8> {
         // SAFETY: flush libc's buffered writes before reading the memfd.
         assert_eq!(unsafe { libc::fflush(core::ptr::null_mut()) }, 0);
         let mut file = &self.0;
