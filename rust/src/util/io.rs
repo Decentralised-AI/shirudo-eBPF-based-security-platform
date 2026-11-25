@@ -57,6 +57,15 @@ pub(crate) fn errno_of(err: &std::io::Error) -> core::ffi::c_int {
     -err.raw_os_error().unwrap_or(EIO)
 }
 
+/// Close `fd`, returning the error instead of hiding it in Drop.
+pub(crate) fn close_checked(fd: OwnedFd) -> Result<(), core::ffi::c_int> {
+    // SAFETY: the descriptor, which the close takes over.
+    if unsafe { close(fd.into_raw_fd()) } != 0 {
+        return Err(-errno());
+    }
+    Ok(())
+}
+
 /// All of `buf` to `fd`, through short writes and signals: -EIO for a
 /// write of nothing, or -errno.
 pub(crate) fn write_complete(fd: BorrowedFd<'_>, buf: &[u8]) -> Result<(), c_int> {

@@ -11,7 +11,7 @@ use core::ffi::{CStr, c_int};
 use std::ffi::OsStr;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, Read, Write};
-use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, OwnedFd};
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::OpenOptionsExt;
 
@@ -21,14 +21,14 @@ use crate::errno::{
 };
 use crate::sys::libc::{
     LOCK_EX, LOCK_NB, O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK,
-    O_RDONLY, O_RDWR, O_WRONLY, S_IFMT, S_IFREG, Statx, close, errno, flock, fsync, ftruncate,
-    geteuid, openat, renameat, unlinkat,
+    O_RDONLY, O_RDWR, O_WRONLY, S_IFMT, S_IFREG, Statx, errno, flock, fsync, ftruncate, geteuid,
+    openat, renameat, unlinkat,
 };
 use crate::text::cstr;
 use crate::util::chain::fold;
 use crate::util::config_measure::{self, EVENT_BOOT, EVENT_UPDATE};
 use crate::util::hex;
-use crate::util::io::{self, stat_fd};
+use crate::util::io::{self, close_checked, stat_fd};
 use crate::util::json::{JsonEmit, JsonField, parse_schema};
 
 /// `CONFIG_UPDATE_PREFIX_MAX`.
@@ -188,15 +188,6 @@ fn truncate(fd: BorrowedFd<'_>, length: u64) -> Result<(), c_int> {
 
     // SAFETY: an open fd.
     if unsafe { ftruncate(fd.as_raw_fd(), length) } != 0 {
-        return Err(-errno());
-    }
-    Ok(())
-}
-
-/// `fd` closed, the error of its close returned rather than dropped.
-fn close_checked(fd: OwnedFd) -> Result<(), c_int> {
-    // SAFETY: the fd, which the close takes over.
-    if unsafe { close(fd.into_raw_fd()) } != 0 {
         return Err(-errno());
     }
     Ok(())

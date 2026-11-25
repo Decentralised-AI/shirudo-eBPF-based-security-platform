@@ -12,7 +12,7 @@
 
 use core::ffi::{CStr, c_int};
 use std::ffi::{CString, OsStr};
-use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, OwnedFd};
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::MetadataExt;
 
@@ -23,10 +23,10 @@ use crate::sys::libc::Zeroed;
 use crate::sys::libc::{
     AT_FDCWD, AT_SYMLINK_NOFOLLOW, O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW,
     O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY, S_IFMT, S_IFREG, STATX_BASIC_STATS, Statx,
-    close, fchmod, fgetxattr, fsetxattr, fsync, ftruncate, lgetxattr, lsetxattr, mkdirat, openat,
+    fchmod, fgetxattr, fsetxattr, fsync, ftruncate, lgetxattr, lsetxattr, mkdirat, openat,
     renameat, statx, unlinkat,
 };
-use crate::util::io::{append_line, lock_exclusive, stat_fd, write_complete};
+use crate::util::io::{append_line, close_checked, lock_exclusive, stat_fd, write_complete};
 
 /// XATTR_SEAL: the attribute bpf/seal.c reads.
 pub(crate) const XATTR: &CStr = c"security.bpf.shirudo";
@@ -81,15 +81,6 @@ fn open_at(
     }
     // SAFETY: the descriptor openat() just gave, owned from here.
     Ok(unsafe { OwnedFd::from_raw_fd(fd) })
-}
-
-/// `fd` closed, the error of its close returned rather than dropped.
-fn close_checked(fd: OwnedFd) -> Result<(), c_int> {
-    // SAFETY: the descriptor, which the close takes over.
-    if unsafe { close(fd.into_raw_fd()) } != 0 {
-        return Err(-errno());
-    }
-    Ok(())
 }
 
 /// The directory `name` made in `dir`: whether it was, false for one
