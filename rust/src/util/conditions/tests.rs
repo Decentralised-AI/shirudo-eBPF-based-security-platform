@@ -38,6 +38,19 @@ fn reason(i: &ConditionsInput<'_>) -> Vec<u8> {
 }
 
 #[test]
+fn unreachable_reason_keeps_all_caller_text() {
+    let text = std::ffi::CString::new(vec![b'x'; 256]).unwrap();
+    let mut i = input();
+    i.reachable = false;
+    i.unreach = Some(&text);
+
+    assert_eq!(status_verdict(&i), c"unreachable");
+    assert_eq!(status_reason(&i), text.as_c_str());
+    i.unreach = None;
+    assert_eq!(status_reason(&i), c"");
+}
+
+#[test]
 fn changed_xdp_archive_is_tampered() {
     let mut i = input();
     i.xdp_tampered = 1;
