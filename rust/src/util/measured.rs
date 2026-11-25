@@ -371,6 +371,8 @@ mod verified {
         operation: [u8; 72],
         name: [u8; NAME_MAX + 1],
         payload_hex: [u8; 2 * PAYLOAD_HASH_LEN + 1],
+        set_name: [u8; NAME_MAX + 1],
+        set_payload_hex: [u8; 2 * PAYLOAD_HASH_LEN + 1],
         member_type: [u8; 8],
         seq: i64,
         set: Vec<MeasuredUpatch>,
@@ -384,20 +386,20 @@ mod verified {
         let added = set_add(
             &mut r.set,
             MEASURED_MAX,
-            cstr(&r.name),
-            cstr(&r.payload_hex),
+            cstr(&r.set_name),
+            cstr(&r.set_payload_hex),
             member_type(cstr(&r.member_type))?,
         );
-        r.name[0] = 0;
-        r.payload_hex[0] = 0;
+        r.set_name[0] = 0;
+        r.set_payload_hex[0] = 0;
         r.member_type[0] = 0;
         added
     }
 
     fn parse(line: &[u8], r: &mut Record) -> c_int {
         let entry = [
-            JsonField::string(c"name", |r: &mut Record| &mut r.name),
-            JsonField::string(c"payload_sha256", |r| &mut r.payload_hex),
+            JsonField::string(c"name", |r: &mut Record| &mut r.set_name),
+            JsonField::string(c"payload_sha256", |r| &mut r.set_payload_hex),
             JsonField::string(c"type", |r| &mut r.member_type),
         ];
         let upatch = [
@@ -514,6 +516,8 @@ mod verified {
             operation: [0; 72],
             name: [0; NAME_MAX + 1],
             payload_hex: [0; 2 * PAYLOAD_HASH_LEN + 1],
+            set_name: [0; NAME_MAX + 1],
+            set_payload_hex: [0; 2 * PAYLOAD_HASH_LEN + 1],
             member_type: [0; 8],
             seq: 0,
             set,
@@ -580,5 +584,28 @@ mod verified {
             return -EBADMSG;
         }
         0
+    }
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        /// A malformed init set cannot borrow fields from a separate
+        /// upatch object or from the preceding set member.
+        #[test]
+        fn init_set_members_need_their_own_fields() {
+            let digest = "00".repeat(32);
+            for set in [
+                format!(r#"[{{"payload_sha256":"{digest}"}}]"#),
+                r#"[{"name":"restored"}]"#.to_owned(),
+                format!(
+                    r#"[{{"name":"first","payload_sha256":"{digest}"}},{{"payload_sha256":"{digest}"}}]"#
+                ),
+            ] {
+                let line = format!(
+                    r#"{{"type":"init","digest":"{digest}","cert_sha256":"{digest}","tree_root":"{digest}","upatch":{{"name":"outer","payload_sha256":"{digest}"}},"set":{set}}}"#
+                );
+                assert_eq!(record_event(line.as_bytes()), Err(-EINVAL));
+            }
+        }
     }
 }

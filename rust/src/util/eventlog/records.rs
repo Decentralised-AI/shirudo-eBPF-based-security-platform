@@ -309,6 +309,8 @@ struct UpatchSink<'a> {
     ty: [u8; 32],
     name: [u8; NAME_MAX + 1],
     payload_hex: [u8; 2 * PAYLOAD_HASH_LEN + 1],
+    set_name: [u8; NAME_MAX + 1],
+    set_payload_hex: [u8; 2 * PAYLOAD_HASH_LEN + 1],
     ret: c_int,
 }
 
@@ -319,12 +321,12 @@ fn notify(u: &mut UpatchSink<'_>, event: c_int) -> c_int {
 
 /// An entry of an init record's set: a load boot restore made.
 fn take_set_entry(u: &mut UpatchSink<'_>) -> Result<(), c_int> {
-    if !member_valid(cstr(&u.name), cstr(&u.payload_hex)) {
+    if !member_valid(cstr(&u.set_name), cstr(&u.set_payload_hex)) {
         return Err(-EINVAL);
     }
-    u.ret = notify(u, UPATCH_LOAD);
-    u.name[0] = 0;
-    u.payload_hex[0] = 0;
+    u.ret = (u.cb)(UPATCH_LOAD, cstr(&u.set_name), cstr(&u.set_payload_hex));
+    u.set_name[0] = 0;
+    u.set_payload_hex[0] = 0;
     match u.ret {
         0 => Ok(()),
         err => Err(err),
@@ -338,6 +340,8 @@ pub(crate) fn upatches_record(line: &CStr, is_init: bool, cb: UpatchFn<'_>) -> c
         ty: [0; 32],
         name: [0; NAME_MAX + 1],
         payload_hex: [0; 2 * PAYLOAD_HASH_LEN + 1],
+        set_name: [0; NAME_MAX + 1],
+        set_payload_hex: [0; 2 * PAYLOAD_HASH_LEN + 1],
         ret: 0,
     };
     upatches_line(&mut sink, line, is_init)
@@ -352,6 +356,8 @@ pub(crate) fn upatches(all: bool, cb: UpatchFn<'_>) -> c_int {
         ty: [0; 32],
         name: [0; NAME_MAX + 1],
         payload_hex: [0; 2 * PAYLOAD_HASH_LEN + 1],
+        set_name: [0; NAME_MAX + 1],
+        set_payload_hex: [0; 2 * PAYLOAD_HASH_LEN + 1],
         ret: 0,
     };
 
@@ -364,18 +370,25 @@ fn upatches_line(u: &mut UpatchSink<'_>, line: &CStr, is_init: bool) -> c_int {
     u.ty = [0; 32];
     u.name[0] = 0;
     u.payload_hex[0] = 0;
+    u.set_name[0] = 0;
+    u.set_payload_hex[0] = 0;
     if is_init {
         let ret = (u.cb)(UPATCH_INIT, &[], &[]);
         if ret != 0 {
             return ret;
         }
     }
-    let entry = [
+    let set_entry = [
+        JsonField::string(c"name", |u: &mut UpatchSink<'_>| &mut u.set_name),
+        JsonField::string(c"payload_sha256", |u| &mut u.set_payload_hex),
+    ];
+    let upatch = [
         JsonField::string(c"name", |u: &mut UpatchSink<'_>| &mut u.name),
         JsonField::string(c"payload_sha256", |u| &mut u.payload_hex),
     ];
-    // Only an init record's set lists what boot restore loaded.
-    let set_field = JsonField::array(c"set", &entry, &take_set_entry);
+    // Set entries cannot borrow fields from an upatch object or an
+    // earlier set entry.
+    let set_field = JsonField::array(c"set", &set_entry, &take_set_entry);
     let f = [
         JsonField::string(c"type", |u: &mut UpatchSink<'_>| &mut u.ty),
         if is_init {
@@ -383,7 +396,7 @@ fn upatches_line(u: &mut UpatchSink<'_>, line: &CStr, is_init: bool) -> c_int {
         } else {
             set_field.keyless()
         },
-        JsonField::object(c"upatch", &entry),
+        JsonField::object(c"upatch", &upatch),
     ];
 
     if parse_schema(line.to_bytes(), &f, u).is_err() {

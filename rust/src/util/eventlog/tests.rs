@@ -171,6 +171,52 @@ fn set_counts_in_an_init_record_alone() {
     assert_eq!(count_upatches(&mut s), -EINVAL);
 }
 
+/// A set member must supply its own name and digest, even if an upatch
+/// object elsewhere in the same record supplies the missing field.
+#[test]
+fn set_member_cannot_borrow_upatch_fields() {
+    let digest = std::str::from_utf8(DIGEST_HEX).unwrap();
+    for member in [
+        format!(r#"{{"payload_sha256":"{digest}"}}"#),
+        r#"{"name":"restored"}"#.to_owned(),
+    ] {
+        let text = format!(
+            r#"{{"type":"init","upatch":{{"name":"outer","payload_sha256":"{digest}"}},"set":[{member}]}}"#
+        );
+        let line = std::ffi::CString::new(text).unwrap();
+        let mut loads = 0;
+        assert_eq!(
+            records::upatches_record(&line, true, &mut |event, _, _| {
+                loads += c_int::from(event == records::UPATCH_LOAD);
+                0
+            }),
+            -EINVAL
+        );
+        assert_eq!(loads, 0);
+    }
+}
+
+/// The next set member cannot reuse the preceding member's fields.
+#[test]
+fn set_member_cannot_borrow_previous_fields() {
+    let digest = std::str::from_utf8(DIGEST_HEX).unwrap();
+    let text = format!(
+        r#"{{"type":"init","set":[{{"name":"first","payload_sha256":"{digest}"}},{{"payload_sha256":"{digest}"}}]}}"#
+    );
+    let line = std::ffi::CString::new(text).unwrap();
+    let mut loaded = Vec::new();
+    assert_eq!(
+        records::upatches_record(&line, true, &mut |event, name, _| {
+            if event == records::UPATCH_LOAD {
+                loaded.push(name.to_vec());
+            }
+            0
+        }),
+        -EINVAL
+    );
+    assert_eq!(loaded, [b"first".to_vec()]);
+}
+
 fn upatch_event_record(ty: &[u8], name: &[u8]) -> Vec<u8> {
     record(ty, 3, |e| {
         e.obj_open_key(b"upatch");
