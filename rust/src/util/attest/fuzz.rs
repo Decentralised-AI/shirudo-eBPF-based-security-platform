@@ -132,7 +132,9 @@ fuzz_target!(
             c"--allow-runtime-events",
         ];
         let status = cmd_attest(&args);
-        let text = text_verdict(&capture.take(), status);
+        let output = capture.take();
+        StdoutCapture::check_text(&output);
+        let text = text_verdict(&output, status);
         let args_json = [
             c"attest",
             c"verify",

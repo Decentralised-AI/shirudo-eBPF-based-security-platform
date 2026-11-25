@@ -106,7 +106,11 @@ impl StdoutCapture {
             return;
         }
 
-        let text = core::str::from_utf8(&output).expect("stdout is not UTF-8");
+        Self::check_text(&output);
+    }
+
+    pub(crate) fn check_text(output: &[u8]) {
+        let text = core::str::from_utf8(output).expect("stdout is not UTF-8");
         let mut chars = text.chars().peekable();
 
         while let Some(c) = chars.next() {
