@@ -328,6 +328,12 @@ impl<'a> JsonEmit<'a> {
         self.put_string(val, false);
     }
 
+    /// A member with a strict key and lossy text from outside.
+    pub(crate) fn kv_string_lossy(&mut self, key: &[u8], val: &[u8]) {
+        self.member(key);
+        self.put_string(val, true);
+    }
+
     pub(crate) fn kv_int(&mut self, key: &[u8], val: i64) {
         let mut buf = [0; 21];
         let digits = format_s64(val, &mut buf);

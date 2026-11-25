@@ -52,8 +52,7 @@ fn printable(s: &[u8]) -> Vec<u8> {
 /// What printable() shows, as JSON escapes it and U+FFFD for a stray
 /// byte.
 fn unverified(e: &mut JsonEmit, key: &[u8], val: &[u8]) {
-    e.key(key);
-    e.str_lossy(cstr(val));
+    e.kv_string_lossy(key, cstr(val));
 }
 
 /// A length within a container, as JSON takes a number.
