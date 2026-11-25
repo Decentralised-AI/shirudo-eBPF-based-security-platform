@@ -849,6 +849,12 @@ fn on_record(p: &mut Parse) -> Result<(), c_int> {
     p.recs.push(r);
     // Reset the per-element scratch the next element may not set.
     p.ty[0] = 0;
+    p.digest_hex[0] = 0;
+    p.pcr_before_hex[0] = 0;
+    p.phase_before_hex[0] = 0;
+    p.nv_name_hex[0] = 0;
+    p.anchor_digest_hex[0] = 0;
+    p.chain_hex[0] = 0;
     p.upatch_name[0] = 0;
     p.upatch_payload_hex[0] = 0;
     p.tree_id[0] = 0;
@@ -896,20 +902,20 @@ impl Report {
         &self.text
     }
 
-    /// A line: its tag, then `text` where it fits whole with a NUL after
-    /// it, then a line feed where room is left, and nothing once the
-    /// room left would not hold a tag and its NUL.
+    /// A line: its tag, any text that fits whole, then its line feed.
+    /// Keep room for the line feed and the C buffer's trailing NUL.
     fn line(&mut self, tag: &[u8; TAG_LEN], text: &[u8]) {
-        if self.text.len() + TAG_LEN >= self.cap {
+        let Some(room) = self.cap.checked_sub(self.text.len()) else {
+            return;
+        };
+        if room < TAG_LEN + 2 {
             return;
         }
         self.text.extend_from_slice(tag);
-        if self.text.len() + text.len() < self.cap {
+        if text.len() <= room - TAG_LEN - 2 {
             self.text.extend_from_slice(text);
         }
-        if self.text.len() + 1 < self.cap {
-            self.text.push(b'\n');
-        }
+        self.text.push(b'\n');
     }
 
     /// A check, which counts when it failed.

@@ -73,28 +73,57 @@ fn report_lines_are_a_tag_the_text_and_a_line_feed() {
 
 #[test]
 fn report_is_bounded_as_the_c_buffer_was() {
-    // A text that does not fit whole with a NUL after it is left out,
-    // the line feed kept while there is room for it and the NUL.
+    // A text that does not fit with a line feed and NUL is left out.
     let mut rep = Report::new(24);
     rep.check(false, b"x");
     rep.note(b"too long a text");
     assert_eq!(rep.text(), b"  FAIL  x\n  NOTE  \n");
-    // No line once a tag and its NUL would not fit, though the failure
-    // still counts.
+    // No line once a tag, line feed and NUL would not fit, though the
+    // failure still counts.
     rep.check(false, b"y");
     assert_eq!(rep.text(), b"  FAIL  x\n  NOTE  \n");
     assert_eq!(rep.failed, 2);
 
-    // A text that ends at the last byte before the NUL leaves no room for
-    // the line feed, nor for another line.
+    // The final line ends with a line feed even at the cap.
     let mut rep = Report::new(12);
     rep.check(true, b"abc");
     rep.note(b"d");
-    assert_eq!(rep.text(), b"  OK    abc");
+    assert_eq!(rep.text(), b"  OK    \n");
 
     let mut rep = Report::new(0);
     rep.check(true, b"abc");
     assert_eq!(rep.text(), b"");
+}
+
+#[test]
+fn every_bounded_report_line_ends_with_a_line_feed() {
+    for cap in 0..=128 {
+        let mut rep = Report::new(cap);
+        rep.check(true, b"a moderately long check");
+        rep.note(b"a second line");
+        rep.check(false, b"one more check");
+        assert!(rep.text().len() < cap || cap == 0, "cap={cap}");
+        assert!(
+            rep.text().is_empty() || rep.text().ends_with(b"\n"),
+            "cap={cap}"
+        );
+        assert_eq!(rep.failed, 1);
+    }
+}
+
+#[test]
+fn record_without_own_digest_is_rejected() {
+    let valid = format!(
+        r#"{{"nonce":"","pcr_mask":1,"pcrs":[],"ak":{{}},"quote":{{}},"register":{{}},"eventlog":[{{"type":"other","digest":"{D64}"}}]}}"#
+    );
+    let missing = format!(
+        r#"{{"nonce":"","pcr_mask":1,"pcrs":[],"ak":{{}},"quote":{{}},"register":{{}},"eventlog":[{{"type":"other","digest":"{D64}"}},{{"type":"other"}}]}}"#
+    );
+    assert!(parse_evidence(&mut Parse::new(), valid.as_bytes()).is_ok());
+    assert_eq!(
+        parse_evidence(&mut Parse::new(), missing.as_bytes()),
+        Err(-EINVAL)
+    );
 }
 
 #[test]
