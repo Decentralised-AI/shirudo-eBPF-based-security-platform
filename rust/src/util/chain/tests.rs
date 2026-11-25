@@ -186,3 +186,68 @@ fn history_root_differs_from_the_projection_root() {
         assert_ne!(history, projection);
     }
 }
+
+#[test]
+fn anchor_record_matches_systemd_shape() {
+    let anchor = b"nvpcr-init:shirudo:0x1818e00:000b01";
+    let digest = [0x5a; 32];
+    let boot_id = *b"0123456789abcdef0123456789abcdef";
+    let record = anchor_record(anchor, &digest, &boot_id, 123_456).unwrap();
+    assert_eq!(log_anchor(b"nvpcr-init:\"x", &digest), Err(-EINVAL));
+    let expected = [
+        &b"\x1e{\"pcr\":9,\"digests\":[{\"hashAlg\":\"sha256\",\"digest\":\""[..],
+        &crate::util::hex::encode(&digest),
+        &b"\"}],\"content_type\":\"systemd\",\"content\":{\"string\":\""[..],
+        anchor,
+        &b"\",\"bootId\":\""[..],
+        &boot_id,
+        &b"\",\"timestamp\":123456,\"eventType\":\"nvpcr-init\"}}\n"[..],
+    ]
+    .concat();
+    assert_eq!(record, expected);
+    assert_eq!(
+        measure_log_path(Some(std::ffi::OsStr::new("/home/test/log")), true),
+        std::path::Path::new("/home/test/log")
+    );
+    assert_eq!(
+        measure_log_path(Some(std::ffi::OsStr::new("/home/test/log")), false),
+        std::path::Path::new("/run/log/systemd/tpm2-measure.log")
+    );
+}
+
+#[cfg(not(miri))]
+#[test]
+fn anchor_log_marks_an_interrupted_record() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let root = std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join(".cache/pt");
+    std::fs::create_dir_all(&root).unwrap();
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let path = root.join(format!(
+        "shirudo-r13-anchor-{}-{unique}",
+        std::process::id()
+    ));
+    let record = anchor_record(
+        b"nvpcr-init:shirudo:0x1818e00:000b01",
+        &[0x5a; 32],
+        b"0123456789abcdef0123456789abcdef",
+        123_456,
+    )
+    .unwrap();
+    append_anchor_record(&path, &record).unwrap();
+    append_anchor_record(&path, &record).unwrap();
+    let bytes = std::fs::read(&path).unwrap();
+    assert_eq!(bytes, [record.as_slice(), record.as_slice()].concat());
+    let metadata = std::fs::metadata(&path).unwrap();
+    assert_eq!(metadata.permissions().mode() & 0o7777, 0o600);
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o1600)).unwrap();
+    assert_eq!(
+        append_anchor_record(&path, &record),
+        Err(-crate::errno::ESTALE)
+    );
+    assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    std::fs::remove_file(&path).unwrap();
+}
