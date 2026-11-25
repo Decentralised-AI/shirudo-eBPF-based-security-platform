@@ -22,14 +22,11 @@ use crate::sys::libc::{F_SETFD, O_NOFOLLOW, O_NONBLOCK, fcntl, pread};
 use crate::util::config_image::{self, ConfigImageOpen};
 use crate::util::crypto_openssl::{cert_key_algorithm, cms_signed_by, verify_detached};
 use crate::util::help::{Help, HelpSection, is_help, print_help};
+use crate::util::io;
 use crate::util::options::{EXIT_USAGE, OPT_ARG, OPT_DONE, OPT_END, OptParser, OptSpec};
 
 const SIG_MAX: usize = config_image::SIG_MAX as usize;
 const X_OK: c_int = 1;
-
-fn errno_of(e: &std::io::Error) -> c_int {
-    -e.raw_os_error().unwrap_or(EIO)
-}
 
 /// `image build`: runs shirudo-gen-verity, beside this tool when
 /// installed or in the tree, with this tool as its signer; returns only
@@ -70,7 +67,7 @@ fn build(args: &[&CStr]) -> c_int {
             b"image build: cannot run ",
             &script[..],
             b": ",
-            strerr(-errno_of(&err)),
+            strerr(-io::errno_of(&err)),
         ]
         .concat(),
     );
@@ -105,7 +102,7 @@ fn verify_verity(img: &ConfigImageOpen, root: &[u8]) -> Result<(), c_int> {
             error(
                 &[
                     b"veritysetup: ",
-                    strerr(-errno_of(&e)),
+                    strerr(-io::errno_of(&e)),
                     b"; install the operator veritysetup tool",
                 ]
                 .concat(),
@@ -206,8 +203,8 @@ fn read_root(input: &CStr) -> Result<[u8; 64], c_int> {
         .read(true)
         .custom_flags(O_NOFOLLOW | O_NONBLOCK)
         .open(super::path(input.to_bytes()))
-        .map_err(|e| errno_of(&e))?;
-    let metadata = file.metadata().map_err(|e| errno_of(&e))?;
+        .map_err(|e| io::errno_of(&e))?;
+    let metadata = file.metadata().map_err(|e| io::errno_of(&e))?;
     let mut root = [0u8; 64];
     if !metadata.is_file() || metadata.size() != 64 {
         return Err(-EINVAL);
@@ -216,7 +213,7 @@ fn read_root(input: &CStr) -> Result<[u8; 64], c_int> {
         if e.kind() == std::io::ErrorKind::UnexpectedEof {
             -EIO
         } else {
-            errno_of(&e)
+            io::errno_of(&e)
         }
     })?;
     if root.iter().all(|c| matches!(c, b'0'..=b'9' | b'a'..=b'f')) {
@@ -240,13 +237,13 @@ fn sign_root(input: &CStr, output: &CStr, keys: &KeyFiles) -> Result<(), c_int> 
         .create_new(true)
         .mode(0o644)
         .open(out)
-        .map_err(|e| errno_of(&e))?;
+        .map_err(|e| io::errno_of(&e))?;
     let written = file.write_all(&signature).and_then(|()| file.sync_all());
     drop(file);
     if written.is_err() {
         let _ = std::fs::remove_file(out);
     }
-    written.map_err(|e| errno_of(&e))
+    written.map_err(|e| io::errno_of(&e))
 }
 
 const IMAGE_VERIFY_CERT: c_int = 0;

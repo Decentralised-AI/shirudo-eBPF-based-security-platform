@@ -22,12 +22,11 @@ use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 
 use super::{KeyFiles, error, info, strerr};
 use crate::bpf::object::{self, GenOpts, Object};
-use crate::errno::{
-    E2BIG, EBADMSG, EFBIG, EINVAL, EIO, ENAMETOOLONG, ENOENT, EOPNOTSUPP, EOVERFLOW,
-};
+use crate::errno::{E2BIG, EBADMSG, EFBIG, EINVAL, ENAMETOOLONG, ENOENT, EOPNOTSUPP, EOVERFLOW};
 use crate::util::bpm_package::verify_cms;
 use crate::util::crypto_openssl::sha256;
 use crate::util::help::{Help, HelpSection, print_help};
+use crate::util::io;
 use crate::util::options::{EXIT_USAGE, OPT_ARG, OPT_DONE, OPT_END, OptParser, OptSpec};
 use crate::util::upatch::{
     self, DIRECTIVE_UNLOAD, FILE_MAX, HEADER_SIZE, MAGIC, MAPS_MAX, NAME_MAX, PAYLOAD_HASH_LEN,
@@ -52,10 +51,6 @@ const BPF_F_NO_PREALLOC: u32 = 1;
 const BPF_F_CLONE: u32 = 1 << 9;
 /// `NAME_MAX` of `<limits.h>`, which the name rule's message quotes.
 const PIN_NAME_MAX: usize = 255;
-
-fn errno_of(e: &std::io::Error) -> c_int {
-    -e.raw_os_error().unwrap_or(EIO)
-}
 
 fn put32(buf: &mut [u8], off: usize, v: u32) {
     buf[off..off + 4].copy_from_slice(&v.to_le_bytes());
@@ -245,7 +240,7 @@ fn write_signed(
         .truncate(false)
         .mode(0o644)
         .open(out_path);
-    let mut file = file.map_err(|e| SetFailed::Output(errno_of(&e)))?;
+    let mut file = file.map_err(|e| SetFailed::Output(io::errno_of(&e)))?;
     if output_is_input(&file, input) {
         return Err(SetFailed::OutputIsInput);
     }
@@ -260,7 +255,7 @@ fn write_signed(
     drop(file);
     if let Err(e) = written {
         let _ = std::fs::remove_file(out_path);
-        return Err(SetFailed::Output(errno_of(&e)));
+        return Err(SetFailed::Output(io::errno_of(&e)));
     }
     Ok(())
 }
@@ -435,7 +430,7 @@ fn parse_value(arg: &CStr) -> Result<(CString, Vec<u8>), Vec<u8>> {
     let value = match std::fs::read(super::path(file)) {
         Ok(v) if v.len() <= FILE_MAX => v,
         Ok(_) => return Err([file, b": ", strerr(EOVERFLOW)].concat()),
-        Err(e) => return Err([file, b": ", strerr(-errno_of(&e))].concat()),
+        Err(e) => return Err([file, b": ", strerr(-io::errno_of(&e))].concat()),
     };
     Ok((CString::new(symbol).unwrap_or_default(), value))
 }
@@ -685,7 +680,7 @@ fn finalize(mut obj: Object, out: &CStr, c: &Contents, keys: (&CStr, &CStr)) -> 
     let mut file = match file {
         Ok(f) => f,
         Err(e) => {
-            let err = errno_of(&e);
+            let err = io::errno_of(&e);
             error(&[b"open ", out.to_bytes(), b": ", strerr(-err)].concat());
             return Err(err);
         }
@@ -697,7 +692,7 @@ fn finalize(mut obj: Object, out: &CStr, c: &Contents, keys: (&CStr, &CStr)) -> 
     drop(file);
     if let Err(e) = written {
         let _ = std::fs::remove_file(out_path);
-        return Err(errno_of(&e));
+        return Err(io::errno_of(&e));
     }
     let directive = if unloading { " UNLOAD" } else { "" };
     let msg = format!(
@@ -778,7 +773,7 @@ fn finalize_java(
     let mut file = match file {
         Ok(f) => f,
         Err(e) => {
-            let err = errno_of(&e);
+            let err = io::errno_of(&e);
             error(&[b"open ", out.to_bytes(), b": ", strerr(-err)].concat());
             return Err(err);
         }
@@ -790,7 +785,7 @@ fn finalize_java(
     drop(file);
     if let Err(e) = written {
         let _ = std::fs::remove_file(out_path);
-        return Err(errno_of(&e));
+        return Err(io::errno_of(&e));
     }
     let directive = if flags & DIRECTIVE_UNLOAD != 0 {
         " UNLOAD"
@@ -940,7 +935,7 @@ pub(super) fn load(
     check_name(name.to_bytes())?;
     let path = bpf_o.to_bytes();
     let obj = std::fs::read(super::path(path))
-        .map_err(|e| errno_of(&e))
+        .map_err(|e| io::errno_of(&e))
         .and_then(|data| Object::open(&data, object::object_name(path)));
     let obj = match obj {
         Ok(o) => o,

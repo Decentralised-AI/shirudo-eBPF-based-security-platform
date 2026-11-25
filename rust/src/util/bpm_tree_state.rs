@@ -23,7 +23,7 @@ use crate::util::bpm_tree::{
 use crate::util::crypto_openssl::sha256_into;
 use crate::util::hex;
 use crate::util::image_config;
-use crate::util::io::{lock_exclusive, read};
+use crate::util::io::{self, lock_exclusive, read};
 use crate::util::json::{JsonEmit, JsonField, MAX_BYTES, parse_schema};
 use crate::util::kconfig;
 use crate::util::kernel_build_id::read_build_id;
@@ -97,11 +97,6 @@ fn trim_end(mut s: &[u8]) -> &[u8] {
 /// Whether one of the values of `v` is `want`.
 fn values_match(v: &TreeSelectorKv, want: &[u8]) -> bool {
     v.values.iter().any(|value| value == want)
-}
-
-/// The errno of an I/O error.
-fn io_errno(e: std::io::Error) -> c_int {
-    -e.raw_os_error().unwrap_or(EIO)
 }
 
 /// Whether access(2) lets this process read `path`.
@@ -178,7 +173,11 @@ fn read_config(mut config: impl BufRead, max: usize) -> Result<Vec<Label>, c_int
 
     loop {
         line.clear();
-        if config.read_until(b'\n', &mut line).map_err(io_errno)? == 0 {
+        if config
+            .read_until(b'\n', &mut line)
+            .map_err(|e| io::errno_of(&e))?
+            == 0
+        {
             return Ok(labels);
         }
         let text = trim_start(text_line(&line)?);
@@ -198,7 +197,8 @@ fn read_config(mut config: impl BufRead, max: usize) -> Result<Vec<Label>, c_int
 
 /// read_config() of the file at `path`.
 fn read_config_file(path: &CStr, max: usize) -> Result<Vec<Label>, c_int> {
-    let file = std::fs::File::open(OsStr::from_bytes(path.to_bytes())).map_err(io_errno)?;
+    let file =
+        std::fs::File::open(OsStr::from_bytes(path.to_bytes())).map_err(|e| io::errno_of(&e))?;
 
     read_config(BufReader::new(file), max)
 }

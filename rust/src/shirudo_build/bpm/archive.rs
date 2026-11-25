@@ -16,6 +16,7 @@ use super::{build, path, print};
 use crate::errno::{E2BIG, EFBIG, EINVAL, EIO, ENAMETOOLONG, ENOENT};
 use crate::sys::version::shirudo_version;
 use crate::util::gzip::GzWrite;
+use crate::util::io;
 use crate::util::json::JsonEmit;
 use crate::util::timefmt::iso8601;
 
@@ -27,14 +28,10 @@ const MAX_PACKAGE: u64 = 256 * 1024 * 1024;
 /// Room for the build environment's JSON.
 const MAX_JSON: usize = 256 * 1024;
 
-fn errno_of(e: &std::io::Error) -> c_int {
-    -e.raw_os_error().unwrap_or(EIO)
-}
-
 /// A file read whole, at most `max` bytes: -EFBIG for a larger one.
 pub(super) fn read_file(p: &[u8], max: usize) -> Result<Vec<u8>, c_int> {
-    let mut f = std::fs::File::open(path(p)).map_err(|e| errno_of(&e))?;
-    let size = f.metadata().map_err(|e| errno_of(&e))?.len();
+    let mut f = std::fs::File::open(path(p)).map_err(|e| io::errno_of(&e))?;
+    let size = f.metadata().map_err(|e| io::errno_of(&e))?.len();
     if size > max as u64 {
         return Err(-EFBIG);
     }
@@ -44,7 +41,7 @@ pub(super) fn read_file(p: &[u8], max: usize) -> Result<Vec<u8>, c_int> {
         match std::io::Read::read(&mut f, &mut body[n..]) {
             Ok(0) => return Err(-EIO),
             Ok(got) => n += got,
-            Err(e) => return Err(errno_of(&e)),
+            Err(e) => return Err(io::errno_of(&e)),
         }
     }
     Ok(body)
@@ -115,7 +112,7 @@ impl Tar {
 
     /// The regular file at `file` as entry `name`, with its mode.
     fn file(&mut self, name: &[u8], file: &[u8]) -> Result<(), c_int> {
-        let meta = std::fs::metadata(path(file)).map_err(|e| errno_of(&e))?;
+        let meta = std::fs::metadata(path(file)).map_err(|e| io::errno_of(&e))?;
         if !meta.is_file() {
             return Err(-EINVAL);
         }
@@ -221,7 +218,7 @@ fn entries(tar: &mut Tar, spec: &Spec, top: &[u8], cert: &[u8], env: &[u8]) -> R
         Ok(_) if !build::within(&spec.scope, &readme) => return Err(-EINVAL),
         Ok(_) => {}
         Err(e) if e.raw_os_error() == Some(ENOENT) => {}
-        Err(e) => return Err(errno_of(&e)),
+        Err(e) => return Err(io::errno_of(&e)),
     }
     let r = CString::new(readme.clone()).unwrap_or_default();
     if super::super::compile::readable(&r) {
@@ -250,7 +247,7 @@ pub(super) fn write(
     }
     let env = environment(spec, version, fingerprint).map_err(|_| -EIO)?;
     let cert = read_file(cert_path, MAX_FILE).map_err(|_| -ENOENT)?;
-    let file = std::fs::File::create(path(&output)).map_err(|e| errno_of(&e))?;
+    let file = std::fs::File::create(path(&output)).map_err(|e| io::errno_of(&e))?;
     let mut tar = Tar(GzWrite::new(file, 9, 3).map_err(|_| -EIO)?, 0);
     let written = entries(&mut tar, spec, &top, &cert, &env);
     let finished = tar.0.finish().map(|_| ()).map_err(|_| -EIO);

@@ -28,7 +28,7 @@ use crate::text::cstr;
 use crate::util::chain::fold;
 use crate::util::config_measure::{self, EVENT_BOOT, EVENT_UPDATE};
 use crate::util::hex;
-use crate::util::io::stat_fd;
+use crate::util::io::{self, stat_fd};
 use crate::util::json::{JsonEmit, JsonField, parse_schema};
 
 /// `CONFIG_UPDATE_PREFIX_MAX`.
@@ -146,10 +146,6 @@ pub(crate) struct ConfigUpdate<'o> {
     boot_pending: bool,
 }
 
-fn io_errno(e: std::io::Error) -> c_int {
-    -e.raw_os_error().unwrap_or(EIO)
-}
-
 /// `name` in the directory `dir`, opened with `flags`, and `mode` for a
 /// file it creates.
 fn open_at(dir: BorrowedFd<'_>, name: &CStr, flags: c_int, mode: u32) -> Result<OwnedFd, c_int> {
@@ -218,7 +214,7 @@ fn closed_after(file: File, write: impl FnOnce(&File) -> Result<(), c_int>) -> R
 /// All of `bytes` to `file`, through short writes and signals: -EIO for
 /// a write of nothing.
 fn write_all(mut file: &File, bytes: &[u8]) -> Result<(), c_int> {
-    file.write_all(bytes).map_err(io_errno)
+    file.write_all(bytes).map_err(|e| io::errno_of(&e))
 }
 
 fn euid() -> u32 {
@@ -399,7 +395,7 @@ impl<'o> ConfigUpdate<'o> {
             .read(true)
             .custom_flags(O_DIRECTORY | O_NOFOLLOW)
             .open(OsStr::from_bytes(directory.to_bytes()))
-            .map_err(io_errno)?
+            .map_err(|e| io::errno_of(&e))?
             .into();
         let st = stat_fd(dir.as_fd())?;
         if st.stx_uid != euid() || st.stx_mode & 0o22 != 0 {
@@ -462,7 +458,7 @@ fn selection_read(dir: BorrowedFd<'_>, name: &CStr) -> Result<ConfigUpdateRecord
         .ok_or(-EBADMSG)?;
     let line = &mut wire[..size];
 
-    file.read_exact(line).map_err(io_errno)?;
+    file.read_exact(line).map_err(|e| io::errno_of(&e))?;
     record_decode(line, true)
 }
 

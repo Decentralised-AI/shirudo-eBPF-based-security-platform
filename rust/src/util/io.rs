@@ -52,6 +52,11 @@ struct OpenHow {
     resolve: u64,
 }
 
+/// The negative errno of `err`, or -EIO when it has no OS error.
+pub(crate) fn errno_of(err: &std::io::Error) -> core::ffi::c_int {
+    -err.raw_os_error().unwrap_or(EIO)
+}
+
 /// All of `buf` to `fd`, through short writes and signals: -EIO for a
 /// write of nothing, or -errno.
 pub(crate) fn write_complete(fd: BorrowedFd<'_>, buf: &[u8]) -> Result<(), c_int> {

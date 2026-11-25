@@ -16,6 +16,7 @@ use crate::errno::{EBADMSG, EINVAL, EIO, EKEYREJECTED};
 use crate::ffi;
 use crate::sys::libc::strerror;
 use crate::util::help::Help;
+use crate::util::io;
 use crate::util::json::JsonEmit;
 use crate::util::options::{EXIT_USAGE, OPT_ARG, OPT_DONE, OPT_END, OptParser};
 use crate::util::tpm::{ATTEST_MAX, PUBLIC_MAX, SIGNATURE_MAX};
@@ -262,10 +263,6 @@ static HELP: Help = Help::new(
     None,
 );
 
-fn errno_of(err: &std::io::Error) -> c_int {
-    -err.raw_os_error().unwrap_or(EIO)
-}
-
 /// The verdict of one line as read_text_line() reads it: a NUL in it, or
 /// more bytes than the longest row has, is a malformed row.
 fn line_check(line: &[u8]) -> Result<QuoteResult, c_int> {
@@ -291,7 +288,7 @@ fn check_rows() -> Result<(), c_int> {
         line.clear();
         if input
             .read_until(b'\n', &mut line)
-            .map_err(|e| errno_of(&e))?
+            .map_err(|e| io::errno_of(&e))?
             == 0
         {
             return Ok(());

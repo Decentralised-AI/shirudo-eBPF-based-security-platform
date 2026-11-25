@@ -2,13 +2,22 @@
 // Copyright (c) 2026 Authors of shirudo
 
 use super::*;
-use crate::errno::{EISDIR, ELOOP, ENOTDIR, EPERM, ESTALE};
+use crate::errno::{EINVAL, EIO, EISDIR, ELOOP, ENOTDIR, EPERM, ESTALE};
 use crate::testutil::TempDir;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::os::fd::{AsFd, AsRawFd, BorrowedFd, OwnedFd};
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::Path;
+
+#[test]
+fn errno_of_uses_the_os_error_or_eio() {
+    assert_eq!(
+        super::errno_of(&std::io::Error::from_raw_os_error(EINVAL)),
+        -EINVAL
+    );
+    assert_eq!(super::errno_of(&std::io::Error::other("no OS error")), -EIO);
+}
 
 /// A log of `text` in `dir`, open to append to.
 fn log_with(dir: &TempDir, text: &[u8]) -> File {

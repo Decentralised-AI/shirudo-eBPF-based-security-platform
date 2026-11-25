@@ -13,12 +13,13 @@ use std::fs::File;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::FileExt;
 
-use crate::errno::{EFBIG, EINVAL, EIO, ENOMEM, EOPNOTSUPP, EOVERFLOW};
+use crate::errno::{EFBIG, EINVAL, ENOMEM, EOPNOTSUPP, EOVERFLOW};
 use crate::ffi;
 use crate::heap::{xcalloc, xfree, xmalloc, xstrfree, xstrndup};
 use crate::sys::libc::close;
 use crate::text::cstr;
 use crate::util::hex;
+use crate::util::io;
 
 pub(crate) const NAME_MAX: usize = 256;
 pub(crate) const PAYLOAD_HASH_LEN: usize = 32;
@@ -666,7 +667,7 @@ impl Upatch<'static> {
     /// The container in the file at `path`, as [`Upatch::read`] reads
     /// it.
     pub(crate) fn open(path: &CStr) -> Result<Self, c_int> {
-        let file = File::open(OsStr::from_bytes(path.to_bytes())).map_err(|e| io_errno(&e))?;
+        let file = File::open(OsStr::from_bytes(path.to_bytes())).map_err(|e| io::errno_of(&e))?;
 
         Self::read(&file)
     }
@@ -680,7 +681,7 @@ impl Upatch<'static> {
     /// ones handed to the kernel and the ones acted on after its
     /// signature check could differ.
     pub(crate) fn read(file: &File) -> Result<Self, c_int> {
-        let meta = file.metadata().map_err(|e| io_errno(&e))?;
+        let meta = file.metadata().map_err(|e| io::errno_of(&e))?;
         if !meta.file_type().is_file() || meta.len() == 0 {
             return Err(-EINVAL);
         }
@@ -693,14 +694,9 @@ impl Upatch<'static> {
         bytes.try_reserve_exact(size).map_err(|_| -ENOMEM)?;
         bytes.resize(size, 0);
         file.read_exact_at(&mut bytes, 0)
-            .map_err(|e| io_errno(&e))?;
+            .map_err(|e| io::errno_of(&e))?;
         Self::from_vec(bytes)
     }
-}
-
-/// The -errno of `e`, -EIO for a file that ended early.
-fn io_errno(e: &std::io::Error) -> c_int {
-    -e.raw_os_error().unwrap_or(EIO)
 }
 
 impl Upatch<'_> {
