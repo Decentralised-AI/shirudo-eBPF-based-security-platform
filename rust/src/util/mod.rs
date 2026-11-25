@@ -45,6 +45,7 @@ pub(crate) mod integrity;
 pub(crate) mod io;
 pub(crate) mod java_agent;
 pub(crate) mod json;
+mod kconfig;
 pub(crate) mod keepalive;
 pub(crate) mod keepalive_quote;
 pub(crate) mod kernel_abi;

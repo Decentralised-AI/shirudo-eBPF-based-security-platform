@@ -83,6 +83,29 @@ fn long_line_is_one_line() {
     );
 }
 
+#[test]
+fn config_lines_share_the_status_rules() {
+    for gz in [false, true] {
+        assert_eq!(
+            modules_in(b"# CONFIG_MODULES is not set at all\n", gz),
+            Ok(None)
+        );
+        assert_eq!(
+            modules_in(b"A=y\nCONFIG_MODULES=y\n", gz),
+            Ok(Some(b"y".to_vec()))
+        );
+        assert_eq!(modules_in(b"CONFIG_MODULES=y\0hidden\n", gz), Err(-EINVAL));
+
+        let prefix = b"CONFIG_MODULES=";
+        let mut longest = prefix.to_vec();
+        longest.extend(vec![b' '; kconfig::LINE_MAX - prefix.len() - 1]);
+        longest.extend_from_slice(b"y\n");
+        assert_eq!(modules_in(&longest, gz), Ok(Some(b"y".to_vec())));
+        longest.insert(prefix.len(), b' ');
+        assert_eq!(modules_in(&longest, gz), Ok(None));
+    }
+}
+
 /// A config written gzip'd or not, cut by `cut` bytes and `extra`
 /// appended, read as gzip'd: Ok where it reads CONFIG_MODULES=y.
 fn read_gz(gz: bool, cut: usize, extra: &[u8]) -> Result<(), c_int> {

@@ -17,7 +17,9 @@ use crate::sys::libc::{
 };
 use crate::text::{cstr, digits, parse_u64, strsprintf};
 use crate::util::json::JsonEmit;
+use crate::util::kconfig;
 use crate::util::kernel_build_id::read_build_id;
+use std::io::{BufRead, BufReader};
 use std::os::unix::ffi::OsStrExt;
 
 /// The host's facts: a text that cannot be read is empty, a count -1.
@@ -250,116 +252,39 @@ fn read_root_disk() -> (c_long, c_long) {
     )
 }
 
-fn is_space(c: u8) -> bool {
-    matches!(c, b' ' | b'\t' | b'\n' | 0x0b | 0x0c | b'\r')
+/// The options of a kernel config, sorted by name. A NUL ends the walk;
+/// an overlong line sets no option and the next line can still be read.
+fn kernel_config_from(reader: impl BufRead) -> Vec<(Vec<u8>, Vec<u8>)> {
+    let mut options = Vec::new();
+
+    for row in reader.split(b'\n') {
+        let Ok(row) = row else {
+            break;
+        };
+        if row.contains(&0) {
+            break;
+        }
+        if row.len() > kconfig::LINE_MAX {
+            continue;
+        }
+        if let Some((key, value)) = kconfig::line(&row) {
+            options.push((key.to_vec(), value.to_vec()));
+        }
+    }
+    options.sort_unstable_by(|a, b| a.0.cmp(&b.0));
+    options
 }
 
-/// trim_config_text(): the text from `start` to its NUL in `line` without
-/// its leading spaces, the trailing ones cut off with NULs: where it
-/// starts.
-fn trim(line: &mut [u8], start: usize) -> usize {
-    let mut s = start;
-
-    while line[s] != 0 && is_space(line[s]) {
-        s += 1;
-    }
-    let mut end = s + cstr(&line[s..]).len();
-
-    while end > s && is_space(line[end - 1]) {
-        end -= 1;
-        line[end] = 0;
-    }
-    s
-}
-
-/// One `CONFIG_` option of a configuration line in `line`, its key and
-/// value: from `KEY=value`, quotes taken off a value, or `n` from
-/// `# KEY is not set`.
-fn config_option(line: &mut [u8]) -> Option<(usize, Option<usize>)> {
-    let end = line
-        .iter()
-        .position(|&c| matches!(c, b'\r' | b'\n' | 0))
-        .unwrap_or(line.len() - 1);
-
-    line[end] = 0;
-    let mut key = trim(line, 0);
-
-    if line[key] == 0 {
-        return None;
-    }
-    let value = if cstr(&line[key..]).starts_with(b"# CONFIG_") {
-        key += 2;
-        let rest = cstr(&line[key..]);
-        let at = key + rest.windows(11).position(|w| w == b" is not set")?;
-        let after = trim(line, at + 11);
-
-        if line[after] != 0 {
-            return None;
-        }
-        line[at] = 0;
-        None
-    } else {
-        let eq = key + cstr(&line[key..]).iter().position(|&c| c == b'=')?;
-
-        line[eq] = 0;
-        key = trim(line, key);
-        let k = cstr(&line[key..]);
-
-        if !k.starts_with(b"CONFIG_") || k.len() == 7 {
-            return None;
-        }
-        let mut value = trim(line, eq + 1);
-        let len = cstr(&line[value..]).len();
-
-        if len >= 2 && line[value] == b'"' && line[value + len - 1] == b'"' {
-            line[value + len - 1] = 0;
-            value += 1;
-        }
-        Some(value)
-    };
-    let k = cstr(&line[key..]);
-
-    if !k.starts_with(b"CONFIG_") || k.len() == 7 {
-        return None;
-    }
-    Some((key, value))
-}
-
-/// fgets()'s room for a line of the configuration, its NUL included.
-const CONFIG_LINE: usize = 8192;
-
-/// The options of /boot/config-`release`, sorted by key: none without a
-/// release or a file to read. The file is taken in the pieces fgets()
-/// gave the C, each line or the first CONFIG_LINE - 1 bytes of one.
+/// The options of /boot/config-release, sorted by key, or none when
+/// the release or file is absent.
 fn kernel_config(release: &[u8]) -> Option<Vec<(Vec<u8>, Vec<u8>)>> {
     let mut path = [0u8; 4096];
 
     if release.is_empty() || strsprintf(&mut path, &[b"/boot/config-", release]).is_err() {
         return None;
     }
-    let text = std::fs::read(std::ffi::OsStr::from_bytes(cstr(&path))).ok()?;
-    let mut options = Vec::new();
-    let mut rest = &text[..];
-    while !rest.is_empty() {
-        let take = rest
-            .iter()
-            .position(|&c| c == b'\n')
-            .map_or(rest.len(), |i| i + 1)
-            .min(CONFIG_LINE - 1);
-        let (piece, tail) = rest.split_at(take);
-        let mut line = [0u8; CONFIG_LINE];
-
-        rest = tail;
-        line[..piece.len()].copy_from_slice(piece);
-        let Some((key, value)) = config_option(&mut line) else {
-            continue;
-        };
-        let value = value.map_or(&b"n"[..], |v| cstr(&line[v..]));
-        options.push((cstr(&line[key..]).to_vec(), value.to_vec()));
-    }
-    // As qsort() with strcmp() of the keys ordered them.
-    options.sort_unstable_by(|a, b| a.0.cmp(&b.0));
-    Some(options)
+    let file = std::fs::File::open(std::ffi::OsStr::from_bytes(cstr(&path))).ok()?;
+    Some(kernel_config_from(BufReader::new(file)))
 }
 
 /// gethostname(), or "" where it fails.

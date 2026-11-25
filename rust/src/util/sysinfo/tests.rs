@@ -263,3 +263,29 @@ fn first_line_stops_at_its_end_or_the_cap() {
     );
     assert_eq!(read_first_line(&dir.cpath("none"), ID_LEN_MAX), b"");
 }
+
+#[test]
+fn kernel_config_uses_the_shared_line_rules() {
+    let text = b"CONFIG_B=y\n# CONFIG_A is not set\n# CONFIG_X is not set later\n";
+    assert_eq!(
+        kernel_config_from(std::io::Cursor::new(text)),
+        vec![
+            (b"CONFIG_A".to_vec(), b"n".to_vec()),
+            (b"CONFIG_B".to_vec(), b"y".to_vec()),
+        ]
+    );
+}
+
+#[test]
+fn kernel_config_stops_at_nul_and_skips_long_lines() {
+    let mut text = b"CONFIG_A=y\nCONFIG_LONG=".to_vec();
+    text.extend(vec![b' '; kconfig::LINE_MAX]);
+    text.extend_from_slice(b"\nCONFIG_B=m\nCONFIG_C=n\0hidden\nCONFIG_D=y\n");
+    assert_eq!(
+        kernel_config_from(std::io::Cursor::new(text)),
+        vec![
+            (b"CONFIG_A".to_vec(), b"y".to_vec()),
+            (b"CONFIG_B".to_vec(), b"m".to_vec()),
+        ]
+    );
+}

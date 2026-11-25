@@ -15,7 +15,7 @@ use std::os::unix::fs::FileExt;
 
 use crate::errno::{E2BIG, EBADMSG, EINTR, EINVAL, EIO, ENAMETOOLONG, ENOENT, ENOSPC, text};
 use crate::sys::libc::{O_RDONLY, PATH_MAX, R_OK, Utsname, Zeroed, access, bytes, uname};
-use crate::text::{cstr, find};
+use crate::text::cstr;
 use crate::util::bpm_tree::{
     MAX_KCONFIG, MAX_LABELS, STRING_MAX, TreeOperation, TreePending, TreeSelector, TreeSelectorKv,
     TreeState, digest_bytes,
@@ -25,6 +25,7 @@ use crate::util::hex;
 use crate::util::image_config;
 use crate::util::io::{lock_exclusive, read};
 use crate::util::json::{JsonEmit, JsonField, MAX_BYTES, parse_schema};
+use crate::util::kconfig;
 use crate::util::kernel_build_id::read_build_id;
 use crate::util::kernel_release::prefix_matches;
 use crate::util::seal;
@@ -34,9 +35,6 @@ use crate::util::{gzip, upatch};
 const HASH_SIZE: usize = 128;
 /// The largest kernel config read: a distribution's is some 300 KiB.
 const KCONFIG_MAX: usize = 4 << 20;
-/// A line of a kernel config longer than this, with its newline, is
-/// skipped whole.
-const LINE_MAX: usize = 1024;
 
 /// BPM_TREE_* of util/paths.h, and the node's labels.
 const TREE_ETC_PATH: &CStr = c"/etc/shirudo/bpm/upatch-tree.conf";
@@ -283,35 +281,10 @@ impl<'a> KconfigValues<'a> {
     }
 }
 
-/// One line of a kernel config: the value of a key the selector names
-/// kept, `# CONFIG_X is not set` reading as `n`. -ENOSPC for a value too
-/// long for any selector to name.
+/// Keep a selector's value from one kernel config line.
 fn config_line(line: &[u8], kv: &mut KconfigValues<'_>) -> Result<(), c_int> {
-    let start = trim_start(cstr(line));
-
-    if start.is_empty() {
+    let Some((key, value)) = kconfig::line(line) else {
         return Ok(());
-    }
-    let (key, value): (&[u8], &[u8]) = if start.starts_with(b"# CONFIG_") {
-        let start = &start[2..];
-        let Some(at) = find(start, b" is not set") else {
-            return Ok(());
-        };
-
-        (&start[..at], b"n")
-    } else {
-        if start[0] == b'#' {
-            return Ok(());
-        }
-        let Some(eq) = start.iter().position(|&c| c == b'=') else {
-            return Ok(());
-        };
-        let mut value = trim_end(trim_start(&start[eq + 1..]));
-
-        if value.len() > 1 && value[0] == b'"' && value[value.len() - 1] == b'"' {
-            value = &value[1..value.len() - 1];
-        }
-        (trim_end(&start[..eq]), value)
     };
     let Some(index) = kv.find(key) else {
         return Ok(());
@@ -324,7 +297,7 @@ fn config_line(line: &[u8], kv: &mut KconfigValues<'_>) -> Result<(), c_int> {
 }
 
 /// The lines of a kernel config into the selector's values. A line of
-/// LINE_MAX bytes or more with its newline is skipped whole, as a part
+/// more than kconfig::LINE_MAX bytes before its newline is skipped whole, as a part
 /// from the middle of a long string value would read as an option of its
 /// own: its option reads as not set.
 fn config_text(text: &[u8], kv: &mut KconfigValues<'_>) -> Result<(), c_int> {
@@ -334,7 +307,10 @@ fn config_text(text: &[u8], kv: &mut KconfigValues<'_>) -> Result<(), c_int> {
         let rest = &text[off..];
         let n = rest.iter().position(|&c| c == b'\n').unwrap_or(rest.len());
 
-        if n < LINE_MAX - 1 {
+        if n <= kconfig::LINE_MAX {
+            if rest[..n].contains(&0) {
+                return Err(-EINVAL);
+            }
             config_line(&rest[..n], kv)?;
         }
         off += n + 1;
