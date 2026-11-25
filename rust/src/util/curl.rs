@@ -20,10 +20,10 @@ use crate::sys::curl::{
     CURLOPT_HTTPHEADER, CURLOPT_POSTFIELDS, CURLOPT_POSTFIELDSIZE_LARGE, CURLOPT_READDATA,
     CURLOPT_READFUNCTION, CURLOPT_SSL_CTX_DATA, CURLOPT_SSL_CTX_FUNCTION, CURLOPT_WRITEDATA,
     CURLOPT_WRITEFUNCTION, CURLUE_OK, CURLUPART_URL, Curl, CurlCode, CurlOff, CurlSlist, CurlU,
-    CurlUPart, LongOption, OffOption, ReadCallback, SslCtxCallback, StrOption, WriteCallback,
-    curl_easy_cleanup, curl_easy_escape, curl_easy_getinfo, curl_easy_init, curl_easy_perform,
-    curl_easy_setopt, curl_easy_strerror, curl_free, curl_slist_append, curl_slist_free_all,
-    curl_url, curl_url_cleanup, curl_url_get, curl_url_set,
+    CurlUCode, CurlUPart, LongOption, OffOption, ReadCallback, SslCtxCallback, StrOption,
+    WriteCallback, curl_easy_cleanup, curl_easy_escape, curl_easy_getinfo, curl_easy_init,
+    curl_easy_perform, curl_easy_setopt, curl_easy_strerror, curl_free, curl_slist_append,
+    curl_slist_free_all, curl_url, curl_url_cleanup, curl_url_get, curl_url_set,
 };
 
 /// A libcurl easy handle, cleaned up when it goes. libcurl keeps a
@@ -346,19 +346,31 @@ impl Url {
         Ok(u)
     }
 
-    /// The part `what` of the URL, None when libcurl gives none.
-    pub(crate) fn part(&self, what: CurlUPart) -> Option<Vec<u8>> {
+    /// The part `what` of the URL, or libcurl's exact error.
+    pub(crate) fn part(&self, what: CurlUPart) -> Result<Vec<u8>, CurlUCode> {
         let mut part: *mut c_char = ptr::null_mut();
         // SAFETY: the handle, and room for the C string libcurl allocates.
-        let got = unsafe { curl_url_get(self.0.as_ptr(), what, &mut part, 0) } == CURLUE_OK;
+        let code = unsafe { curl_url_get(self.0.as_ptr(), what, &mut part, 0) };
         if part.is_null() {
-            return got.then(Vec::new);
+            return if code == CURLUE_OK {
+                Ok(Vec::new())
+            } else {
+                Err(code)
+            };
         }
-        // SAFETY: libcurl's C string.
-        let bytes = unsafe { CStr::from_ptr(part) }.to_bytes().to_vec();
+        let bytes = if code == CURLUE_OK {
+            // SAFETY: libcurl returned a C string for a successful get.
+            unsafe { CStr::from_ptr(part) }.to_bytes().to_vec()
+        } else {
+            Vec::new()
+        };
         // SAFETY: what libcurl allocated, freed once.
         unsafe { curl_free(part.cast()) };
-        got.then_some(bytes)
+        if code == CURLUE_OK {
+            Ok(bytes)
+        } else {
+            Err(code)
+        }
     }
 }
 

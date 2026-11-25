@@ -16,8 +16,9 @@ use crate::errno::{
 use crate::sys::curl::{
     CURL_GLOBAL_DEFAULT, CURLE_OK, CURLOPT_CAINFO, CURLOPT_NOSIGNAL, CURLOPT_POST,
     CURLOPT_SSL_VERIFYHOST, CURLOPT_SSL_VERIFYPEER, CURLOPT_SSLCERT, CURLOPT_SSLKEY,
-    CURLOPT_TIMEOUT_MS, CURLOPT_URL, CURLOPT_USERAGENT, CURLUPART_HOST, CURLUPART_PASSWORD,
-    CURLUPART_SCHEME, CURLUPART_USER, CurlCode, curl_global_cleanup, curl_global_init,
+    CURLOPT_TIMEOUT_MS, CURLOPT_URL, CURLOPT_USERAGENT, CURLUE_NO_PASSWORD, CURLUE_NO_USER,
+    CURLUPART_HOST, CURLUPART_PASSWORD, CURLUPART_SCHEME, CURLUPART_USER, CurlCode,
+    curl_global_cleanup, curl_global_init,
 };
 use crate::sys::libc::Zeroed;
 use crate::sys::libc::{Tm, getrandom, strptime, timegm};
@@ -116,15 +117,17 @@ pub(super) fn loopback_host(host: &[u8]) -> bool {
 /// not parse or carries credentials.
 pub(super) fn url_parts(url: &[u8]) -> Result<(Vec<u8>, Vec<u8>), c_int> {
     let u = Url::parse(url)?;
-    let scheme = u.part(CURLUPART_SCHEME);
-    let host = u.part(CURLUPART_HOST);
-    let (Some(scheme), Some(host)) = (scheme, host) else {
-        return Err(-EINVAL);
-    };
-    let user = u.part(CURLUPART_USER).unwrap_or_default();
-    let password = u.part(CURLUPART_PASSWORD).unwrap_or_default();
-    if !user.is_empty() || !password.is_empty() {
-        return Err(-EINVAL);
+    let scheme = u.part(CURLUPART_SCHEME).map_err(|_| -EINVAL)?;
+    let host = u.part(CURLUPART_HOST).map_err(|_| -EINVAL)?;
+    for (part, absent) in [
+        (CURLUPART_USER, CURLUE_NO_USER),
+        (CURLUPART_PASSWORD, CURLUE_NO_PASSWORD),
+    ] {
+        match u.part(part) {
+            Ok(value) if value.is_empty() => {}
+            Err(code) if code == absent => {}
+            _ => return Err(-EINVAL),
+        }
     }
     Ok((scheme, host))
 }

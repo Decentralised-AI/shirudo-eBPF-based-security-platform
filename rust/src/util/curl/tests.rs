@@ -124,7 +124,10 @@ fn url_gives_its_parts() {
 
     assert_eq!(url.part(CURLUPART_SCHEME).unwrap(), b"https");
     assert_eq!(url.part(CURLUPART_HOST).unwrap(), b"Registry.Example");
-    assert_eq!(url.part(CURLUPART_USER), None);
+    assert_eq!(
+        url.part(CURLUPART_USER),
+        Err(crate::sys::curl::CURLUE_NO_USER)
+    );
 }
 
 #[test]

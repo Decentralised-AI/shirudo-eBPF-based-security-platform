@@ -74,10 +74,10 @@ fn classical_host_allowed(easy: &Easy<'_>) -> bool {
         return false;
     };
     url.part(CURLUPART_SCHEME)
-        .is_some_and(|scheme| scheme.eq_ignore_ascii_case(b"https"))
+        .is_ok_and(|scheme| scheme.eq_ignore_ascii_case(b"https"))
         && url
             .part(CURLUPART_HOST)
-            .is_some_and(|host| host_listed(&host, cstr(&c.tls_classical_hosts)))
+            .is_ok_and(|host| host_listed(&host, cstr(&c.tls_classical_hosts)))
 }
 
 /// libssl's info callback on a connection to a host allowed classical
