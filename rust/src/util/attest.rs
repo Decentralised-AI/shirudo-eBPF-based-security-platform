@@ -12,7 +12,8 @@ use std::io::Read;
 use std::os::unix::ffi::OsStrExt;
 
 use crate::errno::{
-    E2BIG, EAGAIN, EBADMSG, EINVAL, EIO, EKEYREJECTED, ENODEV, ENOMEM, ENOSPC, ENXIO, EUCLEAN,
+    E2BIG, EAGAIN, EBADMSG, EINVAL, EIO, EKEYREJECTED, ENODEV, ENOENT, ENOMEM, ENOSPC, ENXIO,
+    EUCLEAN, text,
 };
 use crate::ffi;
 use crate::sys::libc::getrandom;
@@ -625,10 +626,22 @@ fn emit_evidence(
         e.obj_close();
     }
     e.arr_open(b"eventlog");
-    eventlog::boot_lines(&mut |line| {
+    let ret = eventlog::boot_lines(&mut |line| {
         e.raw(line.to_bytes());
         0
     });
+    if ret != 0 && ret != -ENOENT {
+        crate::log::err(
+            &[
+                &b"attest: eventlog "[..],
+                eventlog::path().to_bytes(),
+                b" unreadable: ",
+                text(ret).as_bytes(),
+            ]
+            .concat(),
+        );
+        return Err(ret);
+    }
     e.arr_close();
     config_attest::emit(e, config)?;
     if m.credential.is_empty() {

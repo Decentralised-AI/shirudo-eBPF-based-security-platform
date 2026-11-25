@@ -22,14 +22,16 @@ use tss_esapi_sys as tss;
 
 use super::tpm_client::ENFORCING;
 use super::{err, helper_main, out};
-use crate::errno::{EACCES, EIO, EKEYREJECTED, ENOENT};
+use crate::errno::{EACCES, EBADMSG, EINVAL, EIO, EKEYREJECTED, ENOENT};
 use crate::sys::identity::Identity;
 use crate::sys::tss2::{ESYS_TR_NONE, Esys_Free, RC_SUCCESS, Rc, Tpm2bDigest, Tpm2bName, Zeroed};
 use crate::util::bpf_info::{Info, MAP_INFO_SIZE};
 use crate::util::chain::{PCR_MASK, memneq_explicit};
 use crate::util::crypto_openssl::{hmac_sha256, sha256};
+use crate::util::eventlog::{self, NV_INDEX};
 use crate::util::identity::IDENTITY_PIN;
 use crate::util::image_guards::{GUARD_IDENTITY, GUARD_MAPS};
+use crate::util::json::JsonEmit;
 use crate::util::tpm::{Branches, Key, Tpm};
 use crate::util::tpm_wire::{RegisterPolicy, register_policy};
 
@@ -494,6 +496,7 @@ fn open_silenced() -> Result<Tpm, ()> {
 struct Keys {
     branch_written: [u8; 32],
     branch_init: [u8; 32],
+    policy: [u8; 32],
     event: [u8; 32],
     before: [u8; 32],
 }
@@ -509,7 +512,6 @@ impl Keys {
 
 fn setup(t: &mut Option<Tpm>, keys: &mut Keys, defined: &mut bool) -> Result<(), ()> {
     let mut values = [0u8; 64];
-    let mut policy = [0u8; 32];
     let mut seed = [0u8; 32];
     seed[0] = 1;
 
@@ -534,11 +536,11 @@ fn setup(t: &mut Option<Tpm>, keys: &mut Keys, defined: &mut bool) -> Result<(),
     let digests = RegisterPolicy {
         branch_written: &mut keys.branch_written,
         branch_init: &mut keys.branch_init,
-        policy: &mut policy,
+        policy: &mut keys.policy,
     };
     check!(register_policy(PCR_MASK, &values, &public, digests) == 0);
     check!(t.nv_info(TEST_INDEX).is_ok_and(|info| !info.defined));
-    take!(t.nv_define(TEST_INDEX, &policy, &[]));
+    take!(t.nv_define(TEST_INDEX, &keys.policy, &[]));
     *defined = true;
     take!(t.nv_extend_first(TEST_INDEX, PCR_MASK, &keys.branches(), &keys.event));
     keys.before = take!(t.nv_read(TEST_INDEX));
@@ -549,8 +551,38 @@ fn setup(t: &mut Option<Tpm>, keys: &mut Keys, defined: &mut bool) -> Result<(),
     Ok(())
 }
 
+/// Collect evidence with the eventlog as it stands.
+fn evidence_begins(array: &[u8]) -> Result<(), c_int> {
+    let doc = crate::util::attest::evidence_config(&[3, 0, 0, 0, 0, 0, 0, 0], 1 << 9, None, None)?;
+    if crate::text::contains(&doc, array) {
+        Ok(())
+    } else {
+        Err(-EBADMSG)
+    }
+}
+
+fn evidence_cases(event: &[u8; 32]) -> Result<(), ()> {
+    let mut buf = [0u8; 1024];
+    let mut e = JsonEmit::fixed(&mut buf);
+    eventlog::record_open(&mut e, b"init", event);
+    e.obj_close();
+    check!(e.err() == 0);
+    check!(evidence_begins(b"\"eventlog\":[]") == Ok(()));
+    check!(eventlog::append_to(eventlog::path(), e.output()) == 0);
+    check!(evidence_begins(b"\"eventlog\":[{\"schema\":1,") == Ok(()));
+    check!(eventlog::append_to(eventlog::path(), b"not a record") == 0);
+    check!(evidence_begins(b"\"eventlog\":[") == Err(-EINVAL));
+    out("evidence carries this boot's records, and an unreadable log fails it\n");
+    Ok(())
+}
+
 /// The case `how` on the connection `t`, which it may reopen.
-fn case(how: &[u8], t: &mut Option<Tpm>, keys: &Keys) -> Result<(), ()> {
+fn case(
+    how: &[u8],
+    t: &mut Option<Tpm>,
+    keys: &Keys,
+    register_defined: &mut bool,
+) -> Result<(), ()> {
     let (mut before, branches, ev) = (keys.before, keys.branches(), &keys.event);
     let Some(tr) = t.as_mut() else {
         return Err(());
@@ -631,6 +663,13 @@ fn case(how: &[u8], t: &mut Option<Tpm>, keys: &Keys) -> Result<(), ()> {
             check!(tr.nv_read(TEST_INDEX) == Ok(before));
             out("forged readback rejected; live register unchanged\n");
         }
+        b"evidence" => {
+            take!(tr.nv_define(NV_INDEX, &keys.policy, &[]));
+            *register_defined = true;
+            take!(tr.nv_extend_first(NV_INDEX, PCR_MASK, &branches, ev));
+            *t = None;
+            evidence_cases(ev)?;
+        }
         _ => {
             check!(how == b"identity");
             *t = None;
@@ -665,17 +704,19 @@ fn run(args: &[&CStr]) -> c_int {
     let mut keys = Keys {
         branch_written: [0; 32],
         branch_init: [0; 32],
+        policy: [0; 32],
         event: [0; 32],
         before: [0; 32],
     };
     keys.event[0] = 2;
     let mut defined = false;
+    let mut register_defined = false;
     super::set_syscall_hook(fake_bpf);
     let result = (|| {
         check!(args.len() == 2);
         forge_reply_cases()?;
         setup(&mut t, &mut keys, &mut defined)?;
-        case(args[1].to_bytes(), &mut t, &keys)
+        case(args[1].to_bytes(), &mut t, &keys, &mut register_defined)
     })();
     let mut ret = c_int::from(result.is_err());
     restore();
@@ -685,12 +726,17 @@ fn run(args: &[&CStr]) -> c_int {
     let fake = unsafe { FAKE.get() };
     fake.error = 0;
     fake.identity.ek_name[1] = ALG_SHA256;
-    if defined
-        && Tpm::open()
-            .and_then(|t| t.nv_undefine(TEST_INDEX, &[]))
-            .is_err()
-    {
-        ret = 1;
+    if defined {
+        let cleanup = Tpm::open().and_then(|t| {
+            t.nv_undefine(TEST_INDEX, &[])?;
+            if register_defined {
+                t.nv_undefine(NV_INDEX, &[])?;
+            }
+            Ok(())
+        });
+        if cleanup.is_err() {
+            ret = 1;
+        }
     }
     ret
 }
