@@ -458,8 +458,7 @@ fn initrd_enter() -> c_int {
         0
     };
     if ret != 0 {
-        // SAFETY: a C string.
-        unsafe { umount2(VAR_LIB.as_ptr(), MNT_DETACH) };
+        initrd_leave();
         return ret;
     }
     info(&cat!(
