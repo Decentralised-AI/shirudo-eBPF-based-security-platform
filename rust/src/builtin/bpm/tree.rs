@@ -142,6 +142,32 @@ fn measure(op: &TreeOperation, digest: &[u8; 32]) -> Result {
     measure_locked(op, digest)
 }
 
+/// Format the whole record with space reserved for the register value.
+/// The value is always 64 hex digits, so it can be filled in after the
+/// irreversible extend without another encoding step.
+fn prepare_tree_record(
+    op: &TreeOperation,
+    event: &[u8; 32],
+    line: &mut [u8; 4096],
+) -> Result<(usize, usize)> {
+    let mut e = JsonEmit::fixed(line);
+    eventlog::record_open(&mut e, b"tree_op", event);
+    e.obj_open_key(b"tree");
+    e.kv_int(b"seq", op.seq);
+    e.kv_string(b"op", cstr(&op.op));
+    e.kv_string(b"id", cstr(&op.id));
+    e.kv_string(b"operation_digest", cstr(&op.operation_digest));
+    e.obj_close();
+    e.key(b"chain");
+    let chain_at = e.written() + 1; // after the opening quote
+    e.str_value(&[b'0'; 64]);
+    e.obj_close();
+    if e.err() != 0 {
+        return Err(e.err());
+    }
+    Ok((e.written(), chain_at))
+}
+
 fn measure_locked(op: &TreeOperation, digest: &[u8; 32]) -> Result {
     let mut event = [0; 32];
     let mut chain = [0; 32];
@@ -149,29 +175,13 @@ fn measure_locked(op: &TreeOperation, digest: &[u8; 32]) -> Result {
     let mut line = [0u8; 4096];
 
     // SAFETY: digests and room for them.
-    unsafe {
-        status(chain_tree_event(
-            op.seq,
-            digest.as_ptr(),
-            event.as_mut_ptr(),
-        ))?;
-        status(chain_extend(event.as_ptr(), chain.as_mut_ptr()))?;
-    }
+    status(unsafe { chain_tree_event(op.seq, digest.as_ptr(), event.as_mut_ptr()) })?;
+    let (len, chain_at) = prepare_tree_record(op, &event, &mut line)?;
+    // SAFETY: event and room for the resulting register value.
+    status(unsafe { chain_extend(event.as_ptr(), chain.as_mut_ptr()) })?;
     hex_into(&chain, &mut chain_hex);
-    let mut e = JsonEmit::fixed(&mut line);
-    eventlog::record_open(&mut e, b"tree_op", &event);
-    e.obj_open_key(b"tree");
-    e.kv_int(b"seq", op.seq);
-    e.kv_string(b"op", cstr(&op.op));
-    e.kv_string(b"id", cstr(&op.id));
-    e.kv_string(b"operation_digest", cstr(&op.operation_digest));
-    e.obj_close();
-    e.kv_string(b"chain", cstr(&chain_hex));
-    e.obj_close();
-    if e.err() != 0 {
-        return Err(e.err());
-    }
-    status(eventlog::append(e.output()))
+    line[chain_at..chain_at + 64].copy_from_slice(&chain_hex[..64]);
+    status(eventlog::append(&line[..len]))
 }
 
 fn status_write(id: &[u8], text: &[u8]) -> Result {
@@ -866,4 +876,24 @@ pub(super) fn sync_cmd(dry_run: bool, report: Option<&[u8]>) -> c_int {
         Err(err) => return finish(None, Err(err), b"lock"),
     };
     finish(Some(held), sync(dry_run, report), b"tree sync")
+}
+
+#[cfg(test)]
+mod record_tests {
+    use super::*;
+
+    #[test]
+    fn prepared_tree_record_has_room_for_the_register_value() {
+        let op = TreeOperation {
+            seq: 1,
+            ..TreeOperation::default()
+        };
+        let mut line = [0u8; 4096];
+        let (len, at) = prepare_tree_record(&op, &[0x42; 32], &mut line).unwrap();
+        assert_eq!(&line[at..at + 64], &[b'0'; 64]);
+        line[at..at + 64].copy_from_slice(&[b'a'; 64]);
+        assert!(crate::util::json::parse_schema(&line[..len], &[], &mut ()).is_ok());
+        assert!(line[..len].windows(74).any(|part| part
+            == b"\"chain\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\""));
+    }
 }

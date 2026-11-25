@@ -890,6 +890,11 @@ fn measure(
         );
         return (ret, false);
     }
+    // Prepare the full record before the irreversible register extend.
+    let line = match event_record(record, name, payload, &event, reason) {
+        Ok(line) => line,
+        Err(err) => return (err, false),
+    };
     let ret = chain::extend(&event, Some(&mut chain));
     if ret != 0 {
         let why: &[u8] = match ret {
@@ -901,19 +906,13 @@ fn measure(
         log_err(&[b"upatch ", op, why].concat());
         return (ret, false);
     }
-    let appended =
-        event_record(record, name, payload, &event, reason).and_then(
-            |line| match eventlog::append(&line) {
-                0 => Ok(()),
-                err => Err(err),
-            },
-        );
-    if let Err(err) = appended {
+    let append_err = eventlog::append(&line);
+    if append_err != 0 {
         log_err(
             &[b"upatch ", op, b": eventlog append failed after the extend: register and log disagree; the operator must reconcile"]
                 .concat(),
         );
-        return (err, true);
+        return (append_err, true);
     }
     let chain_hex = hex(&chain);
     if let Some(out) = out_chain {

@@ -907,14 +907,19 @@ fn keys_add(args: &[&CStr]) -> c_int {
     0
 }
 
-fn append_key_event(ty: &CStr, fp_hex: &[u8], sha_hex: &[u8], event: &[u8; 32]) -> c_int {
+fn format_key_event(
+    ty: &CStr,
+    fp_hex: &[u8],
+    sha256: &[u8; 32],
+    event: &[u8; 32],
+) -> Result<([u8; 1024], usize), c_int> {
     let mut buf = [0u8; 1024];
     let mut e = JsonEmit::fixed(&mut buf);
 
     eventlog::record_open(&mut e, ty.to_bytes(), event);
     e.obj_open_key(b"key");
     e.kv_string(b"fingerprint", fp_hex);
-    e.kv_string(b"cert_sha256", sha_hex);
+    e.kv_string(b"cert_sha256", &hex(sha256));
     e.obj_close();
     e.obj_close();
     if e.err() != 0 {
@@ -924,9 +929,10 @@ fn append_key_event(ty: &CStr, fp_hex: &[u8], sha_hex: &[u8], event: &[u8; 32]) 
             b" entry encode failed: ",
             strerr(-e.err()),
         ]);
-        return e.err();
+        return Err(e.err());
     }
-    eventlog::append(e.output())
+    let len = e.written();
+    Ok((buf, len))
 }
 
 /// The register learns of the revocation before anything else changes
@@ -951,6 +957,14 @@ fn measure_revoke_locked(sha256: &[u8; 32], fp_hex: &[u8]) -> c_int {
         ]);
         return ret;
     }
+    // An encoding failure must be found before the register moves.
+    let (record, record_len) = match format_key_event(c"key_revoke", fp_hex, sha256, &event) {
+        Ok(record) => record,
+        Err(err) => {
+            error(&[b"keys revoke: cannot write the record of the revocation; the key is revoked but the revocation is NOT measured; operator must reconcile"]);
+            return err;
+        }
+    };
     // SAFETY: the event and room for the chain.
     let ret = unsafe { chain_extend(event.as_ptr(), chain.as_mut_ptr()) };
     if ret != 0 {
@@ -968,7 +982,7 @@ fn measure_revoke_locked(sha256: &[u8; 32], fp_hex: &[u8]) -> c_int {
         ]);
         return ret;
     }
-    let ret = append_key_event(c"key_revoke", fp_hex, &hex(sha256), &event);
+    let ret = eventlog::append(&record[..record_len]);
     if ret != 0 {
         error(&[b"keys revoke: eventlog append failed after the extend: register and log disagree; the operator must reconcile"]);
         return ret;
@@ -1336,5 +1350,24 @@ mod algorithm_tests {
     fn algorithm_that_does_not_fit_is_unknown() {
         assert_eq!(format_algorithm(&[b'x'; 64], None), b"?");
         assert_eq!(format_algorithm(&[b'x'; 63], Some(1)), b"?");
+    }
+}
+
+#[cfg(test)]
+mod event_record_tests {
+    use super::*;
+
+    #[test]
+    fn key_record_is_complete_before_the_register_extends() {
+        let (line, len) =
+            format_key_event(c"key_revoke", b"fingerprint", &[0x12; 32], &[0x34; 32]).unwrap();
+        assert!(crate::util::json::parse_schema(&line[..len], &[], &mut ()).is_ok());
+        let certificate_hex = b"12".repeat(32);
+        assert!(
+            line[..len]
+                .windows(64)
+                .any(|part| part == certificate_hex.as_slice())
+        );
+        assert!(format_key_event(c"key_revoke", &[0xff], &[0x12; 32], &[0x34; 32]).is_err());
     }
 }
