@@ -495,6 +495,25 @@ fn lossy_writes_replace_bad_bytes() {
     );
 }
 
+#[test]
+fn lossy_member_has_a_strict_key() {
+    let (rc, text) = fixed(64, |e| {
+        e.obj_open();
+        e.kv_string_lossy(b"release", b"7.0\xff");
+        e.kv_string_lossy(b"b", b"");
+        e.obj_close();
+    });
+    assert_eq!(rc, 0);
+    assert_eq!(text, br#"{"release":"7.0\ufffd","b":""}"#);
+
+    let (rc, _) = fixed(64, |e| {
+        e.obj_open();
+        e.kv_string_lossy(b"k\xff", b"v");
+        e.obj_close();
+    });
+    assert_eq!(rc, -EILSEQ);
+}
+
 /// Every token a walk reports, in order.
 #[derive(Default)]
 struct Trace(Vec<u8>);

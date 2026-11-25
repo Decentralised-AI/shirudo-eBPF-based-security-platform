@@ -166,3 +166,6 @@ pub(crate) fn report_emit(path: &CStr, r: &OpReport) {
         failed(b"report: write ", err);
     }
 }
+
+#[cfg(test)]
+mod tests;
