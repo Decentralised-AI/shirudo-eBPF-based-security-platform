@@ -302,6 +302,129 @@ pub(crate) fn fold(chain: &mut [u8; DIGEST_LEN], event: &[u8; DIGEST_LEN]) -> c_
     digest_into(&[&both], chain)
 }
 
+/// Append the PCR 9 anchor to systemd's userspace measurement log. A
+/// partially written record leaves its sticky bit set, so replay refuses
+/// the whole log after an interrupted append.
+fn log_anchor(anchor: &[u8], digest: &[u8; DIGEST_LEN]) -> Result<(), c_int> {
+    if anchor.iter().any(|&b| b == b'"' || b == b'\\' || b < 0x20) {
+        return Err(-EINVAL);
+    }
+    let mut boot = [0u8; 64];
+    crate::util::eventlog::read_boot_id(&mut boot);
+    let mut boot_id = [0u8; 32];
+    let mut count = 0;
+    for &b in cstr(&boot)
+        .iter()
+        .filter(|&&b| b != b'-' && b != b'\n')
+        .take(32)
+    {
+        boot_id[count] = b;
+        count += 1;
+    }
+    if count != boot_id.len() {
+        return Err(-EIO);
+    }
+    let mut now = libc::timespec {
+        tv_sec: 0,
+        tv_nsec: 0,
+    };
+    // SAFETY: CLOCK_BOOTTIME and room for its timespec.
+    if unsafe { libc::clock_gettime(libc::CLOCK_BOOTTIME, &mut now) } != 0 {
+        return Err(-EIO);
+    }
+    let seconds = u64::try_from(now.tv_sec).map_err(|_| -EIO)?;
+    let micros = seconds
+        .checked_mul(1_000_000)
+        .and_then(|n| n.checked_add(u64::try_from(now.tv_nsec).ok()? / 1_000))
+        .ok_or(-EIO)?;
+    let record = anchor_record(anchor, digest, &boot_id, micros)?;
+
+    // SAFETY: a process credential query with no pointer.
+    let euid = unsafe { libc::geteuid() };
+    // SAFETY: a process credential query with no pointer.
+    let uid = unsafe { libc::getuid() };
+    let path = measure_log_path(
+        std::env::var_os("SYSTEMD_MEASURE_LOG_USERSPACE").as_deref(),
+        euid == uid,
+    );
+    let _ = std::fs::create_dir("/run/log");
+    let _ = std::fs::create_dir("/run/log/systemd");
+    append_anchor_record(&path, &record)
+}
+
+fn measure_log_path(override_path: Option<&std::ffi::OsStr>, same_uid: bool) -> std::path::PathBuf {
+    if same_uid && let Some(path) = override_path {
+        return std::path::PathBuf::from(path);
+    }
+    std::path::PathBuf::from("/run/log/systemd/tpm2-measure.log")
+}
+
+fn anchor_record(
+    anchor: &[u8],
+    digest: &[u8; DIGEST_LEN],
+    boot_id: &[u8; 32],
+    timestamp: u64,
+) -> Result<Vec<u8>, c_int> {
+    let mut json = [0u8; 766];
+    let mut e = crate::util::json::JsonEmit::fixed(&mut json);
+    e.obj_open();
+    e.kv_int(b"pcr", i64::from(PCR));
+    e.arr_open(b"digests");
+    e.obj_open();
+    e.kv_string(b"hashAlg", b"sha256");
+    e.kv_string(b"digest", &crate::util::hex::encode(digest));
+    e.obj_close();
+    e.arr_close();
+    e.kv_string(b"content_type", b"systemd");
+    e.obj_open_key(b"content");
+    e.kv_string(b"string", anchor);
+    e.kv_string(b"bootId", boot_id);
+    e.kv_u64(b"timestamp", timestamp);
+    e.kv_string(b"eventType", b"nvpcr-init");
+    e.obj_close();
+    e.obj_close();
+    let json = e.finish().map_err(|_| -E2BIG)?;
+    let mut record = Vec::with_capacity(json.len() + 2);
+    record.push(0x1e);
+    record.extend_from_slice(&json);
+    record.push(b'\n');
+    Ok(record)
+}
+
+fn append_anchor_record(path: &std::path::Path, record: &[u8]) -> Result<(), c_int> {
+    use std::io::{Seek, SeekFrom, Write};
+    use std::os::fd::AsFd;
+    use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .write(true)
+        .mode(0o600)
+        .custom_flags(libc::O_NOCTTY | libc::O_NOFOLLOW)
+        .open(path)
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    crate::util::io::lock_exclusive(file.as_fd())?;
+    let state = file
+        .metadata()
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    if !state.is_file() || state.permissions().mode() & 0o1000 != 0 {
+        return Err(-crate::errno::ESTALE);
+    }
+    file.set_permissions(std::fs::Permissions::from_mode(0o1600))
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    file.seek(SeekFrom::End(0))
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    file.write_all(record)
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    file.sync_all()
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    file.set_permissions(std::fs::Permissions::from_mode(0o600))
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    file.sync_all()
+        .map_err(|e| -e.raw_os_error().unwrap_or(EIO))?;
+    Ok(())
+}
+
 /// `v` as "%x" prints it.
 fn lower_hex(v: u32, buf: &mut [u8; 8]) -> &[u8] {
     let skip = (v.leading_zeros() / 4).min(7) as usize;
@@ -551,6 +674,15 @@ fn bind(tpm: &mut Tpm, event: &[u8; DIGEST_LEN], info: &mut ChainInitInfo) -> Re
     if let Err(ret) = tpm.pcr_extend(PCR, &info.anchor_digest) {
         crate::log::err(format!("tpm: register written but PCR {PCR} not anchored; the init branch stays open until reboot").as_bytes());
         return Err(ret);
+    }
+    if let Err(ret) = log_anchor(cstr(&info.anchor), &info.anchor_digest) {
+        crate::log::warn(
+            format!(
+                "tpm: PCR {PCR} anchor not in systemd's measurement log: {}",
+                text(ret)
+            )
+            .as_bytes(),
+        );
     }
     info.value = tpm.nv_read(NV_INDEX)?;
     Ok(())
