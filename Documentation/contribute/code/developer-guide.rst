@@ -732,12 +732,6 @@ can rewrite what it finds does so with ``-D patch``:
      - A ``memset()`` of a local that nothing reads afterwards, which
        the compiler may drop, rather than ``memzero_explicit()``.
        Rewrites.
-   * - ``scrub_missing``
-     - A local filled with an activated credential, a KDF output or an
-       ECDH shared value, or by ``hex_bytes()``, ``hex_decode()`` or
-       ``getrandom()`` when named for a secret, that a return or function
-       fallthrough leaves without a full-size ``memzero_explicit()``. It
-       recognizes output passed by address.
    * - ``curl_slist_free``
      - A libcurl header list freed without first scrubbing its copied
        header strings with ``curl_slist_free_sensitive()``.
