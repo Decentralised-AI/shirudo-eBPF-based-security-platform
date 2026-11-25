@@ -108,19 +108,24 @@ fn download_https(source: &CStr, d: &mut Download) -> c_int {
     if let Err(err) = tls_curl_policy(&mut easy, None) {
         return err;
     }
-    easy.set_str(CURLOPT_URL, source);
-    easy.set_str(CURLOPT_PROTOCOLS_STR, c"https");
-    easy.set_str(CURLOPT_REDIR_PROTOCOLS_STR, c"https");
-    easy.set_long(CURLOPT_FOLLOWLOCATION, 1);
-    easy.set_long(CURLOPT_MAXREDIRS, 5);
-    easy.set_long(CURLOPT_FAILONERROR, 1);
-    easy.set_long(CURLOPT_CONNECTTIMEOUT, 30);
-    easy.set_long(CURLOPT_LOW_SPEED_LIMIT, 1024);
-    easy.set_long(CURLOPT_LOW_SPEED_TIME, 60);
+    if easy.set_str(CURLOPT_URL, source) != CURLE_OK
+        || easy.set_str(CURLOPT_PROTOCOLS_STR, c"https") != CURLE_OK
+        || easy.set_str(CURLOPT_REDIR_PROTOCOLS_STR, c"https") != CURLE_OK
+        || easy.set_long(CURLOPT_FOLLOWLOCATION, 1) != CURLE_OK
+        || easy.set_long(CURLOPT_MAXREDIRS, 5) != CURLE_OK
+        || easy.set_long(CURLOPT_FAILONERROR, 1) != CURLE_OK
+        || easy.set_long(CURLOPT_CONNECTTIMEOUT, 30) != CURLE_OK
+        || easy.set_long(CURLOPT_LOW_SPEED_LIMIT, 1024) != CURLE_OK
+        || easy.set_long(CURLOPT_LOW_SPEED_TIME, 60) != CURLE_OK
+    {
+        return -EINVAL;
+    }
     // SAFETY: curl_write() takes its data for the download, which
     // outlives the handle and which nothing else touches while the
     // transfer runs.
-    unsafe { easy.set_write(curl_write, ptr::from_mut(d)) };
+    if unsafe { easy.set_write(curl_write, ptr::from_mut(d)) } != CURLE_OK {
+        return -EINVAL;
+    }
     if easy.perform() != CURLE_OK {
         return if d.err != 0 { d.err } else { -EIO };
     }
