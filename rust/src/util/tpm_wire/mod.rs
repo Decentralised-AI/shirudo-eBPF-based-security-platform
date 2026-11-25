@@ -15,15 +15,15 @@ mod policy;
 pub(crate) use kdf::{credential_protect, kdfe};
 pub(crate) use parse::{attest_parse, ecc_public_parse, public_marshal, public_parse};
 pub(crate) use policy::{
-    EK_POLICY, RegisterPolicy, nv_extend_cphash, nv_name, object_name, register_policy,
-    register_policy_final, writer_auth_hash, writer_public,
+    EK_POLICY, RegisterPolicy, nv_extend_cphash, nv_name, object_name, policy_nv_written,
+    policy_or, register_policy, register_policy_final, writer_auth_hash, writer_public,
 };
 /// The rest of what test-tpm-wire drives.
 #[cfg(feature = "test-helpers")]
 pub(crate) use {
     kdf::{HmacKey, kdfa},
     parse::ecdsa_signature_parse,
-    policy::{policy_command_code, policy_nv_written, policy_or, policy_pcr, policy_signed},
+    policy::{policy_command_code, policy_pcr, policy_signed},
 };
 
 use core::ffi::c_int;

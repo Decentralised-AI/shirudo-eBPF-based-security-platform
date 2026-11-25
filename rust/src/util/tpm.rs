@@ -24,13 +24,17 @@ use crate::util::config::{self, Scrubbed};
 use crate::util::identity;
 use crate::util::image_config;
 use crate::util::tpm_wire::{
-    EK_POLICY, TpmPublic, nv_extend_cphash, object_name, public_marshal, register_policy_final,
-    writer_auth_hash, writer_public,
+    EK_POLICY, TpmPublic, nv_extend_cphash, object_name, policy_nv_written, policy_or,
+    public_marshal, register_policy_final, writer_auth_hash, writer_public,
 };
 
 const EK_CERT_NV_RSA: u32 = 0x01C0_0002;
 const EK_CERT_NV_ECC: u32 = 0x01C0_000A;
 const NV_READ_CHUNK: usize = 512;
+const NVPCR_WRITE_AUTH: u32 = 0x7;
+const NVPCR_POLICY_WRITE: u32 = 0x8;
+const NVPCR_TYPE_MASK: u32 = 0xf0;
+const NVPCR_TYPE_EXTEND: u32 = 0x40;
 
 /// The sizes of digests, names and the TPM's other records.
 const DIGEST_LEN: usize = 32;
@@ -189,6 +193,16 @@ impl Handle<'_> {
     }
 }
 
+fn nvpcr_policy_valid(info: &NvInfo, policy: &[u8; DIGEST_LEN]) -> bool {
+    info.defined
+        && info.written
+        && usize::from(info.data_size) == DIGEST_LEN
+        && info.attrs & NVPCR_WRITE_AUTH == 0
+        && info.attrs & NVPCR_POLICY_WRITE != 0
+        && info.attrs & NVPCR_TYPE_MASK == NVPCR_TYPE_EXTEND
+        && info.policy == *policy
+}
+
 /// What a key shows of itself: its marshalled TPMT_PUBLIC and its name.
 #[derive(Clone)]
 pub(crate) struct KeyPublic {
@@ -253,6 +267,8 @@ impl Drop for OwnerAuth<'_> {
 pub(crate) struct NvInfo {
     pub(crate) defined: bool,
     pub(crate) written: bool,
+    pub(crate) attrs: u32,
+    pub(crate) data_size: u16,
     pub(crate) policy: [u8; DIGEST_LEN],
     name: [u8; NAME_LEN],
     name_len: usize,
@@ -262,6 +278,8 @@ impl NvInfo {
     const UNDEFINED: NvInfo = NvInfo {
         defined: false,
         written: false,
+        attrs: 0,
+        data_size: 0,
         policy: [0; DIGEST_LEN],
         name: [0; NAME_LEN],
         name_len: 0,
@@ -936,6 +954,8 @@ impl Tpm {
         let mut info = NvInfo {
             defined: true,
             written: p.attributes & NV_WRITTEN != 0,
+            attrs: p.attributes,
+            data_size: p.dataSize,
             ..NvInfo::UNDEFINED
         };
 
@@ -1616,6 +1636,92 @@ impl Tpm {
         Ok(())
     }
 
+    /// Extend a systemd NvPCR after its first write. The file supplies
+    /// the authorized branch; the TPM checks the index's actual policy.
+    pub(crate) fn nvpcr_extend(
+        &self,
+        index: u32,
+        authorize: &[u8; DIGEST_LEN],
+        event: &[u8; DIGEST_LEN],
+    ) -> Result<(), c_int> {
+        let info = self.nv_info(index)?;
+        let mut written = [0u8; DIGEST_LEN];
+        let mut policy = [0u8; DIGEST_LEN];
+        let zero = [0u8; DIGEST_LEN];
+        let ret = policy_nv_written(&zero, true, &mut written);
+        if ret != 0 {
+            return Err(ret);
+        }
+        let ret = policy_or(authorize, &written, &mut policy);
+        if ret != 0 {
+            return Err(ret);
+        }
+        if !nvpcr_policy_valid(&info, &policy) {
+            crate::log::err(
+                format!("tpm: 0x{index:08x} is not the initialized NvPCR its write policy names")
+                    .as_bytes(),
+            );
+            return Err(-EACCES);
+        }
+
+        let session = self.start_policy_session()?;
+        let mut branches = DigestList::zeroed();
+        // SAFETY: the context, policy session and authorization handles.
+        let mut ret = unsafe {
+            Esys_PolicyNvWritten(
+                self.context(),
+                session.handle,
+                ESYS_TR_NONE,
+                ESYS_TR_NONE,
+                ESYS_TR_NONE,
+                YES,
+            )
+        };
+        if ret == RC_SUCCESS {
+            branches.count = 2;
+            branches.digests[0].size = DIGEST_LEN as u16;
+            branches.digests[0].buffer[..DIGEST_LEN].copy_from_slice(authorize);
+            branches.digests[1].size = DIGEST_LEN as u16;
+            branches.digests[1].buffer[..DIGEST_LEN].copy_from_slice(&written);
+            // SAFETY: the context, policy session, and two digest branches.
+            ret = unsafe {
+                Esys_PolicyOR(
+                    self.context(),
+                    session.handle,
+                    ESYS_TR_NONE,
+                    ESYS_TR_NONE,
+                    ESYS_TR_NONE,
+                    &branches,
+                )
+            };
+        }
+        let mut digest = EsysOut::<Tpm2bDigest>::new();
+        if ret == RC_SUCCESS {
+            // SAFETY: the context, sessions and room for the digest.
+            ret = unsafe {
+                Esys_PolicyGetDigest(
+                    self.context(),
+                    session.handle,
+                    self.session,
+                    ESYS_TR_NONE,
+                    ESYS_TR_NONE,
+                    digest.room(),
+                )
+            };
+        }
+        let valid = ret == RC_SUCCESS
+            && digest.get().is_some_and(|d| {
+                usize::from(d.size) == DIGEST_LEN && d.buffer[..DIGEST_LEN] == policy
+            });
+        if !valid {
+            crate::log::err(
+                format!("tpm: NvPCR 0x{index:08x} policy assertion: rc=0x{ret:08x}").as_bytes(),
+            );
+            return Err(-EACCES);
+        }
+        self.nv_extend_session(index, &session, event)
+    }
+
     /// One extend of the register, through the policy branch `init`
     /// names.
     fn nv_extend_through(
@@ -2063,5 +2169,39 @@ impl Tpm {
     /// flushes when it goes only if it holds it again by then.
     pub(crate) fn replace_salt_key(&mut self, key: EsysTr) -> EsysTr {
         core::mem::replace(&mut self.session_key, key)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{NvInfo, nvpcr_policy_valid};
+
+    #[test]
+    fn nvpcr_requires_initialized_extend_index_and_exact_policy() {
+        let policy = [0x5a; 32];
+        let mut info = NvInfo {
+            defined: true,
+            written: true,
+            attrs: 0x48,
+            data_size: 32,
+            policy,
+            ..NvInfo::UNDEFINED
+        };
+        assert!(nvpcr_policy_valid(&info, &policy));
+        info.defined = false;
+        assert!(!nvpcr_policy_valid(&info, &policy));
+        info.defined = true;
+        info.written = false;
+        assert!(!nvpcr_policy_valid(&info, &policy));
+        info.written = true;
+        info.data_size = 64;
+        assert!(!nvpcr_policy_valid(&info, &policy));
+        info.data_size = 32;
+        for attrs in [0x40, 0x49, 0x4a, 0x4c, 0x08] {
+            info.attrs = attrs;
+            assert!(!nvpcr_policy_valid(&info, &policy));
+        }
+        info.attrs = 0x48;
+        assert!(!nvpcr_policy_valid(&info, &[0; 32]));
     }
 }

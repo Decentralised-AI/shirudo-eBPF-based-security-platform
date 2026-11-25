@@ -24,8 +24,8 @@ use std::os::unix::fs::{DirBuilderExt, FileTypeExt, MetadataExt, OpenOptionsExt}
 use std::path::Path;
 
 use crate::errno::{
-    EACCES, EBUSY, EEXIST, EINPROGRESS, EINVAL, EIO, EKEYREJECTED, ENAMETOOLONG, ENODEV, ENOENT,
-    ENOKEY, ENXIO, EPERM, EPROTO, ESTALE, EUCLEAN, last_errno, text,
+    EACCES, EBADMSG, EBUSY, EEXIST, EINPROGRESS, EINVAL, EIO, EKEYREJECTED, ENAMETOOLONG, ENODEV,
+    ENOENT, ENOKEY, ENXIO, EPERM, EPROTO, ESTALE, EUCLEAN, last_errno, text,
 };
 use crate::sys::identity::{DEVICE_CONFIG, DEVICE_RUNTIME, DeviceAuthority, Identity};
 use crate::sys::libc::{
@@ -36,6 +36,7 @@ use crate::text::cstr;
 use crate::util::bpf_sys::{bpf_map_get_next_key, bpf_map_lookup_elem, bpf_obj_get};
 use crate::util::config::{self, CONF_PATH, Config};
 use crate::util::config_image::ConfigImageOpen;
+use crate::util::config_measure;
 use crate::util::config_update::{
     BootIdentity, ConfigUpdate, ConfigUpdateOps, ConfigUpdateRecord, ConfigUpdateTarget,
 };
@@ -43,13 +44,14 @@ use crate::util::crypto_openssl::{
     key_algorithm, pubkey_digest, verify_detached_x509, x509_from_der,
 };
 use crate::util::dm_verity::{self, DmVerity, minor};
+use crate::util::hex;
 use crate::util::identity;
 use crate::util::image_bootstrap::{self, ImageBootstrap, path_valid};
 use crate::util::image_cache::{SEAL_LABEL, XATTR_SEAL, fetch_verified};
 use crate::util::image_config;
 use crate::util::image_guards::{GUARD_DEVICES, GUARD_MAPS, guard_map_check, image_guards_ready};
 use crate::util::image_keys::{self, RUNTIME_CERT_PATH};
-use crate::util::io::{kernel_dev, read_whole};
+use crate::util::io::{self, kernel_dev, read_whole};
 use crate::util::json::JsonEmit;
 use crate::util::keyring;
 use crate::util::keys::{TrustedCert, TrustedSet, members, read_der_fd};
@@ -64,6 +66,7 @@ const CONFIG_UPDATE_DIR: &CStr = c"/var/lib/shirudo/config-update";
 const IMAGE_CACHE_DIR: &CStr = c"/var/lib/shirudo/images";
 const DEVICES_MAP: &CStr = c"/run/shirudo/bpffs/devices";
 const RUNTIME_MAPPING: &CStr = c"shirudo-runtime";
+const CONFIG_NVPCR_AUTH_PATH: &CStr = c"/run/systemd/nvpcr/shirudo-config.auth";
 
 const MNT_DETACH: c_int = 2;
 const ST_RDONLY: u64 = 1;
@@ -821,11 +824,28 @@ impl ConfigUpdateOps for RuntimeOps {
     }
 
     fn pcr_read(&self, pcr: u32) -> Result<[u8; 32], c_int> {
-        with_tpm(|tpm| tpm.pcr_read(pcr))
+        if config_measure::nvpcr(pcr) {
+            with_tpm(|tpm| tpm.nv_read(pcr))
+        } else {
+            with_tpm(|tpm| tpm.pcr_read(pcr))
+        }
     }
 
     fn pcr_extend(&self, pcr: u32, event: &[u8; 32]) -> Result<(), c_int> {
-        with_tpm(|tpm| tpm.pcr_extend(pcr, event))
+        if !config_measure::nvpcr(pcr) {
+            return with_tpm(|tpm| tpm.pcr_extend(pcr, event));
+        }
+        let authorize = nvpcr_authorize().inspect_err(|&e| {
+            crate::log::err(
+                format!(
+                    "image: config NvPCR policy branch {}: {}",
+                    CONFIG_NVPCR_AUTH_PATH.to_string_lossy(),
+                    text(e)
+                )
+                .as_bytes(),
+            );
+        })?;
+        with_tpm(|tpm| tpm.nvpcr_extend(pcr, &authorize, event))
     }
 
     fn prepare(&self, target: &ConfigUpdateTarget) -> Result<(), c_int> {
@@ -859,6 +879,22 @@ impl ConfigUpdateOps for RuntimeOps {
         }
         Ok(())
     }
+}
+
+/// The systemd record names the first branch of the NvPCR write policy.
+/// The TPM checks that it belongs to the index before extending.
+fn nvpcr_authorize() -> Result<[u8; 32], c_int> {
+    let data = io::read(CONFIG_NVPCR_AUTH_PATH, 65)?;
+    parse_nvpcr_authorize(&data)
+}
+
+fn parse_nvpcr_authorize(data: &[u8]) -> Result<[u8; 32], c_int> {
+    let digits = data.strip_suffix(b"\n").unwrap_or(data);
+    let mut authorize = [0u8; 32];
+    if digits.contains(&0) || hex::decode(digits, &mut authorize).is_err() {
+        return Err(-EBADMSG);
+    }
+    Ok(authorize)
 }
 
 /// `f` on the TPM open_update() opened: -EINVAL before it has.
@@ -917,6 +953,9 @@ fn boot_target() -> Result<ConfigUpdateTarget, c_int> {
         return Err(-EKEYREJECTED);
     }
     let mut target = ConfigUpdateTarget::zeroed();
+    if prefix.len() >= target.prefix.len() {
+        return Err(-ENAMETOOLONG);
+    }
     copy_str(&mut target.prefix, &prefix);
     target.root_hash = opened.image.root_hash;
     Ok(target)
@@ -1498,4 +1537,35 @@ pub(crate) fn stage_cancel() -> c_int {
         return ret;
     }
     with_journal(|j| j.clear_staged()).err().unwrap_or(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_nvpcr_authorize;
+    use crate::errno::EBADMSG;
+
+    #[test]
+    fn nvpcr_policy_branch_is_exact_hex_with_optional_newline() {
+        let hex = b"0123456789abcdef0123456789ABCDEF0123456789abcdef0123456789ABCDEF";
+        let decoded = parse_nvpcr_authorize(hex).unwrap();
+        assert_eq!(decoded[0..4], [0x01, 0x23, 0x45, 0x67]);
+        let mut with_newline = hex.to_vec();
+        with_newline.push(b'\n');
+        assert_eq!(parse_nvpcr_authorize(&with_newline), Ok(decoded));
+        for invalid in [
+            &hex[..63],
+            &with_newline[..63],
+            &b""[..],
+            &b"0123456789abcdef0123456789ABCDEF0123456789abcdef0123456789ABCDEx"[..],
+        ] {
+            assert_eq!(parse_nvpcr_authorize(invalid), Err(-EBADMSG));
+        }
+        with_newline[10] = 0;
+        assert_eq!(parse_nvpcr_authorize(&with_newline), Err(-EBADMSG));
+        with_newline[10] = b'a';
+        with_newline[64] = 0;
+        assert_eq!(parse_nvpcr_authorize(&with_newline), Err(-EBADMSG));
+        with_newline[64] = b'\r';
+        assert_eq!(parse_nvpcr_authorize(&with_newline), Err(-EBADMSG));
+    }
 }
