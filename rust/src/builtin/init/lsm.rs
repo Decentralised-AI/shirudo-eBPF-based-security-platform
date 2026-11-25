@@ -343,6 +343,10 @@ impl Attached {
             return -crate::errno::EINVAL;
         };
         id.runtime_root = root;
+        let Some(config_pcr) = image_runtime::config_pcr() else {
+            return -crate::errno::EINVAL;
+        };
+        id.config_pcr = config_pcr;
 
         // The trust anchor lsm/bpf_prog_load enforces: only a load the
         // kernel verified against exactly this sealed keyring, of exactly

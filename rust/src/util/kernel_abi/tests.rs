@@ -27,6 +27,7 @@ enum Fixture {
     KeyringTypeWidth,
     NoVerdict,
     VerdictSigned,
+    NoTpmCommand,
     TrailingDrift,
 }
 
@@ -108,6 +109,10 @@ fn fixture(f: Fixture) -> Btf {
         members.push(("future_aux_field", u32, 64));
     }
     b.structure("bpf_prog_aux", 32, &members);
+    if f != NoTpmCommand {
+        let proto = b.func_proto(s32, &[]);
+        b.func("bpf_lsm_tpm_command", proto);
+    }
     b.parse().unwrap()
 }
 
@@ -155,6 +160,7 @@ fn each_missing_or_mistyped_field_is_named() {
         (KeyringTypeWidth, "keyring_type must have type u8"),
         (NoVerdict, "verdict must have type u8"),
         (VerdictSigned, "verdict must have type u8"),
+        (NoTpmCommand, "tpm_command LSM hook is missing"),
     ] {
         refused_for(f, want);
     }

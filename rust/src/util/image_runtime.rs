@@ -1019,6 +1019,11 @@ pub(crate) fn runtime_root() -> Option<[u8; 32]> {
     with_state(|s| s.loaded.then_some(s.bootstrap.runtime_root))
 }
 
+/// The authenticated bootstrap's config PCR, or its NvPCR index.
+pub(crate) fn config_pcr() -> Option<u32> {
+    with_state(|s| s.loaded.then_some(s.bootstrap.pcr))
+}
+
 /// The config activation journal of this command, which attestation
 /// reports on; null without one.
 pub(crate) fn update_context() -> *mut ConfigUpdate<'static> {

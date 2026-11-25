@@ -60,6 +60,18 @@ print(chain)
 PY
 }
 
+image_pcr() {
+    "$SHIRUDO_BIN" image status --json |
+        python3 -c 'import json,sys; print(json.load(sys.stdin)["pcr"])'
+}
+
+test_expect_success 'the frozen identity names the selected config PCR' '
+    observed=$("$SHIRUDO_TEST_RUNTIME_PROBE" identity \
+        /run/shirudo/bpffs/identity config_pcr) &&
+    expected=$(image_pcr) &&
+    test "$observed" = "$expected"
+'
+
 test_expect_success 'the TPM writer public key matches the init record' '
 	public=$("$SHIRUDO_TEST_RUNTIME_PROBE" identity \
 		/run/shirudo/bpffs/identity nv_writer_public) &&

@@ -151,6 +151,12 @@ fn validate_btf(btf: Option<&Btf>) -> Result<(), &'static CStr> {
     if !is_int(btf, member_type(btf, verdict), 1, false) {
         return Err(c"struct bpf_prog_aux.sig.verdict must have type u8");
     }
+    if btf
+        .find_by_name_kind(b"bpf_lsm_tpm_command", KIND_FUNC)
+        .is_none()
+    {
+        return Err(c"tpm_command LSM hook is missing; boot a Shirudo-patched kernel");
+    }
     Ok(())
 }
 

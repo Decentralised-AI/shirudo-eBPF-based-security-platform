@@ -349,6 +349,7 @@ fn print_identity(pin: &CStr, field: &[u8]) -> c_int {
         b"runtime_root" => out(&format!("{}\n", hex(&id.runtime_root))),
         b"nv_writer_public" => out(&format!("{}\n", hex(&id.nv_writer_public))),
         b"nv_index" => out(&format!("{}\n", id.nv_index)),
+        b"config_pcr" => out(&format!("{}\n", id.config_pcr)),
         _ => return 2,
     }
     0
