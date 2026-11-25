@@ -5,15 +5,20 @@
 //! map it pinned in the private bpffs, and whether the boot enforces.
 
 use core::ffi::{CStr, c_int};
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd};
 
-use crate::errno::{EINVAL, ENOSYS, EPROTO};
+use crate::errno::{EINVAL, ENOSYS, EPROTO, EXDEV};
 use crate::sys::identity::Identity;
-use crate::sys::libc::{close, errno, prctl};
-use crate::util::bpf_sys::{bpf_map_lookup_elem, bpf_obj_get};
+use crate::sys::libc::{O_CLOEXEC, O_DIRECTORY, O_RDONLY, errno, open, prctl};
+use crate::util::bpf_sys::{bpf_map_lookup_elem, obj_get, obj_get_at};
 use crate::util::image_guards::{GUARD_IDENTITY, GUARD_MAPS, guard_map_check};
+use crate::util::io::{kernel_dev, stat_fd};
 
 /// IDENTITY_PIN of util/paths.h.
 pub(crate) const IDENTITY_PIN: &CStr = c"/run/shirudo/bpffs/identity";
+/// The root of the private bpffs and the identity pin under it.
+const BPFFS_DIR: &CStr = c"/run/shirudo/bpffs";
+const IDENTITY_PIN_NAME: &CStr = c"identity";
 /// PR_GET_ENFORCEMENT and PR_ENFORCING_ERR of include/shirudo/enforcement.h.
 const PR_GET_ENFORCEMENT: c_int = 0x5352_0001;
 const PR_ENFORCING_ERR: c_int = 1002;
@@ -51,15 +56,45 @@ pub(crate) fn enforcement_active() -> c_int {
 /// another shape, or another -errno.
 pub(crate) fn read(out: &mut Identity) -> c_int {
     *out = Identity::zeroed();
-    // SAFETY: a C string.
-    let fd = unsafe { bpf_obj_get(IDENTITY_PIN.as_ptr()) };
+    let fd = match obj_get(IDENTITY_PIN) {
+        Ok(fd) => fd,
+        Err(err) => return err,
+    };
+    lookup(fd.as_raw_fd(), out)
+}
+
+/// The identity pin `name` relative to an already opened directory.
+pub(crate) fn read_at(dir: BorrowedFd<'_>, name: &CStr, out: &mut Identity) -> c_int {
+    *out = Identity::zeroed();
+    let fd = match obj_get_at(dir, name) {
+        Ok(fd) => fd,
+        Err(err) => return err,
+    };
+    lookup(fd.as_raw_fd(), out)
+}
+
+/// The private bpffs root, checked against the device init froze in its
+/// identity map. A mount over /run/shirudo may hide that root; it does
+/// not make another directory into this boot's bpffs.
+pub(crate) fn bpffs_root_open() -> Result<OwnedFd, c_int> {
+    // SAFETY: a C path, flags without a creation mode.
+    let fd = unsafe { open(BPFFS_DIR.as_ptr(), O_RDONLY | O_DIRECTORY | O_CLOEXEC) };
     if fd < 0 {
-        return -errno();
+        return Err(-errno());
     }
-    let ret = lookup(fd, out);
-    // SAFETY: the pin opened above.
-    unsafe { close(fd) };
-    ret
+    // SAFETY: open returned a new descriptor owned here alone.
+    let fd = unsafe { OwnedFd::from_raw_fd(fd) };
+    let mut id = Identity::zeroed();
+    let ret = read_at(fd.as_fd(), IDENTITY_PIN_NAME, &mut id);
+    if ret != 0 {
+        return Err(ret);
+    }
+    let st = stat_fd(fd.as_fd())?;
+    let dev = kernel_dev(libc::makedev(st.stx_dev_major, st.stx_dev_minor));
+    if dev != id.sb_dev {
+        return Err(-EXDEV);
+    }
+    Ok(fd)
 }
 
 fn lookup(fd: c_int, out: &mut Identity) -> c_int {

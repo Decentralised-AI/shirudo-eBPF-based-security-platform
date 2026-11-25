@@ -30,7 +30,9 @@ use crate::sys::libc::{
 use crate::text::cstr;
 use crate::util::crypto_openssl::sha256_into;
 use crate::util::hex::hex_encode;
+use crate::util::identity;
 use crate::util::image_config;
+use crate::util::io::lock_exclusive;
 use crate::util::json::{JsonEmit, JsonField, MAX_BYTES, parse_schema};
 use crate::util::seal;
 use crate::util::timefmt::iso8601;
@@ -403,17 +405,22 @@ fn adopt_pending() -> c_int {
     0
 }
 
-/// The lock beside the log that keeps one process at a time extending
-/// the register and appending: two measuring commands under locks of
-/// their own interleaved extend, extend, append, append and left a log
-/// that replays the events in the other order. Held until it goes.
+/// The one lock for all register extends and eventlog appends. The
+/// private bpffs root is the same inode in every mount namespace, so a
+/// covered log path cannot give another command a different lock.
 pub(crate) struct Lock {
     _fd: std::os::fd::OwnedFd,
 }
 
 pub(crate) fn lock() -> Result<Lock, c_int> {
-    let lock_path = [path().to_bytes(), b".lock"].concat();
+    if path() == DEFAULT_PATH {
+        let fd = identity::bpffs_root_open()?;
+        lock_exclusive(std::os::fd::AsFd::as_fd(&fd))?;
+        return Ok(Lock { _fd: fd });
+    }
 
+    // An overridden log path is for a host without a configured image.
+    let lock_path = [path().to_bytes(), b".lock"].concat();
     if lock_path.len() >= PATH_MAX {
         return Err(-ENAMETOOLONG);
     }

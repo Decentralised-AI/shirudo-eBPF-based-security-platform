@@ -7,9 +7,9 @@
 //! errno set.
 
 use core::ffi::{CStr, c_char, c_int, c_long, c_void};
-use std::os::fd::{FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, BorrowedFd, FromRawFd, OwnedFd};
 
-use crate::errno::E2BIG;
+use crate::errno::{E2BIG, EINVAL};
 use crate::sys::libc::{close, errno, fcntl, set_errno, syscall};
 
 /// The bpf() commands shirudo issues.
@@ -32,6 +32,8 @@ pub(crate) const BPF_LINK_CREATE: c_long = 28;
 /// `BPF_ANY`: create or update.
 pub(crate) const BPF_ANY: u64 = 0;
 const F_DUPFD_CLOEXEC: c_int = 1030;
+/// BPF_F_PATH_FD for a pin name relative to path_fd.
+const BPF_F_PATH_FD: u32 = 1 << 14;
 
 /// `union bpf_attr`, filled by hand.
 #[repr(C, align(8))]
@@ -155,6 +157,23 @@ pub(crate) unsafe fn bpf_obj_get(pathname: *const c_char) -> c_int {
 pub(crate) fn obj_get(path: &CStr) -> Result<OwnedFd, c_int> {
     // SAFETY: a C string.
     let fd = unsafe { bpf_obj_get(path.as_ptr()) };
+    if fd < 0 {
+        return Err(fd);
+    }
+    // SAFETY: the descriptor the kernel just made, owned here alone.
+    Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+}
+
+/// The BPF object pinned at `name` relative to `dir`.
+pub(crate) fn obj_get_at(dir: BorrowedFd<'_>, name: &CStr) -> Result<OwnedFd, c_int> {
+    let dirfd = u32::try_from(dir.as_raw_fd()).map_err(|_| -EINVAL)?;
+    let fd = good_fd(
+        Attr::new()
+            .ptr(0, name.as_ptr())
+            .u32(12, BPF_F_PATH_FD)
+            .u32(16, dirfd)
+            .run(BPF_OBJ_GET),
+    );
     if fd < 0 {
         return Err(fd);
     }
