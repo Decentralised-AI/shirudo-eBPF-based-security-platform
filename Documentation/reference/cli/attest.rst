@@ -40,6 +40,8 @@ Description
 - a quote over the selected PCRs with the nonce,
 - a certification of the measurement register (NV index ``0x01818E00``)
   with the nonce,
+- when config uses an NvPCR, a separate certification of its index with
+  the same nonce,
 - this boot's eventlog, the config activation records, and the firmware
   and systemd measurement logs,
 - the public areas and names of the attestation key and the endorsement

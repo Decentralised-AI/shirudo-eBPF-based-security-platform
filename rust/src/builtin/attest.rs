@@ -20,7 +20,7 @@ use crate::util::attest::{
 use crate::util::chain::{
     self, ANCHOR_MAX, MeasuredUpatch, PCR, PCR_MASK as CHAIN_PCR_MASK, PHASE_PCR,
 };
-use crate::util::config_measure::pcr_valid;
+use crate::util::config_measure::{CONFIG_NVPCR_INDEX, pcr_valid};
 use crate::util::crypto_openssl::sha256_into;
 use crate::util::eventlog::{self, NV_INDEX};
 use crate::util::help::{
@@ -110,16 +110,17 @@ const VERIFY_TREE_ROOT: c_int = 6;
 const VERIFY_EXPECT_CHAIN: c_int = 7;
 const VERIFY_EXPECT_CONFIG_ROOT: c_int = 8;
 const VERIFY_EXPECT_CONFIG_PCR: c_int = 9;
-const VERIFY_EXPECT_PCR: c_int = 10;
-const VERIFY_ALLOW_RUNTIME_EVENTS: c_int = 11;
-const VERIFY_JSON: c_int = 12;
-const VERIFY_STRICT_ANCHOR: c_int = 13;
-const VERIFY_EXPECT_CREDENTIAL: c_int = 14;
-const VERIFY_EK_NAME: c_int = 15;
-const VERIFY_EXPECT_BIND_PCR: c_int = 16;
-const VERIFY_REQUIRE_INITRD: c_int = 17;
+const VERIFY_EXPECT_CONFIG_NVPCR: c_int = 10;
+const VERIFY_EXPECT_PCR: c_int = 11;
+const VERIFY_ALLOW_RUNTIME_EVENTS: c_int = 12;
+const VERIFY_JSON: c_int = 13;
+const VERIFY_STRICT_ANCHOR: c_int = 14;
+const VERIFY_EXPECT_CREDENTIAL: c_int = 15;
+const VERIFY_EK_NAME: c_int = 16;
+const VERIFY_EXPECT_BIND_PCR: c_int = 17;
+const VERIFY_REQUIRE_INITRD: c_int = 18;
 
-static VERIFY_OPTS: [OptSpec; 18] = [
+static VERIFY_OPTS: [OptSpec; 19] = [
     OptSpec::new(
         c"--evidence",
         0,
@@ -189,6 +190,13 @@ static VERIFY_OPTS: [OptSpec; 18] = [
         0,
         Some(c"<n>"),
         c"reserved config PCR number",
+    ),
+    OptSpec::new(
+        c"--expect-config-nvpcr",
+        0,
+        0,
+        Some(c"<name>"),
+        c"the config NvPCR TPM name",
     ),
     OptSpec::new(
         c"--expect-pcr",
@@ -890,6 +898,10 @@ fn verify_against(args: &[&CStr], x: &mut AttestExpect) -> Result<c_int, c_int> 
                 }
                 x.config_pcr = Some(pcr);
             }
+            VERIFY_EXPECT_CONFIG_NVPCR => {
+                x.config_nvpcr_name = Some(name_of(&p, "--expect-config-nvpcr", v)?);
+                x.config_pcr = Some(CONFIG_NVPCR_INDEX);
+            }
             VERIFY_EXPECT_CHAIN => x.chain = Some(parse_hex32(b"--expect-chain", v)?),
             VERIFY_EXPECT_PCR => {
                 pcr_expect(&p, "--expect-pcr", v, &mut x.pcrs, &mut x.pcr_expect_mask)?;
@@ -919,10 +931,16 @@ fn verify_against(args: &[&CStr], x: &mut AttestExpect) -> Result<c_int, c_int> 
             _ => return Err(EXIT_USAGE),
         }
     }
+    if p.given(VERIFY_EXPECT_CONFIG_PCR) && p.given(VERIFY_EXPECT_CONFIG_NVPCR) {
+        return Err(usage(
+            &p,
+            "--expect-config-pcr and --expect-config-nvpcr exclude each other",
+        ));
+    }
     if x.config_root.is_some() && x.config_pcr.is_none() {
         return Err(usage(
             &p,
-            "--expect-config-root requires --expect-config-pcr",
+            "--expect-config-root requires --expect-config-pcr or --expect-config-nvpcr",
         ));
     }
     let Some(evidence_path) = evidence_path.filter(|_| nonce_len > 0) else {

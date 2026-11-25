@@ -51,8 +51,9 @@ checks:
 - the quote and the register certification: signed by the attestation key
   as an endorsement primary, covering the listed PCRs and index, of one
   TPM boot: the same reset and restart counts
-- the config root history against the quoted config PCR, and with
-  ``--expect-config-root`` the approved root
+- the config root history against the quoted config PCR or the
+  separately certified config NvPCR, and with ``--expect-config-root``
+  the approved root
 - the register's public area against the recorded PCR 9 and 11 binding,
   the init record of this TPM reset, the eventlog replay to the certified
   value and the anchor in PCR 9
@@ -199,7 +200,7 @@ attestation key pinned:
      OK    quote and certification are of one TPM boot
      OK    config: config root history matches the quoted PCR
      NOTE  config root has no operator approval; use --expect-config-root with --expect-config-pcr
-     NOTE  config records a selection; direct TPM writer protection is deferred
+     NOTE  config records a selection; operation completion depends on trusted runtime guards
      OK    eventlog: this boot has an init record
      OK    register: the document names index 0x01818E00 and PCRs 9 and 11
      OK    register: public area is bound to PCRs 9 and 11 as recorded

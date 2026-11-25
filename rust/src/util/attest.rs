@@ -25,6 +25,7 @@ use crate::util::chain::{
     memneq_explicit,
 };
 use crate::util::config_attest::{self, Evidence, Quote};
+use crate::util::config_measure::nvpcr;
 use crate::util::config_update::ConfigUpdate;
 use crate::util::crypto_openssl::{
     Cert, CertPubkey, base64, base64_decode, cert_free, cert_pubkey, cert_read_der,
@@ -114,6 +115,7 @@ pub(crate) struct AttestExpect {
     pub(crate) bind_values: [[u8; 32]; 24],
     pub(crate) config_root: Option<[u8; 32]>,
     pub(crate) config_pcr: Option<u32>,
+    pub(crate) config_nvpcr_name: Option<[u8; NAME_LEN]>,
 }
 
 /// An eventlog record as the report names it.
@@ -178,6 +180,9 @@ struct Parse {
     reg_value_hex: [u8; 65],
     reg_attest_hex: [u8; 2 * ATTEST_MAX + 1],
     reg_sig_hex: [u8; 2 * SIGNATURE_MAX + 1],
+    nvpcr_name_hex: [u8; 2 * NAME_LEN + 1],
+    nvpcr_attest_hex: [u8; 2 * ATTEST_MAX + 1],
+    nvpcr_sig_hex: [u8; 2 * SIGNATURE_MAX + 1],
     pcr_index: i64,
     pcr_value_hex: [u8; 65],
     pcr_have: u32,
@@ -232,6 +237,9 @@ impl Parse {
             reg_value_hex: [0; 65],
             reg_attest_hex: [0; 2 * ATTEST_MAX + 1],
             reg_sig_hex: [0; 2 * SIGNATURE_MAX + 1],
+            nvpcr_name_hex: [0; 2 * NAME_LEN + 1],
+            nvpcr_attest_hex: [0; 2 * ATTEST_MAX + 1],
+            nvpcr_sig_hex: [0; 2 * SIGNATURE_MAX + 1],
             pcr_index: 0,
             pcr_value_hex: [0; 65],
             pcr_have: 0,
@@ -330,6 +338,7 @@ struct Measured {
     nv: NvInfo,
     quote: Attestation,
     certify: Attestation,
+    config_nvpcr: Option<(NvInfo, Attestation)>,
     ak: KeyPublic,
     ek: KeyPublic,
     ek_rsa: bool,
@@ -392,9 +401,37 @@ fn activate(tpm: &Tpm, ak: &Key<'_>, ek: &Key<'_>, c: &AttestChallenge) -> Resul
         })
 }
 
+/// The quoted PCR agrees with the active config. A TPM restart alone
+/// does not end a PCR history; only a reset does.
+fn quote_matches_config(
+    config: &Evidence,
+    quote: &TpmAttest,
+    values: &[[u8; 32]; 24],
+    in_nvpcr: bool,
+) -> bool {
+    quote.reset_count == config.reset_count
+        && (in_nvpcr
+            || usize::try_from(config.pcr)
+                .ok()
+                .and_then(|pcr| values.get(pcr))
+                == Some(&config.value))
+}
+
+/// Collection requires the certification to match the active journal
+/// record's reset and restart counts. Replay groups by reset alone.
+fn nvpcr_matches_config(config: &Evidence, certified: &TpmAttest, bytes: &[u8]) -> bool {
+    certified.reset_count == config.reset_count
+        && certified.restart_count == config.restart_count
+        && certified.offset == 0
+        && certified.nv_len == 32
+        && certified
+            .nv_data_in(bytes)
+            .is_some_and(|data| !memneq_explicit(data, &config.value))
+}
+
 /// What the TPM gives the evidence, the TPM let go of before the file
 /// work: -ENXIO without a TPM, -ENODEV without a register bound, and
-/// -EUCLEAN for a quote not of the config's TPM boot and PCR value.
+/// -EUCLEAN for a quote or certification not of the active config value.
 fn measure(
     config: &Evidence,
     nonce: &[u8],
@@ -402,9 +439,10 @@ fn measure(
     challenge: Option<&AttestChallenge>,
 ) -> Result<Measured, c_int> {
     let mut values = [[0u8; 32]; 24];
+    let in_nvpcr = config.present && nvpcr(config.pcr);
 
-    if config.present {
-        pcr_mask |= 1 << config.pcr;
+    if config.present && !in_nvpcr {
+        pcr_mask |= 1u32.checked_shl(config.pcr).ok_or(-EUCLEAN)?;
     }
     // The keys go before the connection, the endorsement key first, on
     // every path out: they are dropped in the reverse of their making.
@@ -417,14 +455,24 @@ fn measure(
     let ak = tpm.ak_create()?;
     let quote = quote_pcrs(&tpm, &ak, nonce, pcr_mask, &mut values)?;
     if config.present
-        && quoted(&quote).is_none_or(|q| {
-            q.reset_count != config.reset_count
-                || q.restart_count != config.restart_count
-                || values.get(config.pcr as usize) != Some(&config.value)
-        })
+        && quoted(&quote).is_none_or(|q| !quote_matches_config(config, &q, &values, in_nvpcr))
     {
         return Err(-EUCLEAN);
     }
+    // A quote covers PCRs, so an NV index needs its own AK signature.
+    let config_nvpcr = if in_nvpcr {
+        let info = tpm.nv_info(config.pcr)?;
+        let certification = tpm.nv_certify(&ak, config.pcr, nonce)?;
+        let mut certified = TpmAttest::zeroed();
+        if attest_parse(&certification.attest, &mut certified) != 0
+            || !nvpcr_matches_config(config, &certified, &certification.attest)
+        {
+            return Err(-EUCLEAN);
+        }
+        Some((info, certification))
+    } else {
+        None
+    };
     let certify = tpm.nv_certify(&ak, NV_INDEX, nonce)?;
     let (ek_certificate, ek_cert_rsa) = ek_certificate_base64(&tpm);
     // The endorsement key the certificate describes, or the one the
@@ -449,6 +497,7 @@ fn measure(
         nv,
         quote,
         certify,
+        config_nvpcr,
         ak: ak_public,
         ek: ek_public,
         ek_rsa,
@@ -568,6 +617,13 @@ fn emit_evidence(
     emit_hex(e, b"attest", &m.certify.attest);
     emit_hex(e, b"signature", &m.certify.signature);
     e.obj_close();
+    if let Some((info, certification)) = &m.config_nvpcr {
+        e.obj_open_key(b"config_nvpcr");
+        emit_hex(e, b"name", info.name());
+        emit_hex(e, b"attest", &certification.attest);
+        emit_hex(e, b"signature", &certification.signature);
+        e.obj_close();
+    }
     e.arr_open(b"eventlog");
     eventlog::boot_lines(&mut |line| {
         e.raw(line.to_bytes());
@@ -948,8 +1004,8 @@ fn endorsement_template(public: &TpmPublic) -> bool {
 }
 
 /// parse_schema() of the evidence into the parse: whether it carries an
-/// endorsement key and a credential, or -EINVAL.
-fn parse_evidence(p: &mut Parse, evidence: &[u8]) -> Result<(bool, bool), c_int> {
+/// endorsement key, credential and config NvPCR certification, or -EINVAL.
+fn parse_evidence(p: &mut Parse, evidence: &[u8]) -> Result<(bool, bool, bool), c_int> {
     let pcr_sub = [
         JsonField::int(c"index", |p: &mut Parse| &mut p.pcr_index),
         JsonField::string(c"value", |p| &mut p.pcr_value_hex),
@@ -968,6 +1024,11 @@ fn parse_evidence(p: &mut Parse, evidence: &[u8]) -> Result<(bool, bool), c_int>
         JsonField::string(c"name", |p| &mut p.ek_name_hex),
     ];
     let cred_sub = [JsonField::string(c"value", |p: &mut Parse| &mut p.cred_hex)];
+    let nvpcr_sub = [
+        JsonField::string(c"name", |p: &mut Parse| &mut p.nvpcr_name_hex),
+        JsonField::string(c"attest", |p| &mut p.nvpcr_attest_hex),
+        JsonField::string(c"signature", |p| &mut p.nvpcr_sig_hex),
+    ];
     let reg_sub = [
         JsonField::string(c"nv_index", |p: &mut Parse| &mut p.reg_index),
         JsonField::int(c"pcr", |p| &mut p.reg_pcr),
@@ -1018,12 +1079,21 @@ fn parse_evidence(p: &mut Parse, evidence: &[u8]) -> Result<(bool, bool), c_int>
         JsonField::array(c"eventlog", &rec_sub, &on_record),
         JsonField::object(c"ek", &ek_sub),
         JsonField::object(c"credential", &cred_sub),
+        JsonField::object(c"config_nvpcr", &nvpcr_sub),
     ];
 
     if parse_schema(evidence, &top, p).is_err() || !top[..7].iter().all(JsonField::seen) {
         return Err(-EINVAL);
     }
-    Ok((ek_sub.iter().all(JsonField::seen), cred_sub[0].seen()))
+    let have_nvpcr = top[9].seen();
+    if have_nvpcr && !nvpcr_sub.iter().all(JsonField::seen) {
+        return Err(-EINVAL);
+    }
+    Ok((
+        ek_sub.iter().all(JsonField::seen),
+        cred_sub[0].seen(),
+        have_nvpcr,
+    ))
 }
 
 /// attest verify: the evidence checked against what the operator
@@ -1037,7 +1107,7 @@ pub(crate) fn verify(
     let mut p = Box::new(Parse::new());
 
     p.recs.try_reserve_exact(RECORDS_MAX).map_err(|_| -ENOMEM)?;
-    let (have_ek, have_cred) = parse_evidence(&mut p, evidence)?;
+    let (have_ek, have_cred, have_nvpcr) = parse_evidence(&mut p, evidence)?;
     let config = parse_config(rep, evidence)?;
 
     // Freshness: the document must answer this request.
@@ -1077,7 +1147,15 @@ pub(crate) fn verify(
             b"quote and certification are of one TPM boot",
         );
     }
-    check_config(rep, &p, expect, &config, &quote.attest);
+    let nvpcr_value = check_config_nvpcr(rep, &p, expect, &signer, &quote, have_nvpcr)?;
+    check_config(
+        rep,
+        &p,
+        expect,
+        &config,
+        &quote.attest,
+        nvpcr_value.as_ref(),
+    );
 
     check_binding(rep, &p, expect, &register)?;
     check_epoch(rep, &p, &certify);
@@ -1298,6 +1376,74 @@ fn check_certify(rep: &mut Report, register: &Register, certify: &Signed) {
     );
 }
 
+/// Only a certification of the listed index name and exactly 32 bytes
+/// supplies replay input. Signature validity is reported separately.
+fn certified_nvpcr_value(signed: &Signed, name: &[u8; NAME_LEN]) -> Option<[u8; 32]> {
+    let nv = &signed.attest;
+    if !signed.checked
+        || nv.ty != ST_ATTEST_NV
+        || nv.index_name_len != NAME_LEN
+        || memneq_explicit(&nv.index_name, name)
+        || nv.offset != 0
+        || nv.nv_len != 32
+    {
+        return None;
+    }
+    nv.nv_data_in(&signed.bytes)?.try_into().ok()
+}
+
+/// Verify an optional AK-signed config NvPCR certification against the
+/// quote's TPM boot and, when supplied, the operator's pinned index.
+fn check_config_nvpcr(
+    rep: &mut Report,
+    p: &Parse,
+    expect: &AttestExpect,
+    signer: &Signer<'_>,
+    quote: &Signed,
+    present: bool,
+) -> Result<Option<[u8; 32]>, c_int> {
+    if !present {
+        if expect.config_nvpcr_name.is_some() {
+            rep.check(false, b"config NvPCR: certification missing");
+        }
+        return Ok(None);
+    }
+    let mut name = [0u8; NAME_LEN];
+    if !hex_into(&p.nvpcr_name_hex, &mut name) {
+        return Err(-EINVAL);
+    }
+    let signed = check_signed(
+        rep,
+        signer,
+        b"config NvPCR",
+        &p.nvpcr_attest_hex,
+        &p.nvpcr_sig_hex,
+    )?;
+    let value = certified_nvpcr_value(&signed, &name);
+    rep.check(
+        value.is_some(),
+        b"config NvPCR: certified name and contents",
+    );
+    let (nv, q) = (&signed.attest, &quote.attest);
+    rep.check(
+        signed.checked
+            && quote.checked
+            && nv.reset_count == q.reset_count
+            && nv.restart_count == q.restart_count
+            && nv.firmware_version == q.firmware_version,
+        b"config NvPCR: same TPM boot as quote",
+    );
+    if let Some(pinned) = expect.config_nvpcr_name {
+        rep.check(
+            !memneq_explicit(&name, &pinned),
+            b"config NvPCR: the operator-pinned index",
+        );
+    } else {
+        rep.note(b"config NvPCR has no operator pin; use --expect-config-nvpcr");
+    }
+    Ok(value)
+}
+
 /// The config's history against the quote, where the evidence carries
 /// one or the operator expects one.
 fn check_config(
@@ -1306,6 +1452,7 @@ fn check_config(
     expect: &AttestExpect,
     config: &Evidence,
     quote: &TpmAttest,
+    nvpcr_value: Option<&[u8; 32]>,
 ) {
     if !config.present && expect.config_root.is_none() && expect.config_pcr.is_none() {
         return;
@@ -1314,7 +1461,7 @@ fn check_config(
         mask: quote.pcr_mask,
         reset: quote.reset_count,
         pcrs: &p.pcrs,
-        nvpcr: None,
+        nvpcr: nvpcr_value,
     };
     let (ret, reason) = config_attest::verify(
         config,
@@ -1330,7 +1477,9 @@ fn check_config(
         );
     }
     if config.present {
-        rep.note(b"config records a selection; direct TPM writer protection is deferred");
+        rep.note(
+            b"config records a selection; operation completion depends on trusted runtime guards",
+        );
     }
 }
 
