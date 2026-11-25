@@ -788,28 +788,36 @@ impl Transport {
     ) -> Result<(CurlCode, c_long), c_int> {
         let ctx: *mut Response = response;
 
-        easy.set_str(CURLOPT_URL, &self.endpoint);
-        easy.set_long(CURLOPT_POST, 1);
-        easy.set_post_fields(body);
-        easy.set_headers(&self.headers);
-        easy.set_str(CURLOPT_USERAGENT, c"shirudo OTel-OTLP-Exporter-C/1");
+        let check = |code| {
+            if code == CURLE_OK {
+                Ok(())
+            } else {
+                Err(-EINVAL)
+            }
+        };
+
+        check(easy.set_str(CURLOPT_URL, &self.endpoint))?;
+        check(easy.set_long(CURLOPT_POST, 1))?;
+        check(easy.set_post_fields(body))?;
+        check(easy.set_headers(&self.headers))?;
+        check(easy.set_str(CURLOPT_USERAGENT, c"shirudo OTel-OTLP-Exporter-C/1"))?;
         // SAFETY: response_write() takes its data for the response, which
         // outlives the handle and which only the callbacks touch while
         // the transfer runs.
-        unsafe { easy.set_write(response_write, ctx) };
+        check(unsafe { easy.set_write(response_write, ctx) })?;
         // SAFETY: response_header() takes its data for the response, as
         // above.
-        unsafe { easy.set_header(response_header, ctx) };
-        easy.set_long(CURLOPT_NOSIGNAL, 1);
-        easy.set_long(CURLOPT_TIMEOUT_MS, self.timeout_ms);
-        easy.set_long(
+        check(unsafe { easy.set_header(response_header, ctx) })?;
+        check(easy.set_long(CURLOPT_NOSIGNAL, 1))?;
+        check(easy.set_long(CURLOPT_TIMEOUT_MS, self.timeout_ms))?;
+        check(easy.set_long(
             CURLOPT_SSL_VERIFYPEER,
             if self.insecure_tls { 0 } else { 1 },
-        );
-        easy.set_long(
+        ))?;
+        check(easy.set_long(
             CURLOPT_SSL_VERIFYHOST,
             if self.insecure_tls { 0 } else { 2 },
-        );
+        ))?;
         tls_curl_policy(easy, None)?;
         for (option, value) in [
             (CURLOPT_CAINFO, &self.ca_file),
@@ -817,7 +825,7 @@ impl Transport {
             (CURLOPT_SSLKEY, &self.client_key),
         ] {
             if let Some(value) = value {
-                easy.set_str(option, value);
+                check(easy.set_str(option, value))?;
             }
         }
         let code = easy.perform();
