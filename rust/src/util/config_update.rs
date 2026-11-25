@@ -940,5 +940,8 @@ impl ConfigUpdate<'_> {
     }
 }
 
+#[cfg(test)]
+mod tests;
+
 #[cfg(shirudo_fuzz)]
 mod fuzz;
