@@ -694,3 +694,25 @@ fn run(args: &[&CStr]) -> c_int {
     }
     ret
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fake_identity_map_has_every_checked_field() {
+        let info = identity_map_info();
+        let def = &GUARD_MAPS[GUARD_IDENTITY].def;
+
+        assert_ne!(info.u32_at(4), 0);
+        assert_eq!(info.u32_at(0), def.map_type);
+        assert_eq!(info.u32_at(8), def.key_size);
+        assert_eq!(info.u32_at(12), def.value_size);
+        assert_eq!(info.u32_at(16), def.max_entries);
+        assert_eq!(info.u32_at(20), def.flags);
+        assert!(crate::util::identity::guard_name_matches(
+            &info.bytes()[24..40],
+            def.name
+        ));
+    }
+}
