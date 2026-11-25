@@ -30,15 +30,11 @@ use crate::util::dm_verity::{self, DmVerity};
 use crate::util::hex::hex_encode;
 use crate::util::io::write_complete;
 use crate::util::seal;
+pub(crate) use crate::util::seal::{LABEL as SEAL_LABEL, XATTR as XATTR_SEAL};
 use crate::util::tls_openssl::tls_curl_policy;
 
 /// `IMAGE_CACHE_DIR` of util/paths.h.
 const IMAGE_CACHE_DIR: &CStr = c"/var/lib/shirudo/images";
-/// `XATTR_SEAL` of util/paths.h.
-pub(crate) const XATTR_SEAL: &CStr = c"security.bpf.shirudo";
-/// The seal's label, which the image cache's files carry.
-pub(crate) const SEAL_LABEL: &CStr =
-    c"94442b45cfcdc59aabc2a91364ed2ae129418e05a5c1985231b9c032e673f469";
 
 /// The parts of an image, each with the most a fetch of it may write.
 const FILES: [(&CStr, u64); 4] = [
