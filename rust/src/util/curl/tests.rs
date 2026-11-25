@@ -131,6 +131,21 @@ fn url_gives_its_parts() {
 }
 
 #[test]
+fn url_reports_missing_credentials_separately() {
+    let url = Url::parse(b"https://Registry.Example/v2/").unwrap();
+    assert_eq!(
+        url.part(crate::sys::curl::CURLUPART_USER),
+        Err(crate::sys::curl::CURLUE_NO_USER)
+    );
+    assert_eq!(
+        url.part(crate::sys::curl::CURLUPART_PASSWORD),
+        Err(crate::sys::curl::CURLUE_NO_PASSWORD)
+    );
+    const CURLUE_UNKNOWN_PART: i32 = 9;
+    assert_eq!(url.part(-1), Err(CURLUE_UNKNOWN_PART));
+}
+
+#[test]
 fn url_libcurl_refuses_is_invalid() {
     assert_eq!(Url::parse(b"https://a\0b/").err(), Some(-EINVAL));
     assert_eq!(Url::parse(b"no scheme").err(), Some(-EINVAL));

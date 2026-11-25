@@ -888,3 +888,24 @@ pub(super) fn send_log_string(opts: Option<&OtelOpts>, r: &otlp::StringRecord<'_
         Err(err) => err,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::url_parts;
+    use crate::errno::EINVAL;
+
+    #[test]
+    fn endpoints_distinguish_missing_and_present_credentials() {
+        assert_eq!(
+            url_parts(b"https://collector.example/v1/logs"),
+            Ok((b"https".to_vec(), b"collector.example".to_vec()))
+        );
+        for url in [
+            &b"https://user@collector.example/v1/logs"[..],
+            &b"https://user:secret@collector.example/v1/logs"[..],
+            &b"https://:secret@collector.example/v1/logs"[..],
+        ] {
+            assert_eq!(url_parts(url), Err(-EINVAL));
+        }
+    }
+}
