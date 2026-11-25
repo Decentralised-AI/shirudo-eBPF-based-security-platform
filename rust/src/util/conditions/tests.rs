@@ -6,30 +6,26 @@ use crate::errno::{EACCES, EBADMSG, ENOENT, EXDEV};
 use crate::text::{cstr, find};
 
 /// A reachable, parsed status with the LSM attached.
-fn input() -> ConditionsInput {
-    // SAFETY: an input of flags, counts and NULL strings, for which zeros
-    // are a value.
-    let mut i: ConditionsInput = unsafe { core::mem::zeroed() };
-    i.reachable = true;
-    i.parsed = true;
-    i.lsm_attached = 1;
-    i
+fn input<'a>() -> ConditionsInput<'a> {
+    ConditionsInput {
+        reachable: true,
+        parsed: true,
+        lsm_attached: 1,
+        ..Default::default()
+    }
 }
 
 /// The status and detail of condition `kind` for `i`.
-fn condition_of(i: &ConditionsInput, kind: &CStr) -> Option<(Vec<u8>, Vec<u8>)> {
-    // SAFETY: conditions of NULL strings and empty details.
-    let mut c: [Condition; CONDITIONS_MAX] = unsafe { core::mem::zeroed() };
+fn condition_of(i: &ConditionsInput<'_>, kind: &CStr) -> Option<(Vec<u8>, Vec<u8>)> {
+    let mut c = [Condition::empty(); CONDITIONS_MAX];
     let n = conditions(i, &mut c);
 
     c[..n].iter().find_map(|c| {
-        // SAFETY: the kind and status conditions() set, static C strings.
-        let (k, status) = unsafe { (CStr::from_ptr(c.kind), CStr::from_ptr(c.status)) };
-        (k == kind).then(|| (status.to_bytes().to_vec(), cstr(&c.detail).to_vec()))
+        (c.kind == kind).then(|| (c.status.to_bytes().to_vec(), cstr(&c.detail).to_vec()))
     })
 }
 
-fn upatches_measured(i: &ConditionsInput) -> (Vec<u8>, Vec<u8>) {
+fn upatches_measured(i: &ConditionsInput<'_>) -> (Vec<u8>, Vec<u8>) {
     condition_of(i, c"UpatchesMeasured").unwrap()
 }
 
@@ -37,18 +33,15 @@ fn has(text: &[u8], part: &[u8]) -> bool {
     find(text, part).is_some()
 }
 
-fn reason(i: &ConditionsInput) -> Vec<u8> {
-    let mut buf = [0u8; 128];
-    // SAFETY: an input of NULL or C strings.
-    unsafe { status_reason(i, &mut buf) };
-    cstr(&buf).to_vec()
+fn reason(i: &ConditionsInput<'_>) -> Vec<u8> {
+    status_reason(i).to_bytes().to_vec()
 }
 
 #[test]
 fn changed_xdp_archive_is_tampered() {
     let mut i = input();
     i.xdp_tampered = 1;
-    i.xdp_tampered_detail = c"fix".as_ptr();
+    i.xdp_tampered_detail = Some(c"fix");
     let (status, detail) = upatches_measured(&i);
 
     assert_eq!(status, b"ALERT");
@@ -72,7 +65,7 @@ fn a_lost_link_is_tampered() {
     i.lsm_attached = 0;
     i.pins_rc = -ENOENT;
     i.links_lost = 1;
-    i.links_lost_detail = c"fix".as_ptr();
+    i.links_lost_detail = Some(c"fix");
     let (status, detail) = upatches_measured(&i);
 
     assert_eq!(status, b"ALERT");
@@ -113,7 +106,7 @@ fn no_change_leaves_the_condition_alone() {
 
 /// Reachable, parsed, the LSM attached, the keyring there and the chain
 /// seen: what an XDP condition needs to stand alone.
-fn healthy() -> ConditionsInput {
+fn healthy<'a>() -> ConditionsInput<'a> {
     let mut i = input();
     i.keyring_present = 1;
     i.chain_seen = 1;
@@ -124,7 +117,7 @@ fn healthy() -> ConditionsInput {
 fn an_uncovered_device_degrades() {
     let mut i = healthy();
     i.xdp_uncovered = 1;
-    i.xdp_uncovered_detail = c"fw on eth1 (no multi-buffer XDP)".as_ptr();
+    i.xdp_uncovered_detail = Some(c"fw on eth1 (no multi-buffer XDP)");
     let (status, detail) = condition_of(&i, c"XdpCovered").unwrap();
 
     assert_eq!(status, b"WARN");
@@ -164,7 +157,7 @@ fn a_long_list_is_cut_not_dropped() {
     let names = std::ffi::CString::new(names).unwrap();
     let mut i = healthy();
     i.xdp_uncovered = 20;
-    i.xdp_uncovered_detail = names.as_ptr();
+    i.xdp_uncovered_detail = Some(&names);
     let detail = condition_of(&i, c"XdpCovered").unwrap().1;
 
     assert_eq!(detail.len(), 191);

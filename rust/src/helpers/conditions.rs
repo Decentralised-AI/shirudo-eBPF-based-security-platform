@@ -39,9 +39,8 @@ fn env_number(name: &str, default: i64) -> i64 {
         .unwrap_or(default)
 }
 
-fn text(p: *const core::ffi::c_char) -> String {
-    // SAFETY: a static C string conditions() set.
-    String::from_utf8_lossy(unsafe { CStr::from_ptr(p) }.to_bytes()).into_owned()
+fn text(s: &CStr) -> String {
+    s.to_string_lossy().into_owned()
 }
 
 fn run(args: &[&CStr]) -> c_int {
@@ -64,18 +63,14 @@ fn run(args: &[&CStr]) -> c_int {
         .as_deref()
         .and_then(|p| p.strip_prefix("unmeasured:"))
         .map(|d| CString::new(d).unwrap());
-    // SAFETY: an input of flags, counts and NULL strings, for which zeros
-    // are a value.
-    let mut i: ConditionsInput = unsafe { core::mem::zeroed() };
+    let mut i = ConditionsInput::default();
 
     i.reachable = true;
     i.parsed = true;
     i.lsm_attached = c_int::from(lsm != 0);
     i.keyring_present = c_int::from(serial >= 0);
-    i.keyring_mode = args[2].as_ptr();
     i.keyring_serial = serial;
     i.keyring_serial_pinned = pinned;
-    i.ks_seen = i.keyring_present;
     i.ksp_seen = c_int::from(pinned >= 1);
     i.ksm_seen = c_int::from(i.keyring_present != 0 && pinned >= 1);
     i.keyring_serial_matches = c_int::from(i.ksm_seen != 0 && serial == pinned);
@@ -95,7 +90,7 @@ fn run(args: &[&CStr]) -> c_int {
     i.chain_seen = c_int::from(i.tpm_reachable != 0 && tpm != b"none");
     i.cm_seen = i.chain_seen;
     i.chain_matches = c_int::from(tpm == b"match");
-    i.nv_index = c"0x01818E00".as_ptr();
+    i.nv_index = Some(c"0x01818E00");
     i.config_seen = c_int::from(config.as_deref() != Some("none"));
     i.config_state = match config.as_deref() {
         Some("pending") => -EINPROGRESS,
@@ -103,32 +98,26 @@ fn run(args: &[&CStr]) -> c_int {
         Some("stale") => -ESTALE,
         _ => 0,
     };
-    i.config_root = c"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef".as_ptr();
+    i.config_root = Some(c"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
     match pins.as_deref() {
         Some("norecord") => i.pins_rc = -ENOENT,
         Some("error") => i.pins_rc = -EACCES,
         _ => {
             if let Some(detail) = &pins_detail {
-                i.pins_detail = detail.as_ptr();
+                i.pins_detail = Some(detail);
                 i.pins_unmeasured =
                     1 + detail.as_bytes().iter().filter(|&&c| c == b',').count() as c_int;
             }
         }
     }
 
-    let mut reason = [0u8; 160];
-    // SAFETY: an input of NULL or C strings that outlive the call.
-    unsafe { status_reason(&i, &mut reason) };
+    let reason = status_reason(&i).to_bytes();
     out(&format!(
         "status={}\n",
         status_verdict(&i).to_string_lossy()
     ));
-    out(&format!(
-        "reason={}\n",
-        String::from_utf8_lossy(cstr(&reason))
-    ));
-    // SAFETY: conditions of NULL strings and empty details.
-    let mut conds: [Condition; CONDITIONS_MAX] = unsafe { core::mem::zeroed() };
+    out(&format!("reason={}\n", String::from_utf8_lossy(reason)));
+    let mut conds = [Condition::empty(); CONDITIONS_MAX];
     let n = conditions(&i, &mut conds);
     for c in &conds[..n] {
         out(&format!(

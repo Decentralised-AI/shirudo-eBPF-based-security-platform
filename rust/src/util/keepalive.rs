@@ -5,7 +5,7 @@
 //! and its packed fields: the outcome mask of the
 //! operations of the window and the conditions word.
 
-use core::ffi::{CStr, c_char, c_int};
+use core::ffi::c_int;
 
 use crate::errno::{E2BIG, EINVAL};
 use crate::text::cstr;
@@ -134,29 +134,13 @@ fn code_of(status: &[u8]) -> u16 {
 /// a condition conditions() adds moves none, and 0 for one not given.
 pub(crate) fn cond(conds: &[Condition]) -> u16 {
     let named = |name: &[u8]| {
-        conds.iter().find_map(|c| {
-            // SAFETY: the condition's static C strings.
-            let (kind, status) = unsafe { (c_str(c.kind), c_str(c.status)) };
-            (kind == name).then(|| code_of(status))
-        })
+        conds
+            .iter()
+            .find_map(|c| (c.kind.to_bytes() == name).then(|| code_of(c.status.to_bytes())))
     };
     COND_ORDER.iter().enumerate().fold(0, |word, (i, name)| {
         word | named(name).unwrap_or(0) << (CODE_BITS * i)
     })
-}
-
-/// A C string's bytes, none for NULL.
-///
-/// # Safety
-///
-/// `s` is NULL or a C string.
-unsafe fn c_str<'a>(s: *const c_char) -> &'a [u8] {
-    if s.is_null() {
-        b""
-    } else {
-        // SAFETY: the caller's C string.
-        unsafe { CStr::from_ptr(s) }.to_bytes()
-    }
 }
 
 fn is_hash(s: Option<&[u8]>) -> bool {

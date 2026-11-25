@@ -11,20 +11,18 @@ use crate::errno::{EBADMSG, EINPROGRESS, EKEYREJECTED, ENOENT, ESTALE, EXDEV};
 use crate::sys::libc::{printf, snprintf, strerror};
 use crate::text::strscpy;
 
-/// `struct conditions_input`: what the status JSON said, its `*_seen`
-/// flags telling whether it carried a value that was not null.
-#[repr(C)]
-pub struct ConditionsInput {
+/// Facts used to explain the local security verdict. The `*_seen`
+/// flags distinguish a missing field from one carrying zero.
+#[derive(Default)]
+pub struct ConditionsInput<'a> {
     pub(crate) reachable: bool,
     pub(crate) parsed: bool,
-    pub(crate) unreach: *const c_char,
+    pub(crate) unreach: Option<&'a CStr>,
     pub(crate) lsm_attached: c_int,
     pub(crate) keyring_present: c_int,
-    pub(crate) keyring_mode: *const c_char,
     pub(crate) keyring_serial: i64,
     pub(crate) keyring_serial_pinned: i64,
     pub(crate) keyring_serial_matches: c_int,
-    pub(crate) ks_seen: c_int,
     pub(crate) ksp_seen: c_int,
     pub(crate) ksm_seen: c_int,
     pub(crate) bpf_unfrozen: c_int,
@@ -40,45 +38,46 @@ pub struct ConditionsInput {
     pub(crate) chain_seen: c_int,
     pub(crate) chain_matches: c_int,
     pub(crate) cm_seen: c_int,
-    pub(crate) nv_index: *const c_char,
+    pub(crate) nv_index: Option<&'a CStr>,
     pub(crate) config_seen: c_int,
     pub(crate) config_state: c_int,
-    pub(crate) config_root: *const c_char,
+    pub(crate) config_root: Option<&'a CStr>,
     pub(crate) pins_rc: c_int,
     pub(crate) pins_unmeasured: c_int,
-    pub(crate) pins_detail: *const c_char,
+    pub(crate) pins_detail: Option<&'a CStr>,
     /// Loaded XDP upatches whose archive changed, and their names.
     pub(crate) xdp_tampered: c_int,
-    pub(crate) xdp_tampered_detail: *const c_char,
+    pub(crate) xdp_tampered_detail: Option<&'a CStr>,
     /// Loaded upatches missing a link or their archive, and their names.
     pub(crate) links_lost: c_int,
-    pub(crate) links_lost_detail: *const c_char,
+    pub(crate) links_lost_detail: Option<&'a CStr>,
     /// -errno of a link or archive check that could not run.
     pub(crate) checks_rc: c_int,
     /// Selected devices an XDP upatch does not run on: upatch, device and
     /// why.
     pub(crate) xdp_uncovered: c_int,
-    pub(crate) xdp_uncovered_detail: *const c_char,
+    pub(crate) xdp_uncovered_detail: Option<&'a CStr>,
     /// -errno when that could not be checked.
     pub(crate) xdp_coverage_rc: c_int,
 }
 
-const _: () = assert!(size_of::<ConditionsInput>() == 224);
-const _: () = assert!(core::mem::offset_of!(ConditionsInput, xdp_tampered_detail) == 176);
-const _: () = assert!(core::mem::offset_of!(ConditionsInput, xdp_uncovered_detail) == 208);
-const _: () = assert!(core::mem::offset_of!(ConditionsInput, keyring_serial) == 32);
-const _: () = assert!(core::mem::offset_of!(ConditionsInput, nv_index) == 128);
-const _: () = assert!(core::mem::offset_of!(ConditionsInput, pins_detail) == 160);
-
-/// `struct condition`.
-#[repr(C)]
+/// One row in the status display. Names and status labels are static.
+#[derive(Clone, Copy)]
 pub struct Condition {
-    pub(crate) kind: *const c_char,
-    pub(crate) status: *const c_char,
+    pub(crate) kind: &'static CStr,
+    pub(crate) status: &'static CStr,
     pub(crate) detail: [u8; 192],
 }
 
-const _: () = assert!(size_of::<Condition>() == 208);
+impl Condition {
+    pub(crate) const fn empty() -> Self {
+        Self {
+            kind: c"",
+            status: c"",
+            detail: [0; 192],
+        }
+    }
+}
 
 /// `CONDITIONS_MAX`: the conditions there are.
 pub(crate) const CONDITIONS_MAX: usize = 7;
@@ -96,7 +95,7 @@ macro_rules! set_detail {
         let c: &mut Condition = $c;
         let mut full = [0u8; 1024];
 
-        c.status = $status.as_ptr();
+        c.status = $status;
         // SAFETY: the room of the buffer, and a format whose conversions
         // take the arguments given, in their C types.
         let n = unsafe { snprintf(full.as_mut_ptr().cast(), full.len(), $fmt.as_ptr() $(, $arg)*) };
@@ -116,12 +115,12 @@ fn cut_detail(c: &mut Condition, full: Option<&[u8]>) {
     }
 }
 
-/// What a nullable C string field holds, or `?` for NULL.
-fn or_unknown(s: *const c_char) -> *const c_char {
-    if s.is_null() { c"?".as_ptr() } else { s }
+/// What an absent string field shows in a condition detail.
+fn or_unknown(s: Option<&CStr>) -> *const c_char {
+    s.unwrap_or(c"?").as_ptr()
 }
 
-fn config_untrusted(i: &ConditionsInput) -> bool {
+fn config_untrusted(i: &ConditionsInput<'_>) -> bool {
     i.config_seen != 0 && i.config_state != 0 && i.config_state != -EINPROGRESS
 }
 
@@ -135,7 +134,7 @@ fn config_untrusted_detail(state: c_int) -> &'static CStr {
     }
 }
 
-fn keyring_tampered(i: &ConditionsInput) -> bool {
+fn keyring_tampered(i: &ConditionsInput<'_>) -> bool {
     (i.ksp_seen != 0 && i.keyring_present == 0)
         || (i.ksm_seen != 0 && i.keyring_serial_matches == 0)
         || (i.dmvp_seen != 0 && i.dmv_present == 0)
@@ -150,8 +149,8 @@ fn plural(n: c_int) -> *const c_char {
     if n == 1 { c"".as_ptr() } else { c"s".as_ptr() }
 }
 
-fn keyring_condition(i: &ConditionsInput, c: &mut Condition) {
-    c.kind = c"KeyringSealed".as_ptr();
+fn keyring_condition(i: &ConditionsInput<'_>, c: &mut Condition) {
+    c.kind = c"KeyringSealed";
     if i.keyring_present == 0 && i.ksp_seen != 0 {
         set_detail!(
             c,
@@ -232,20 +231,20 @@ fn keyring_condition(i: &ConditionsInput, c: &mut Condition) {
 }
 
 /// A condition whose detail is fixed text.
-fn set_fixed(c: &mut Condition, status: &CStr, detail: &CStr) {
-    c.status = status.as_ptr();
+fn set_fixed(c: &mut Condition, status: &'static CStr, detail: &CStr) {
+    c.status = status;
     let _ = strscpy(&mut c.detail, detail.to_bytes());
 }
 
 /// The conditions, as many as `out` holds, in their order: LsmAttached,
 /// KeyringSealed, ChainIntact, UpatchesMeasured, TpmMeasured,
 /// ConfigActive and XdpCovered; returns how many it wrote.
-pub(crate) fn conditions(i: &ConditionsInput, out: &mut [Condition]) -> usize {
+pub(crate) fn conditions(i: &ConditionsInput<'_>, out: &mut [Condition]) -> usize {
     let n = out.len().min(CONDITIONS_MAX);
     let mut it = out[..n].iter_mut();
 
     if let Some(c) = it.next() {
-        c.kind = c"LsmAttached".as_ptr();
+        c.kind = c"LsmAttached";
         if i.lsm_attached != 0 {
             set_fixed(c, OK, c"lsm/bpf link present and pinned");
         } else {
@@ -256,7 +255,7 @@ pub(crate) fn conditions(i: &ConditionsInput, out: &mut [Condition]) -> usize {
         keyring_condition(i, c);
     }
     if let Some(c) = it.next() {
-        c.kind = c"ChainIntact".as_ptr();
+        c.kind = c"ChainIntact";
         if i.chain_seen == 0 {
             let detail = if i.tpm_reachable != 0 {
                 c"no register bound this boot (init incomplete)"
@@ -274,7 +273,7 @@ pub(crate) fn conditions(i: &ConditionsInput, out: &mut [Condition]) -> usize {
         }
     }
     if let Some(c) = it.next() {
-        c.kind = c"UpatchesMeasured".as_ptr();
+        c.kind = c"UpatchesMeasured";
         if i.xdp_tampered != 0 {
             set_detail!(
                 c,
@@ -326,7 +325,7 @@ pub(crate) fn conditions(i: &ConditionsInput, out: &mut [Condition]) -> usize {
         }
     }
     if let Some(c) = it.next() {
-        c.kind = c"TpmMeasured".as_ptr();
+        c.kind = c"TpmMeasured";
         if i.chain_seen != 0 {
             set_detail!(c, OK, c"NV index %s readable", or_unknown(i.nv_index));
         } else if i.tpm_reachable != 0 {
@@ -343,7 +342,7 @@ pub(crate) fn conditions(i: &ConditionsInput, out: &mut [Condition]) -> usize {
     if let Some(c) = it.next() {
         let root = or_unknown(i.config_root);
 
-        c.kind = c"ConfigActive".as_ptr();
+        c.kind = c"ConfigActive";
         if i.config_seen == 0 {
             set_fixed(c, WARN, c"no config activation state before init");
         } else if i.config_state == -EINPROGRESS {
@@ -360,7 +359,7 @@ pub(crate) fn conditions(i: &ConditionsInput, out: &mut [Condition]) -> usize {
         }
     }
     if let Some(c) = it.next() {
-        c.kind = c"XdpCovered".as_ptr();
+        c.kind = c"XdpCovered";
         if i.xdp_uncovered != 0 {
             set_detail!(
                 c,
@@ -401,7 +400,12 @@ pub(crate) fn conditions_print(conds: &[Condition]) {
             c"DETAIL".as_ptr(),
         );
         for c in conds {
-            printf(row.as_ptr(), c.kind, c.status, c.detail.as_ptr());
+            printf(
+                row.as_ptr(),
+                c.kind.as_ptr(),
+                c.status.as_ptr(),
+                c.detail.as_ptr(),
+            );
         }
     }
 }
@@ -409,7 +413,7 @@ pub(crate) fn conditions_print(conds: &[Condition]) {
 /// The verdict in one word, from worst to best: unreachable,
 /// unparseable, tampered, lsm-off, init-pending, reboot-pending,
 /// degraded, ok.
-pub(crate) fn status_verdict(i: &ConditionsInput) -> &'static CStr {
+pub(crate) fn status_verdict(i: &ConditionsInput<'_>) -> &'static CStr {
     if !i.reachable {
         c"unreachable"
     } else if !i.parsed {
@@ -436,63 +440,46 @@ pub(crate) fn status_verdict(i: &ConditionsInput) -> &'static CStr {
     }
 }
 
-/// Why the verdict is what it is, into `buf`; empty for ok, and for an
-/// unreachable status without a reason.
-///
-/// # Safety
-///
-/// `i.unreach` is NULL or a C string.
-pub(crate) unsafe fn status_reason(i: &ConditionsInput, buf: &mut [u8]) {
-    let verdict = status_verdict(i).to_bytes();
-    let reason: Option<&[u8]> = match verdict {
-        b"unreachable" if !i.unreach.is_null() => {
-            // SAFETY: the caller passes a C string.
-            Some(unsafe { CStr::from_ptr(i.unreach) }.to_bytes())
+/// The reason for the verdict. Borrowing the caller's text keeps the
+/// full message when it exceeds the old fixed output buffer.
+pub(crate) fn status_reason<'a>(i: &ConditionsInput<'a>) -> &'a CStr {
+    match status_verdict(i).to_bytes() {
+        b"unreachable" => i.unreach.unwrap_or(c""),
+        b"unparseable" => c"status JSON unparseable",
+        b"tampered" => {
+            if i.cm_seen != 0 && i.chain_matches == 0 {
+                c"live register differs from the eventlog replay"
+            } else if i.xdp_tampered != 0 {
+                c"the archive of a loaded XDP upatch differs from what was loaded"
+            } else if i.links_lost != 0 {
+                c"a loaded upatch is missing a link or its archive"
+            } else if i.pins_unmeasured != 0 {
+                c"a upatch is pinned or archived without a record of this boot"
+            } else if i.pins_rc == -EBADMSG {
+                c"this boot's records do not fold to the measurement register"
+            } else if config_untrusted(i) {
+                c"the selected config cannot be verified against its records"
+            } else if i.ksp_seen != 0 && i.keyring_present == 0 {
+                c"the keyring init froze is gone"
+            } else if i.ksm_seen != 0 && i.keyring_serial_matches == 0 {
+                c"keyring serial swap detected"
+            } else if i.dmvp_seen != 0 && i.dmv_present == 0 {
+                c"the dm-verity keyring init froze is gone"
+            } else if i.dmvm_seen != 0 && i.dmv_serial_matches == 0 {
+                c"dm-verity keyring serial swap detected"
+            } else if i.bpf_unfrozen != 0 || i.dmv_unfrozen != 0 {
+                c"a keyring holds a link init did not freeze"
+            } else {
+                c"the config key init froze is gone"
+            }
         }
-        b"unparseable" => Some(b"status JSON unparseable"),
-        b"tampered" => Some(if i.cm_seen != 0 && i.chain_matches == 0 {
-            b"live register differs from the eventlog replay"
-        } else if i.xdp_tampered != 0 {
-            b"the archive of a loaded XDP upatch differs from what was loaded"
-        } else if i.links_lost != 0 {
-            b"a loaded upatch is missing a link or its archive"
-        } else if i.pins_unmeasured != 0 {
-            b"a upatch is pinned or archived without a record of this boot"
-        } else if i.pins_rc == -EBADMSG {
-            b"this boot's records do not fold to the measurement register"
-        } else if config_untrusted(i) {
-            b"the selected config cannot be verified against its records"
-        } else if i.ksp_seen != 0 && i.keyring_present == 0 {
-            b"the keyring init froze is gone"
-        } else if i.ksm_seen != 0 && i.keyring_serial_matches == 0 {
-            b"keyring serial swap detected"
-        } else if i.dmvp_seen != 0 && i.dmv_present == 0 {
-            b"the dm-verity keyring init froze is gone"
-        } else if i.dmvm_seen != 0 && i.dmv_serial_matches == 0 {
-            b"dm-verity keyring serial swap detected"
-        } else if i.bpf_unfrozen != 0 || i.dmv_unfrozen != 0 {
-            b"a keyring holds a link init did not freeze"
-        } else {
-            b"the config key init froze is gone"
-        }),
-        b"lsm-off" => Some(b"LSM not attached, enforcement off"),
-        b"init-pending" => Some(b".bpf keyring absent before init"),
-        b"reboot-pending" => Some(b"a config activation is pending until the next reboot"),
-        b"degraded" => Some(if i.chain_seen != 0 {
-            b"a device an XDP upatch selects does not run it"
-        } else if i.tpm_reachable != 0 {
-            b"no register bound this boot"
-        } else {
-            b"no TPM answered"
-        }),
-        _ => None,
-    };
-
-    if let Some(first) = buf.first_mut() {
-        *first = 0;
-    }
-    if let Some(reason) = reason {
-        let _ = strscpy(buf, reason);
+        b"lsm-off" => c"LSM not attached, enforcement off",
+        b"init-pending" => c".bpf keyring absent before init",
+        b"reboot-pending" => c"a config activation is pending until the next reboot",
+        b"degraded" if i.chain_seen != 0 => c"a device an XDP upatch selects does not run it",
+        b"degraded" if i.tpm_reachable != 0 => c"no register bound this boot",
+        b"degraded" => c"no TPM answered",
+        _ => c"",
     }
 }
 

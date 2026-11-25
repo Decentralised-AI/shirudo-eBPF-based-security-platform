@@ -1350,7 +1350,7 @@ impl Report {
     }
 
     /// The conditions' input, which points into the report.
-    fn input(&self) -> ConditionsInput {
+    fn input(&self) -> ConditionsInput<'_> {
         let (present, pinned) = (self.keyring_present(), self.keyring_pinned >= 1);
         let (dmv_present, dmvp_seen) = (self.dmv.serial >= 0, self.dmv.pinned >= 1);
         let c = &self.checked;
@@ -1358,10 +1358,9 @@ impl Report {
         ConditionsInput {
             reachable: true,
             parsed: true,
-            unreach: ptr::null(),
+            unreach: None,
             lsm_attached: self.lsm_attached.into(),
             keyring_present: present.into(),
-            keyring_mode: self.keyring_mode.as_ptr(),
             keyring_serial: self.keyring_serial.into(),
             keyring_serial_pinned: if pinned {
                 self.keyring_pinned.into()
@@ -1372,7 +1371,6 @@ impl Report {
                 && pinned
                 && self.keyring_serial == self.keyring_pinned)
                 .into(),
-            ks_seen: present.into(),
             ksp_seen: pinned.into(),
             ksm_seen: (present && pinned).into(),
             bpf_unfrozen: self.bpf.n_unfrozen() as c_int,
@@ -1389,20 +1387,20 @@ impl Report {
             chain_seen: (self.chain_rc == 0).into(),
             chain_matches: (self.matches == Some(true)).into(),
             cm_seen: self.matches.is_some().into(),
-            nv_index: NV_INDEX.as_ptr(),
+            nv_index: Some(NV_INDEX),
             config_seen: (self.config_state != -ENODEV).into(),
             config_state: self.config_state,
-            config_root: self.config_root.as_ptr(),
+            config_root: Some(&self.config_root),
             pins_rc: c.unmeasured.min(0),
             pins_unmeasured: c.unmeasured.max(0),
-            pins_detail: c.unmeasured_names.as_ptr().cast(),
+            pins_detail: CStr::from_bytes_until_nul(&c.unmeasured_names).ok(),
             xdp_tampered: c.xdp_tampered.max(0),
-            xdp_tampered_detail: c.xdp_tampered_names.as_ptr().cast(),
+            xdp_tampered_detail: CStr::from_bytes_until_nul(&c.xdp_tampered_names).ok(),
             links_lost: c.links_lost.max(0),
-            links_lost_detail: c.links_lost_names.as_ptr().cast(),
+            links_lost_detail: CStr::from_bytes_until_nul(&c.links_lost_names).ok(),
             checks_rc: c.checks_rc,
             xdp_uncovered: c.xdp_uncovered.max(0),
-            xdp_uncovered_detail: c.xdp_uncovered_names.as_ptr().cast(),
+            xdp_uncovered_detail: CStr::from_bytes_until_nul(&c.xdp_uncovered_names).ok(),
             xdp_coverage_rc: c.coverage_rc,
         }
     }
@@ -1433,9 +1431,8 @@ impl Report {
         cap.min(MAX_BYTES)
     }
 
-    fn emit_json(&self, e: &mut JsonEmit, cin: &ConditionsInput, include_eventlog: bool) {
+    fn emit_json(&self, e: &mut JsonEmit, cin: &ConditionsInput<'_>, include_eventlog: bool) {
         let (present, pinned) = (self.keyring_present(), self.keyring_pinned >= 1);
-        let mut reason = [0u8; 160];
         let mut conds: [Condition; CONDITIONS_MAX] = no_conditions();
 
         e.obj_open();
@@ -1445,9 +1442,8 @@ impl Report {
         e.kv_bool(b"is_target", self.is_target);
         e.kv_bool(b"is_operator", self.is_operator);
         e.kv_string(b"status", conditions::status_verdict(cin).to_bytes());
-        // SAFETY: the input and room for the reason.
-        unsafe { conditions::status_reason(cin, &mut reason) };
-        match cstr(&reason) {
+        let reason = conditions::status_reason(cin).to_bytes();
+        match reason {
             [] => e.kv_null(b"reason"),
             r => e.kv_string(b"reason", r),
         }
@@ -1455,11 +1451,8 @@ impl Report {
         e.arr_open(b"conditions");
         for c in &conds[..nc] {
             e.obj_open();
-            // SAFETY: a condition's strings are C strings.
-            unsafe {
-                e.kv_string(b"type", ffi::c_str(c.kind));
-                e.kv_string(b"status", ffi::c_str(c.status));
-            }
+            e.kv_string(b"type", c.kind.to_bytes());
+            e.kv_string(b"status", c.status.to_bytes());
             e.kv_string(b"detail", cstr(&c.detail));
             e.obj_close();
         }
@@ -1623,12 +1616,10 @@ impl Report {
         self.bpf.links.is_ok().then(|| self.bpf.n_asymmetric())
     }
 
-    fn print_human(&self, cin: &ConditionsInput, show_full: bool, include_eventlog: bool) {
-        let mut reason = [0u8; 160];
+    fn print_human(&self, cin: &ConditionsInput<'_>, show_full: bool, include_eventlog: bool) {
         let mut conds: [Condition; CONDITIONS_MAX] = no_conditions();
         let verdict = conditions::status_verdict(cin).to_bytes();
-        // SAFETY: the input and room for the reason.
-        unsafe { conditions::status_reason(cin, &mut reason) };
+        let reason = conditions::status_reason(cin).to_bytes();
         let nc = conditions::conditions(cin, &mut conds);
         let rows = upatch_rows(&self.pins, &self.java);
         let mut folded: Vec<&[u8]> = Vec::new();
@@ -1638,8 +1629,7 @@ impl Report {
         let (mut keyrings_open, mut tpm_open) = (show_full, show_full);
 
         for c in conds[..nc].iter().filter(|_| self.is_target) {
-            // SAFETY: a condition's strings are C strings.
-            let (kind, status) = unsafe { (ffi::c_str(c.kind), ffi::c_str(c.status)) };
+            let (kind, status) = (c.kind.to_bytes(), c.status.to_bytes());
             match (status, kind) {
                 (b"OK", _) => {}
                 (_, b"KeyringSealed") => keyrings_open = true,
@@ -1649,7 +1639,7 @@ impl Report {
         }
         system_row(b"", b"Host:", &self.hostname);
         row(b"", b"Roles:", roles(self.is_target, self.is_operator));
-        match cstr(&reason) {
+        match reason {
             [] => row(b"", b"Status:", verdict),
             r => row(b"", b"Status:", &[verdict, b"  (", r, b")"].concat()),
         }
@@ -1836,11 +1826,9 @@ impl Report {
     }
 }
 
-/// Room for the conditions, all zero until conditions() fills them.
+/// Room for the conditions before conditions() fills them.
 fn no_conditions() -> [Condition; CONDITIONS_MAX] {
-    // SAFETY: plain data, whose NULL strings nothing reads before
-    // conditions() sets them.
-    unsafe { mem::zeroed() }
+    [Condition::empty(); CONDITIONS_MAX]
 }
 
 fn roles(is_target: bool, is_operator: bool) -> &'static [u8] {

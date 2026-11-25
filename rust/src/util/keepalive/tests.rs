@@ -5,6 +5,7 @@ use super::*;
 use crate::testutil::testing_path;
 use crate::util::conditions::{ConditionsInput, conditions};
 use crate::util::json::{Visit, walk};
+use core::ffi::CStr;
 
 const APPLIED: u8 = 1;
 const PASSED_OVER: u8 = 2;
@@ -117,8 +118,8 @@ fn conds(named: &[(&'static CStr, &'static CStr)]) -> Vec<Condition> {
     named
         .iter()
         .map(|(kind, status)| Condition {
-            kind: kind.as_ptr(),
-            status: status.as_ptr(),
+            kind,
+            status,
             detail: [0; 192],
         })
         .collect()
@@ -191,14 +192,13 @@ fn cond_places_each_status_by_name() {
 
 #[test]
 fn cond_follows_the_order_conditions_returns() {
-    // SAFETY: an input of flags, counts and NULL strings, for which
-    // zeros are a value.
-    let mut i: ConditionsInput = unsafe { core::mem::zeroed() };
-    i.reachable = true;
-    i.parsed = true;
-    i.lsm_attached = 1;
-    // SAFETY: conditions of NULL strings and empty details.
-    let mut c: [Condition; CONDITIONS_MAX] = unsafe { core::mem::zeroed() };
+    let i = ConditionsInput {
+        reachable: true,
+        parsed: true,
+        lsm_attached: 1,
+        ..Default::default()
+    };
+    let mut c = [Condition::empty(); CONDITIONS_MAX];
     let n = conditions(&i, &mut c);
     let word = cond(&c[..n]);
 

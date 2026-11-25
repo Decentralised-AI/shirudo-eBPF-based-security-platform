@@ -192,7 +192,11 @@ fn flags(r: &Report, v: &View, state_read: bool) -> u32 {
 
 /// The body of this host; a tree state that cannot be read is a node that
 /// follows no tree.
-fn body(r: &Report, cin: &ConditionsInput, config_root: Option<&[u8]>) -> Result<Vec<u8>, c_int> {
+fn body(
+    r: &Report,
+    cin: &ConditionsInput<'_>,
+    config_root: Option<&[u8]>,
+) -> Result<Vec<u8>, c_int> {
     let mut v = View {
         base_seq: 0,
         outcomes_rc: 0,
@@ -208,9 +212,7 @@ fn body(r: &Report, cin: &ConditionsInput, config_root: Option<&[u8]>) -> Result
     })?;
     let si = sysinfo::gather();
     let img = sysinfo::image_read();
-    // SAFETY: plain data, whose NULL strings nothing reads before
-    // conditions() sets them.
-    let mut conds: [Condition; CONDITIONS_MAX] = unsafe { core::mem::zeroed() };
+    let mut conds = [Condition::empty(); CONDITIONS_MAX];
     let nc = conditions::conditions(cin, &mut conds);
     let tree = snap.state.as_ref().ok().map(|state| Tree {
         tree_id: Some(crate::text::cstr(&state.tree_id)),
@@ -284,7 +286,7 @@ fn send(opts: &OtelOpts, verdict: &CStr, body: &[u8]) -> c_int {
 /// 1 when it could not.
 pub(super) fn run(
     r: &Report,
-    cin: &ConditionsInput,
+    cin: &ConditionsInput<'_>,
     config_root: Option<&[u8]>,
     opts: Option<&OtelOpts>,
 ) -> c_int {
