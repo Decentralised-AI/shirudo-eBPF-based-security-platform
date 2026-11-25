@@ -544,7 +544,12 @@ static int check_one(const char *name, void *ctx)
 
 	if (!upatch_pin_measured(w->s, name, payload))
 		return 0;
-	if (upatch_pins_read(name, &pins) || !pins.nr_xdp_progs)
+	ret = upatch_pins_read(name, &pins);
+	if (ret && ret != -ENOENT) {
+		note_err(&w->c->check_err, ret);
+		note_err(&w->c->coverage_err, ret);
+	}
+	if (ret || !pins.nr_xdp_progs)
 		return note_links_unverified(w, name);
 	ret = upatch_archive_verify(name, payload, &u);
 	if (ret == -ESTALE) {

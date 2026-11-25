@@ -1086,6 +1086,7 @@ static int boot_restore_locked(bool recorded,
 		char pinned_hex[2 * UPATCH_PAYLOAD_HASH_LEN + 1];
 		char path[PATH_MAX];
 		struct upatch u;
+		int loaded;
 
 		if (ret)
 			goto next;
@@ -1122,7 +1123,14 @@ static int boot_restore_locked(bool recorded,
 				cnt++;
 			goto next;
 		}
-		if (upatch_loaded_pins(set[cnt].name)) {
+		loaded = upatch_loaded_pins(set[cnt].name);
+		if (loaded < 0) {
+			pr_err("boot-restore: cannot read the pins of %s: %s",
+			       set[cnt].name, strerror(-loaded));
+			ret = loaded;
+			goto next;
+		}
+		if (loaded) {
 			upatch_payload_sha256(set[cnt].name, pinned_hex,
 					      sizeof(pinned_hex));
 			if (strcmp(pinned_hex, set[cnt].payload_hex) != 0) {

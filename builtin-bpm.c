@@ -2176,8 +2176,13 @@ static int tree_recover_pending(const struct tree_publication *pub,
 				   history_root);
 	if (ret)
 		return ret;
-	absent = !strcmp(op->op, "add") && !upatch_loaded_pins(op->id) &&
-		 !java_agent_loaded(op->id);
+	absent = false;
+	if (!strcmp(op->op, "add")) {
+		ret = upatch_loaded_pins(op->id);
+		if (ret < 0)
+			return ret;
+		absent = !ret && !java_agent_loaded(op->id);
+	}
 	ret = tree_outcome_record(op->seq, digest,
 				  absent ? TREE_OUTCOME_MODULE_ABSENT :
 					   TREE_OUTCOME_APPLIED,

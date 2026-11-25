@@ -651,15 +651,18 @@ static int is_not_dot(const struct dirent *e)
 	return strcmp(e->d_name, ".") && strcmp(e->d_name, "..");
 }
 
-static bool upatch_is_loaded(const char *name)
+/* 1 when loaded, 0 when not, -errno when the pins cannot be read. */
+static int upatch_is_loaded(const char *name)
 {
 	char pin[PATH_MAX];
 	struct stat st;
+	int ret;
 
-	if (upatch_loaded_pins(name))
-		return true;
+	ret = upatch_loaded_pins(name);
+	if (ret)
+		return ret;
 	if (upatch_pin_path(pin, sizeof(pin), name, "test", NULL))
-		return false;
+		return 0;
 	return stat(pin, &st) == 0;
 }
 
@@ -763,7 +766,7 @@ static int cmd_upatch_list(int argc, const char **argv)
 		const char *type, *payload_type;
 		struct list_row *row;
 		struct upatch u;
-		bool loaded;
+		int loaded;
 
 		if (strsprintf(path, sizeof(path), "%s/%s",
 			       UPATCHES_DIR,
@@ -787,19 +790,30 @@ static int cmd_upatch_list(int argc, const char **argv)
 		loaded = u.hdr.type == UPATCH_TYPE_JAVA ?
 			 java_agent_loaded(name) : upatch_is_loaded(name);
 		upatch_close(&u);
+		if (loaded < 0) {
+			pr_err("upatch list: cannot read the pins of %s: %s",
+			       name, strerror(-loaded));
+			ret = 1;
+		}
 
 		if (json) {
 			json_obj_open(&e);
 			json_kv_string(&e, "name", name);
 			json_kv_string(&e, "type", type);
 			json_kv_string(&e, "payload_type", payload_type);
-			json_kv_bool(&e, "loaded", loaded);
+			if (loaded < 0)
+				json_kv_null(&e, "loaded");
+			else
+				json_kv_bool(&e, "loaded", loaded);
 			json_kv_bool(&e, "archived", 1);
 			json_kv_string(&e, "payload_sha256", payload_hex);
 			json_obj_close(&e);
 		} else {
 			row = list_row_new(rows, &n_rows, name);
-			row->loaded = loaded ? "yes" : "no";
+			if (loaded < 0)
+				row->loaded = "?";
+			else
+				row->loaded = loaded ? "yes" : "no";
 			row->type = type;
 			row->kind = payload_type;
 			memcpy(row->payload, payload_hex, 16);
@@ -4983,7 +4997,13 @@ static int collect_one(const char *name, void *ctx)
 	bool skip;
 	int ret;
 
-	if (upatch_pins_read(name, &pins) || !pins.nr_xdp_progs)
+	ret = upatch_pins_read(name, &pins);
+	if (ret && ret != -ENOENT) {
+		rep_fail(c->rep, "pre_flight", "unknown", -ret,
+			 "cannot read the pins of an upatch");
+		return 1;
+	}
+	if (ret || !pins.nr_xdp_progs)
 		return 0;
 	grown = xreallocarray(c->work, c->nr, c->nr + 1, sizeof(*c->work));
 	if (!grown) {
