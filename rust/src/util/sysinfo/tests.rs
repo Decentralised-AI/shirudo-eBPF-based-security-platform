@@ -319,3 +319,44 @@ fn meminfo_keeps_values_before_an_invalid_line() {
     text.extend_from_slice(b"\nMemAvailable: 500 kB\n");
     assert_eq!(meminfo_from(std::io::Cursor::new(text)), (1024, 500));
 }
+
+#[test]
+fn system_json_keeps_invalid_external_text_readable() {
+    let si = Sysinfo {
+        hostname: b"node\xff".to_vec(),
+        os_pretty: b"Linux\xfe".to_vec(),
+        kernel_release: b"7.0\xc3".to_vec(),
+        kernel_version: b"version\xff".to_vec(),
+        kernel_build_id: b"abcd".to_vec(),
+        machine: b"x86_64\xc0\xaf".to_vec(),
+        machine_id: b"id\xff".to_vec(),
+        boot_id: b"\xfe".to_vec(),
+        nproc: -1,
+        mem_total_kb: -1,
+        mem_avail_kb: -1,
+        uptime_sec: -1,
+        disk_total_kb: -1,
+        disk_used_kb: -1,
+    };
+    let mut out = [0u8; 4096];
+    let mut e = JsonEmit::fixed(&mut out);
+    e.obj_open();
+    emit_system_json(&mut e, &si, &[(b"CONFIG_\xff".to_vec(), b"x\xfe".to_vec())]);
+    e.obj_close();
+    assert_eq!(e.err(), 0);
+    let json = std::str::from_utf8(e.output()).unwrap();
+
+    for field in [
+        r#""hostname":"node\ufffd""#,
+        r#""os":"Linux\ufffd""#,
+        r#""kernel_release":"7.0\ufffd""#,
+        r#""kernel_version":"version\ufffd""#,
+        r#""kernel_build_id":"abcd""#,
+        r#""architecture":"x86_64\ufffd\ufffd""#,
+        r#""machine_id":"id\ufffd""#,
+        r#""boot_id":"\ufffd""#,
+        r#""CONFIG_\ufffd":"x\ufffd""#,
+    ] {
+        assert!(json.contains(field), "{field} missing from {json}");
+    }
+}

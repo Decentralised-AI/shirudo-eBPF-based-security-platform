@@ -1996,7 +1996,29 @@ pub(crate) fn cmd_status(args: &[&CStr]) -> c_int {
 
 #[cfg(test)]
 mod tests {
-    use super::lines;
+    use super::{UNMEASURED_NAMES, lines, note};
+    use crate::text::cstr;
+
+    #[test]
+    fn name_list_marks_truncation_once() {
+        let mut names = [0u8; UNMEASURED_NAMES];
+        note(&mut names, b"first");
+        note(&mut names, b"second");
+        assert_eq!(cstr(&names), b"first, second");
+
+        let mut near_full = [0u8; UNMEASURED_NAMES];
+        note(&mut near_full, &vec![b'a'; UNMEASURED_NAMES - 2]);
+        note(&mut near_full, b"next");
+        assert_eq!(cstr(&near_full).len(), UNMEASURED_NAMES - 1);
+        assert!(cstr(&near_full).ends_with(b"..."));
+        let final_list = near_full;
+        note(&mut near_full, b"another");
+        assert_eq!(near_full, final_list);
+
+        let mut empty = [0u8; UNMEASURED_NAMES];
+        note(&mut empty, &vec![b'a'; UNMEASURED_NAMES]);
+        assert_eq!(cstr(&empty), b"");
+    }
 
     #[test]
     fn eventlog_lines_continue_after_nul_and_skip_unfinished_tail() {
