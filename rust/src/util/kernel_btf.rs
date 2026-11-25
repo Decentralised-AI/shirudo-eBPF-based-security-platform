@@ -9,12 +9,31 @@
 use core::ffi::{c_int, c_void};
 use std::sync::OnceLock;
 
-use crate::bpf::btf::Btf;
+use crate::bpf::btf::{Btf, KIND_FUNC};
 use crate::errno::{E2BIG, ESRCH};
 use crate::sys::libc::close;
 use crate::util::bpf_sys::{bpf_btf_get_fd_by_id, bpf_obj_get_info_by_fd};
 
 const VMLINUX: &str = "/sys/kernel/btf/vmlinux";
+
+/// Kernel features that determine whether module loads are checked.
+pub(crate) struct ModuleOptions {
+    pub(crate) modules: bool,
+    pub(crate) module_sig: bool,
+}
+
+/// Each function exists in BTF only when its kernel option is built in.
+pub(crate) fn module_options(btf: &Btf) -> ModuleOptions {
+    ModuleOptions {
+        modules: btf
+            .find_by_name_kind(b"__module_address", KIND_FUNC)
+            .is_some(),
+        module_sig: btf
+            .find_by_name_kind(b"mod_verify_sig", KIND_FUNC)
+            .is_some(),
+    }
+}
+
 /// `struct bpf_btf_info`: its size, and where the BTF's address and size
 /// sit in it.
 const BTF_INFO_SIZE: usize = 32;
@@ -75,5 +94,41 @@ pub(crate) fn by_id(id: u32) -> Result<Btf, c_int> {
         Ok(size) if size <= buf.len() => Btf::parse(&buf[..size]),
         Ok(_) => Err(-E2BIG),
         Err(e) => Err(e),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::module_options;
+    use crate::btf_builder::BtfBuilder;
+
+    fn options_with(names: &[&str]) -> (bool, bool) {
+        let mut builder = BtfBuilder::new();
+        let int = builder.int("int", 4, u32::from(crate::bpf::btf::INT_SIGNED));
+        let proto = builder.func_proto(int, &[]);
+        for name in names {
+            builder.func(name, proto);
+        }
+        let btf = builder.parse().unwrap_or_else(|err| panic!("BTF: {err}"));
+        let opts = module_options(&btf);
+        (opts.modules, opts.module_sig)
+    }
+
+    #[test]
+    fn module_signatures_are_built_in() {
+        assert_eq!(
+            options_with(&["__module_address", "mod_verify_sig"]),
+            (true, true)
+        );
+    }
+
+    #[test]
+    fn no_modules_need_no_signatures() {
+        assert_eq!(options_with(&["vfs_read", "module"]), (false, false));
+    }
+
+    #[test]
+    fn modules_without_signatures_are_visible() {
+        assert_eq!(options_with(&["__module_address"]), (true, false));
     }
 }

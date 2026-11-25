@@ -19,6 +19,7 @@ use crate::util::config::{self, Scrubbed};
 use crate::util::crypto_openssl::key_algorithm;
 use crate::util::initrd;
 use crate::util::kernel_abi;
+use crate::util::kernel_btf;
 use crate::util::keys::{self, TrustedSet};
 
 /// `PREFLIGHT_DETAIL_MAX`.
@@ -30,13 +31,14 @@ const PRE_BPF_LSM: c_int = 1;
 const PRE_BPFFS: c_int = 2;
 const PRE_SIGNED_LOADER_ABI: c_int = 3;
 const PRE_LSM_HOOKS: c_int = 4;
-const PRE_CERT_ON_DISK: c_int = 5;
-const PRE_CERT_ALGORITHM: c_int = 6;
-const PRE_CERT_KERNEL_ALGO: c_int = 7;
-const PRE_KEYRING: c_int = 8;
-const PRE_EMBEDDED_LOADER: c_int = 9;
-const PRE_TPM: c_int = 10;
-const PRE_MAX: usize = 11;
+const PRE_MODULE_SIG: c_int = 5;
+const PRE_CERT_ON_DISK: c_int = 6;
+const PRE_CERT_ALGORITHM: c_int = 7;
+const PRE_CERT_KERNEL_ALGO: c_int = 8;
+const PRE_KEYRING: c_int = 9;
+const PRE_EMBEDDED_LOADER: c_int = 10;
+const PRE_TPM: c_int = 11;
+const PRE_MAX: usize = 12;
 
 /// The keyrings and keyctl(2) commands of linux/keyctl.h the checks use.
 const KEY_SPEC_THREAD_KEYRING: c_long = -1;
@@ -66,7 +68,7 @@ pub struct PreflightResult {
 }
 
 const _: () = assert!(size_of::<PreflightCheck>() == 280);
-const _: () = assert!(size_of::<PreflightResult>() == 3088);
+const _: () = assert!(size_of::<PreflightResult>() == 3368);
 
 impl PreflightResult {
     /// The next check's slot, named, its detail emptied: its index.
@@ -241,6 +243,23 @@ fn check_lsm_hooks(r: &mut PreflightResult) {
             r.checks[i].ok = false;
             r.n_failed += 1;
         }
+    }
+}
+
+fn check_module_signatures(r: &mut PreflightResult) {
+    let i = r.next_slot(PRE_MODULE_SIG, c"module_signatures");
+    let Ok(btf) = kernel_btf::load_vmlinux() else {
+        r.fail(i, &[b"cannot read the kernel BTF"]);
+        return;
+    };
+    let opts = kernel_btf::module_options(&btf);
+    if !opts.modules || opts.module_sig {
+        r.pass(i);
+    } else {
+        r.fail(
+            i,
+            &[b"the kernel loads modules without checking their signatures (needs CONFIG_MODULE_SIG=y, or CONFIG_MODULES=n)"],
+        );
     }
 }
 
@@ -498,6 +517,7 @@ pub(crate) fn run(r: &mut PreflightResult) {
     check_bpffs(r);
     check_signed_loader_abi(r);
     check_lsm_hooks(r);
+    check_module_signatures(r);
     check_cert(r);
     check_cert_algorithm(r);
     check_cert_kernel_algo(r);
