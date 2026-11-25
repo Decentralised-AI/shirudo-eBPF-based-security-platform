@@ -80,6 +80,7 @@ bool upatch_pins_complete(const struct upatch_pins *pins, __u32 nr_attach)
 
 int upatch_pins_read(const char *name, struct upatch_pins *out)
 {
+	struct upatch_pins pins = {};
 	char dir[PATH_MAX];
 	struct dirent *e;
 	int ret = 0;
@@ -93,11 +94,13 @@ int upatch_pins_read(const char *name, struct upatch_pins *out)
 		return -errno;
 	errno = 0;
 	while ((e = readdir(d))) {
-		upatch_pins_note(out, e->d_name);
+		upatch_pins_note(&pins, e->d_name);
 		errno = 0;
 	}
 	if (errno)
 		ret = -errno;
+	else
+		*out = pins;
 	closedir(d);
 	return ret;
 }
