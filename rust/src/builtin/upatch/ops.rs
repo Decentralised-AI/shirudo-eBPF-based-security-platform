@@ -746,7 +746,27 @@ fn precheck(a: &OpArgs, rep: &mut OpReport, op: &[u8]) -> Result<(), ()> {
 /// register and the log advance together.
 fn eventlog_room(rep: &mut OpReport, op: &[u8]) -> Result<(), ()> {
     let mut cfg = Scrubbed::new();
-    config::load(&mut cfg);
+    let loaded = config::load(&mut cfg);
+    if loaded != 0 {
+        log_err(
+            &[
+                b"upatch ",
+                op,
+                b": configuration unreadable: ",
+                strerr(-loaded),
+                b"; refused, nothing loaded or extended",
+            ]
+            .concat(),
+        );
+        fail(
+            rep,
+            c"pre_flight",
+            c"unknown",
+            loaded,
+            b"configuration unreadable",
+        );
+        return Err(());
+    }
     let max = cfg.eventlog_max_bytes;
     if !eventlog::would_exceed(max) {
         return Ok(());

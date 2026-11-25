@@ -561,7 +561,11 @@ fn zero_or(ret: c_int) -> Result<(), c_int> {
 fn register_define(tpm: &Tpm, defined: bool, policy: &[u8; DIGEST_LEN]) -> Result<(), c_int> {
     let mut cfg = Scrubbed::new();
 
-    config::load(&mut cfg);
+    let loaded = config::load(&mut cfg);
+    if loaded != 0 {
+        crate::log::err(format!("tpm: configuration unreadable: {}", text(loaded)).as_bytes());
+        return Err(loaded);
+    }
     let c = &*cfg;
     let auth = c
         .tpm_owner_auth
