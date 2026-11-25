@@ -12,8 +12,7 @@ use core::ffi::{CStr, c_char, c_int, c_long};
 use crate::errno::ENOENT;
 use crate::sys::libc::Zeroed;
 use crate::sys::libc::{
-    SC_NPROCESSORS_ONLN, Statvfs, Utsname, bytes, fclose, fgets, fopen, gethostname, sscanf,
-    statvfs, sysconf, uname,
+    SC_NPROCESSORS_ONLN, Statvfs, Utsname, bytes, gethostname, statvfs, sysconf, uname,
 };
 use crate::text::{cstr, digits, parse_u64, strsprintf};
 use crate::util::json::JsonEmit;
@@ -68,8 +67,11 @@ fn read_first_line(path: &CStr, max: usize) -> Vec<u8> {
     let mut text = read_start(path, max).unwrap_or_default();
     let end = text
         .iter()
-        .position(|&c| matches!(c, b'\r' | b'\n' | 0))
+        .position(|&c| matches!(c, b'\r' | b'\n'))
         .unwrap_or(text.len());
+    if text[..end].contains(&0) {
+        return Vec::new();
+    }
     text.truncate(end);
     text
 }
@@ -178,59 +180,66 @@ pub(crate) fn image_read() -> SysinfoImage {
     image_read_at(c"/etc/os-release", c"/usr/lib/os-release", c"/proc/cmdline")
 }
 
-/// The whole seconds of /proc/uptime, or -1.
+/// The whole seconds of /proc/uptime, or -1 when the counted text
+/// is not a valid uptime.
+fn uptime_sec(text: &[u8]) -> c_long {
+    if text.is_empty() || text.contains(&0) {
+        return -1;
+    }
+    parse_u64(&text[..digits(text)], c_long::MAX as u64)
+        .ok()
+        .and_then(|sec| c_long::try_from(sec).ok())
+        .unwrap_or(-1)
+}
+
 fn read_uptime_sec() -> c_long {
-    let text = match read_start(c"/proc/uptime", UPTIME_LEN_MAX) {
-        Some(text) if !text.is_empty() => text,
-        _ => return -1,
-    };
+    read_start(c"/proc/uptime", UPTIME_LEN_MAX).map_or(-1, |text| uptime_sec(&text))
+}
 
-    match parse_u64(&text[..digits(&text)], c_long::MAX as u64) {
-        Ok(sec) => sec as c_long,
-        Err(_) => -1,
+const MEMINFO_LINE_MAX: usize = 255;
+
+fn meminfo_kb(line: &[u8], name: &[u8]) -> Option<c_long> {
+    let mut text = line.strip_prefix(name)?;
+    while text.first().is_some_and(|c| matches!(c, b' ' | b'\t')) {
+        text = &text[1..];
     }
+    let kb = parse_u64(&text[..digits(text)], c_long::MAX as u64).ok()?;
+    c_long::try_from(kb).ok()
 }
 
-/// The long a format of one `%ld` scans from the line fgets() left in
-/// `line`, if it does.
-fn scan_long(line: &[u8], fmt: &CStr) -> Option<c_long> {
-    let mut v: c_long = 0;
-    // SAFETY: a C string fgets() ended within line, a format of one
-    // long, and v.
-    let n = unsafe { sscanf(line.as_ptr().cast::<c_char>(), fmt.as_ptr(), &mut v) };
-
-    (n == 1).then_some(v)
-}
-
-/// MemTotal and MemAvailable of /proc/meminfo in KiB, -1 for one it
-/// lacks.
-fn read_mem() -> (c_long, c_long) {
+/// Keep the values found before an invalid line. An overlong line is
+/// skipped; a NUL or read error ends the walk.
+fn meminfo_from(reader: impl BufRead) -> (c_long, c_long) {
     let (mut total_kb, mut avail_kb) = (-1, -1);
-    let mut line = [0u8; 256];
 
-    // SAFETY: a path and a mode.
-    let f = unsafe { fopen(c"/proc/meminfo".as_ptr(), c"re".as_ptr()) };
-    if f.is_null() {
-        return (total_kb, avail_kb);
-    }
-    // SAFETY: the room of line, and the stream fopen() gave.
-    while !unsafe { fgets(line.as_mut_ptr().cast(), line.len() as c_int, f) }.is_null() {
-        if total_kb < 0
-            && let Some(kb) = scan_long(&line, c"MemTotal: %ld kB")
-        {
-            total_kb = kb;
-        } else if avail_kb < 0
-            && let Some(kb) = scan_long(&line, c"MemAvailable: %ld kB")
-        {
-            avail_kb = kb;
+    for row in reader.split(b'\n') {
+        let Ok(row) = row else {
+            break;
+        };
+        if row.contains(&0) {
+            break;
+        }
+        if row.len() > MEMINFO_LINE_MAX {
+            continue;
+        }
+        if total_kb < 0 {
+            total_kb = meminfo_kb(&row, b"MemTotal:").unwrap_or(-1);
+        }
+        if avail_kb < 0 {
+            avail_kb = meminfo_kb(&row, b"MemAvailable:").unwrap_or(-1);
         }
         if total_kb >= 0 && avail_kb >= 0 {
             break;
         }
     }
-    // SAFETY: the stream fopen() gave, closed once.
-    unsafe { fclose(f) };
     (total_kb, avail_kb)
+}
+
+fn read_mem() -> (c_long, c_long) {
+    let Ok(file) = std::fs::File::open("/proc/meminfo") else {
+        return (-1, -1);
+    };
+    meminfo_from(BufReader::new(file))
 }
 
 /// The size and the used space of the root file system in KiB, as df

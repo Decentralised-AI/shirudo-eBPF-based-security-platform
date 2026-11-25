@@ -262,6 +262,10 @@ fn first_line_stops_at_its_end_or_the_cap() {
         "x".repeat(ID_LEN_MAX).as_bytes()
     );
     assert_eq!(read_first_line(&dir.cpath("none"), ID_LEN_MAX), b"");
+    std::fs::write(dir.join("id"), b"abc\0def\n").unwrap();
+    assert_eq!(read_first_line(&path, ID_LEN_MAX), b"");
+    std::fs::write(dir.join("id"), b"abc\n\0def").unwrap();
+    assert_eq!(read_first_line(&path, ID_LEN_MAX), b"abc");
 }
 
 #[test]
@@ -288,4 +292,30 @@ fn kernel_config_stops_at_nul_and_skips_long_lines() {
             (b"CONFIG_B".to_vec(), b"m".to_vec()),
         ]
     );
+}
+
+#[test]
+#[cfg_attr(miri, ignore = "image_read_at opens files with O_NONBLOCK")]
+fn command_line_with_a_nul_is_absent() {
+    let mut line = format!("roothash={ROOT_LOWER}").into_bytes();
+    line.extend_from_slice(b"\0 ro\n");
+    assert_eq!(image_of(None, None, Some(&line)).2, "");
+}
+
+#[test]
+fn uptime_rejects_a_nul_anywhere_in_the_read() {
+    assert_eq!(uptime_sec(b"123.45 100.00\n"), 123);
+    assert_eq!(uptime_sec(b"123.45\0 100.00\n"), -1);
+    assert_eq!(uptime_sec(b""), -1);
+}
+
+#[test]
+fn meminfo_keeps_values_before_an_invalid_line() {
+    let text = b"MemTotal: 1024 kB\nMemAvailable: 600\0 kB\nMemAvailable: 500 kB\n";
+    assert_eq!(meminfo_from(std::io::Cursor::new(text)), (1024, -1));
+
+    let mut text = b"MemTotal: 1024 kB\n".to_vec();
+    text.extend(vec![b' '; MEMINFO_LINE_MAX + 1]);
+    text.extend_from_slice(b"\nMemAvailable: 500 kB\n");
+    assert_eq!(meminfo_from(std::io::Cursor::new(text)), (1024, 500));
 }

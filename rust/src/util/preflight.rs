@@ -6,13 +6,14 @@
 //! why it failed.
 
 use core::ffi::{CStr, c_char, c_int, c_long};
+use std::io::{BufRead, BufReader};
 
 use crate::bpf::lskel::Lskel;
 use crate::errno::{ENOENT, ENOPKG};
 use crate::sys::libc::Zeroed;
 use crate::sys::libc::{
     AT_FDCWD, R_OK, S_IFMT, S_IFREG, STATX_SIZE, STATX_TYPE, SYS_ADD_KEY, SYS_KEYCTL, Statx, W_OK,
-    access, errno, fclose, fgets, fopen, geteuid, statx, strerror, syscall,
+    access, errno, geteuid, statx, strerror, syscall,
 };
 use crate::text::{cstr, decimal, strscpy, strsprintf};
 use crate::util::config::{self, Scrubbed};
@@ -127,50 +128,52 @@ fn check_root(r: &mut PreflightResult) {
     }
 }
 
-/// Whether the active LSMs the kernel lists include bpf.
+/// Whether the counted LSM list includes bpf.
+fn lsm_has_bpf(text: &[u8]) -> bool {
+    !text.contains(&0)
+        && text
+            .split(|&c| c == b',' || c == b'\n')
+            .any(|lsm| lsm == b"bpf")
+}
+
 fn lsm_lists_bpf() -> bool {
     use std::io::Read;
 
     let mut buf = [0u8; 1024];
-    // One read into all but the last byte of buf.
     let n = std::fs::File::open("/sys/kernel/security/lsm")
-        .and_then(|mut f| f.read(&mut buf[..1023]))
+        .and_then(|mut file| file.read(&mut buf))
         .unwrap_or(0);
-    if n == 0 {
-        return false;
-    }
-    cstr(&buf[..n])
-        .split(|&c| c == b',' || c == b'\n')
-        .any(|lsm| lsm == b"bpf")
+    n > 0 && lsm_has_bpf(&buf[..n])
 }
 
-/// Whether /proc/filesystems lists bpf.
-fn bpffs_in_proc_filesystems() -> bool {
-    // SAFETY: two C strings.
-    let f = unsafe { fopen(c"/proc/filesystems".as_ptr(), c"re".as_ptr()) };
-    let mut line = [0u8; 128];
-    let mut found = false;
+/// An overlong line is skipped. A NUL or read error ends the walk.
+fn bpffs_in_reader(reader: impl BufRead) -> bool {
+    const LINE_MAX: usize = 127;
 
-    if f.is_null() {
-        return false;
-    }
-    // SAFETY: room for a line, and the stream.
-    while !unsafe { fgets(line.as_mut_ptr().cast(), line.len() as c_int, f) }.is_null() {
-        let text = cstr(&line);
-        let Some(tab) = text.iter().position(|&c| c == b'\t') else {
-            continue;
+    for row in reader.split(b'\n') {
+        let Ok(row) = row else {
+            break;
         };
-        let name = &text[tab + 1..];
-        let name = &name[..name.iter().position(|&c| c == b'\n').unwrap_or(name.len())];
-
-        if name == b"bpf" {
-            found = true;
+        if row.contains(&0) {
             break;
         }
+        if row.len() > LINE_MAX {
+            continue;
+        }
+        if let Some(tab) = row.iter().position(|&c| c == b'\t')
+            && row[tab + 1..] == *b"bpf"
+        {
+            return true;
+        }
     }
-    // SAFETY: the stream fopen() gave, closed once.
-    unsafe { fclose(f) };
-    found
+    false
+}
+
+fn bpffs_in_proc_filesystems() -> bool {
+    let Ok(file) = std::fs::File::open("/proc/filesystems") else {
+        return false;
+    };
+    bpffs_in_reader(BufReader::new(file))
 }
 
 fn check_bpf_lsm(r: &mut PreflightResult) {
@@ -524,4 +527,28 @@ pub(crate) fn run(r: &mut PreflightResult) {
     check_keyring(r);
     check_embedded_loader(r);
     check_tpm(r);
+}
+
+#[cfg(test)]
+mod counted_text_tests {
+    use super::{bpffs_in_reader, lsm_has_bpf};
+    use std::io::Cursor;
+
+    #[test]
+    fn lsm_list_rejects_a_nul() {
+        assert!(lsm_has_bpf(b"capability,bpf,landlock\n"));
+        assert!(!lsm_has_bpf(b"capability,bpf\0,landlock\n"));
+        assert!(!lsm_has_bpf(b"capability,landlock\n"));
+    }
+
+    #[test]
+    fn filesystems_skip_long_lines_and_stop_at_nul() {
+        let mut text = vec![b'x'; 128];
+        text.extend_from_slice(b"\nnodev\tbpf\n");
+        assert!(bpffs_in_reader(Cursor::new(text)));
+        assert!(!bpffs_in_reader(Cursor::new(b"nodev\tbpf\0tail\n")));
+        assert!(!bpffs_in_reader(Cursor::new(
+            b"nodev\text4\nnodev\0\tbpf\nnodev\tbpf\n"
+        )));
+    }
 }

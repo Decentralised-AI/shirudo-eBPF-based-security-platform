@@ -96,6 +96,11 @@ fn config_lines_share_the_status_rules() {
         );
         assert_eq!(modules_in(b"CONFIG_MODULES=y\0hidden\n", gz), Err(-EINVAL));
 
+        let mut long_with_nul = vec![b'x'; kconfig::LINE_MAX + 1];
+        long_with_nul.push(0);
+        long_with_nul.push(b'\n');
+        assert_eq!(modules_in(&long_with_nul, gz), Err(-EINVAL));
+
         let prefix = b"CONFIG_MODULES=";
         let mut longest = prefix.to_vec();
         longest.extend(vec![b' '; kconfig::LINE_MAX - prefix.len() - 1]);

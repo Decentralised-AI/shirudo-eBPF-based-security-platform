@@ -307,10 +307,10 @@ fn config_text(text: &[u8], kv: &mut KconfigValues<'_>) -> Result<(), c_int> {
         let rest = &text[off..];
         let n = rest.iter().position(|&c| c == b'\n').unwrap_or(rest.len());
 
+        if rest[..n].contains(&0) {
+            return Err(-EINVAL);
+        }
         if n <= kconfig::LINE_MAX {
-            if rest[..n].contains(&0) {
-                return Err(-EINVAL);
-            }
             config_line(&rest[..n], kv)?;
         }
         off += n + 1;

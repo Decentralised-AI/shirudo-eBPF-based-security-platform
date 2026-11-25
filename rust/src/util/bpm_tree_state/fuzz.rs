@@ -97,7 +97,10 @@ fuzz_target!(
         let (Some(sel), Some(input)) = (SELECTOR.get(), input_file(data)) else {
             return;
         };
-        let _ = kconfig_read(&input.path, sel, false);
+        let plain = kconfig_read(&input.path, sel, false);
+        if data.contains(&0) && plain.is_ok() {
+            std::process::abort();
+        }
         let _ = kconfig_read(&input.path, sel, true);
         let _ = read_config_file(&input.path, MAX_LABELS);
     },
