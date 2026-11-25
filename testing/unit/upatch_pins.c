@@ -289,6 +289,30 @@ static void a_failed_readdir_is_an_error(void)
 	ASSERT_EQ(rmdir(dir), 0);
 }
 
+static void a_failed_read_leaves_no_pins(void)
+{
+	char dir[] = "/tmp/shirudo-unit-pins-XXXXXX";
+	static const char * const entries[] = { "link", "link_0", "link_1" };
+	struct upatch_pins pins = {};
+	size_t i;
+
+	ASSERT_TRUE(mkdtemp(dir));
+	for (i = 0; i < ARRAY_SIZE(entries); i++)
+		make_entry(dir, entries[i]);
+
+	/* Four reads succeed, "." and ".." among them: two pins at least. */
+	read_entries_of(dir, 4);
+	EXPECT_EQ(upatch_pins_read("shirudo-unit-pins", &pins), -EIO);
+	EXPECT_FALSE(pins.has_link);
+	EXPECT_UEQ(pins.nr_links, 0);
+	EXPECT_FALSE(upatch_pins_loaded(&pins));
+	read_entries_of_no_dir();
+
+	for (i = 0; i < ARRAY_SIZE(entries); i++)
+		drop_entry(dir, entries[i]);
+	ASSERT_EQ(rmdir(dir), 0);
+}
+
 static const struct unit_case cases[] = {
 	UNIT_CASE(names_are_parsed_strictly),
 	UNIT_CASE(lowest_index_is_kept_in_any_order),
@@ -302,6 +326,7 @@ static const struct unit_case cases[] = {
 	UNIT_CASE(no_pin_directory_is_no_upatch),
 	UNIT_CASE(pin_entries_are_walked),
 	UNIT_CASE(a_failed_readdir_is_an_error),
+	UNIT_CASE(a_failed_read_leaves_no_pins),
 	{}
 };
 
