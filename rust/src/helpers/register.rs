@@ -34,6 +34,7 @@ use crate::util::crypto_openssl::sha256;
 use crate::util::eventlog::{self, EventlogInit, NV_INDEX, boot_init, read_boot_id, timestamp};
 use crate::util::hex::{decode, encode};
 use crate::util::identity::IDENTITY_PIN;
+use crate::util::image_guards::{GUARD_IDENTITY, GUARD_MAPS};
 use crate::util::json::JsonEmit;
 use crate::util::nv_writer;
 use crate::util::tpm::{Attestation, Branches, KeyPublic, NvInfo, Tpm};
@@ -41,8 +42,6 @@ use crate::util::tpm_wire::{NV_RSA_BYTES, RegisterPolicy, register_policy};
 use crate::util::upatch::{TYPE_BPF, TYPE_JAVA};
 
 helper_main!(shirudo_helper_test_register, run);
-
-const BPF_MAP_TYPE_ARRAY: u32 = 2;
 
 fn hex(b: &[u8]) -> String {
     String::from_utf8_lossy(&encode(b)).into_owned()
@@ -85,13 +84,16 @@ fn writer_create() -> c_int {
         if ret != 0 {
             return ret;
         }
+        let def = &GUARD_MAPS[GUARD_IDENTITY].def;
         let mut name = [0u8; 16];
-        name[..15].copy_from_slice(b"shirudo_test_id");
+        let truncated = &def.name.to_bytes()[..def.name.to_bytes().len().min(15)];
+        name[..truncated.len()].copy_from_slice(truncated);
         let fd = match Attr::new()
-            .u32(0, BPF_MAP_TYPE_ARRAY)
-            .u32(4, size_of::<u32>() as u32)
-            .u32(8, size_of::<Identity>() as u32)
-            .u32(12, 1)
+            .u32(0, def.map_type)
+            .u32(4, def.key_size)
+            .u32(8, def.value_size)
+            .u32(12, def.max_entries)
+            .u32(16, def.flags)
             .put(28, &name)
             .run(BPF_MAP_CREATE)
         {
