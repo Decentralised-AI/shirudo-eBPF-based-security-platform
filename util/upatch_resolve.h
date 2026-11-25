@@ -87,6 +87,7 @@ int upatch_each_link_misses(struct btf *vbtf, const char *name,
  */
 int upatch_missed_runs(const char *name, __u32 *nr_counted, __u64 *missed);
 
+/* On failure, a pin directory that cannot be read included, out is empty. */
 void upatch_loaded_at(const char *name, char *out, size_t cap);
 
 /* Empty on any failure. */

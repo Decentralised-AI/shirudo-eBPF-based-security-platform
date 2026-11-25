@@ -34,13 +34,15 @@ int upatch_pins_read(const char *name, struct upatch_pins *out);
 
 /*
  * By name alone, so a caller without the task mark adds no denied
- * BPF_OBJ_GET to the tamper counters.
+ * BPF_OBJ_GET to the tamper counters. 1 when loaded, 0 when not or
+ * without a pin directory, -errno when the directory cannot be read.
  */
-bool upatch_loaded_pins(const char *name);
+int upatch_loaded_pins(const char *name);
 
 /*
  * Calls cb for each link_<n> pin, in directory order, and stops at the
- * first nonzero return, which it returns.
+ * first nonzero return, which it returns; -errno when a read of the
+ * directory fails.
  */
 int upatch_each_link(const char *name,
 		     int (*cb)(__u32 index, const char *pin, void *ctx),

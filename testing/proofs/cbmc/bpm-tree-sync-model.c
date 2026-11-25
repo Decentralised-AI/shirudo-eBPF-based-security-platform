@@ -589,9 +589,9 @@ int tree_outcome_append(__s64 seq, enum tree_outcome outcome,
 	return 0;
 }
 
-bool upatch_loaded_pins(const char *name)
+int upatch_loaded_pins(const char *name)
 {
-	return pins_loaded;
+	return fail_here() ? -EIO : pins_loaded;
 }
 
 /* The model's upatches are BPF ones. */

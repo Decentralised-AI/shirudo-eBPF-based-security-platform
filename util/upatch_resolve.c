@@ -347,7 +347,10 @@ int upatch_resolve_location(struct btf *vbtf, const char *name,
 	int link_fd, ret;
 
 	out[0] = '\0';
-	if (!upatch_pins_read(name, &pins) && pins.nr_xdp_progs)
+	ret = upatch_pins_read(name, &pins);
+	if (ret)
+		return ret;
+	if (pins.nr_xdp_progs)
 		return xdp_location(name, out, cap);
 	link_fd = upatch_open_first_link(name);
 	if (link_fd < 0)
@@ -513,7 +516,9 @@ void upatch_loaded_at(const char *name, char *out, size_t cap)
 	if (upatch_pin_path(dir, sizeof(dir), name, NULL))
 		return;
 	/* Later XDP links change the directory's ctime; a program pin stays. */
-	if (!upatch_pins_read(name, &pins) && pins.nr_xdp_progs &&
+	if (upatch_pins_read(name, &pins))
+		return;
+	if (pins.nr_xdp_progs &&
 	    upatch_xdp_prog_pin(dir, sizeof(dir), name, pins.first_xdp_prog))
 		return;
 	if (stat(dir, &st) != 0)
